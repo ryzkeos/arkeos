@@ -6,7 +6,6 @@ const SESSION_KEY = "arkeos_session";
 
 let session: Session | null = null;
 
-/* ── core http ─────────────────────────────────────────────── */
 function headers(extra?: Record<string, string>): Record<string, string> {
   const token = session?.access_token ?? ANON_KEY;
   return {
@@ -60,7 +59,16 @@ export async function sbDelete(table: string, query: string) {
   return check(res);
 }
 
-/* ── auth ──────────────────────────────────────────────────── */
+export async function sbCount(table: string, query?: string): Promise<number> {
+  const res = await fetch(`${URL_BASE}/rest/v1/${table}${query ? `?${query}` : ""}`, {
+    method: "HEAD",
+    headers: headers({ Prefer: "count=exact" }),
+  });
+  await check(res);
+  const total = Number(res.headers.get("content-range")?.split("/")[1]);
+  return Number.isFinite(total) ? total : 0;
+}
+
 export async function sbSignIn(email: string, password: string) {
   const res = await fetch(`${URL_BASE}/auth/v1/token?grant_type=password`, {
     method: "POST",
@@ -98,7 +106,6 @@ export function sbRestoreSession(): Session | null {
 
 export const sbIsAuthed = () => !!session?.access_token;
 
-/* ── storage ───────────────────────────────────────────────── */
 export async function sbUpload(bucket: string, path: string, file: File) {
   const token = session?.access_token ?? ANON_KEY;
   const res = await fetch(`${URL_BASE}/storage/v1/object/${bucket}/${path}`, {
@@ -112,7 +119,6 @@ export async function sbUpload(bucket: string, path: string, file: File) {
 export const sbPublicUrl = (bucket: string, path: string) =>
   `${URL_BASE}/storage/v1/object/public/${bucket}/${path}`;
 
-/* ── public reads ──────────────────────────────────────────── */
 export async function sbLoadSiteSettings(): Promise<SiteSettings> {
   const rows = await sbGet<{ key: string; value: string }[]>("site_settings", "select=key,value");
   const s: Record<string, string> = {};
@@ -125,8 +131,22 @@ export function sbTrackPageView(pathname: string) {
   sbPost("analytics", { page, created_at: new Date().toISOString() }).catch(() => {});
 }
 
-export function sbSubmitInquiry(payload: Record<string, string>) {
-  return sbPost("inquiries", { ...payload, status: "unread", created_at: new Date().toISOString() });
+export async function sbSubmitInquiry(payload: Record<string, string>) {
+  const res = await fetch("/api/inquiry", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    let msg = `Request failed (${res.status})`;
+    try {
+      const body = await res.json();
+      if (typeof body?.error === "string" && body.error) msg = body.error;
+      else if (typeof body?.message === "string" && body.message) msg = body.message;
+    } catch {}
+    throw new Error(msg);
+  }
+  return res;
 }
 
 export async function sbLoadProjects(fallback: Project[]): Promise<Project[]> {
@@ -137,11 +157,8 @@ export async function sbLoadProjects(fallback: Project[]): Promise<Project[]> {
   return fallback.filter((p) => p.visible !== false);
 }
 
-/* ── admin helpers ─────────────────────────────────────────── */
 export async function sbSaveSetting(key: string, value: string) {
-  const existing = await sbGet<unknown[]>("site_settings", `key=eq.${encodeURIComponent(key)}&select=key`);
-  if (existing?.length) return sbPatch("site_settings", `key=eq.${encodeURIComponent(key)}`, { value });
-  return sbPost("site_settings", { key, value });
+  return sbPost("site_settings?on_conflict=key", { key, value }, "resolution=merge-duplicates,return=minimal");
 }
 
 export const sbGetInquiries = (status?: string) =>
