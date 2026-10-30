@@ -66,7 +66,7 @@ The app only imports from `lib/db`. `lib/db/adapter.ts` is the current adapter. 
 
 Tables: `projects`, `services`, `site_settings`, `inquiries`, `analytics`.
 
-`site_settings` keys: `studio_name`, `founded_year`, `contact_email`, `response_time`, `tagline`, `cta_text`, `about_story`, `about_stats`, `about_values`, `process_steps`, `team`, `social_github`, `social_instagram`, `social_facebook`, `hero_video`, `accent_color`, `availability`, `font_display`, `font_ui_regular`, `font_ui_medium`, `font_label`.
+`site_settings` keys: `studio_name`, `founded_year`, `contact_email`, `response_time`, `tagline`, `cta_text`, `about_story`, `hero_headline`, `hero_deco`, `about_image`, `about_image_wide`, `about_stats`, `about_values`, `process_steps`, `team`, `social_github`, `social_instagram`, `social_facebook`, `hero_video`, `accent_color`, `availability`, `font_display`, `font_ui_regular`, `font_ui_medium`, `font_label`.
 
 ### Fonts
 
