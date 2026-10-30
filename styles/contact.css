@@ -298,3 +298,12 @@
   .pg-contact .contact-info__title { font-size: clamp(1.5rem, 8vw, 2.2rem); }
   .pg-contact .form-field { padding: 1.6rem 0; }
 }
+
+.pg-contact .hp-field {
+  position: absolute;
+  left: -10000px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}

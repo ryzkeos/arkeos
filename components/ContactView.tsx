@@ -2,20 +2,26 @@
 import "@/styles/contact.css";
 import { useEffect, useRef, useState } from "react";
 import { gsap, prefersReducedMotion } from "@/lib/gsap";
-import { sbSubmitInquiry } from "@/lib/supabase";
+import { dbSubmitInquiry } from "@/lib/db";
+import { getIdentity } from "@/lib/content";
+import { useSiteSettings, useSiteSettingsLoaded } from "./SiteSettings";
 import { useArkeosAnimations } from "@/hooks/useArkeosAnimations";
 import PageHero from "./PageHero";
 
-const EMAIL = "hello@arkeos.studio";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 type Form = { name: string; email: string; project_type: string; budget: string; timeline: string; message: string };
 const EMPTY: Form = { name: "", email: "", project_type: "", budget: "", timeline: "", message: "" };
+const CLEAN = (o: Record<string, string>) => Object.fromEntries(Object.entries(o).map(([k, x]) => [k, x.trim()]));
 
 export default function ContactView() {
-  useArkeosAnimations({ pageHero: true });
+  const settings = useSiteSettings();
+  const loaded = useSiteSettingsLoaded();
+  const identity = getIdentity(settings);
+  useArkeosAnimations({ pageHero: true, ready: loaded });
 
   const [form, setForm] = useState<Form>(EMPTY);
+  const [website, setWebsite] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [phase, setPhase] = useState<"form" | "leaving" | "done">("form");
@@ -31,7 +37,6 @@ export default function ContactView() {
       gsap.from(errBox.current, { opacity: 0, y: 8, duration: 0.4, ease: "power2.out" });
   }, [error]);
 
-  /* form fades out, then success fades in */
   useEffect(() => {
     if (phase === "leaving") {
       if (prefersReducedMotion() || !formWrap.current) return setPhase("done");
@@ -44,7 +49,7 @@ export default function ContactView() {
   }, [phase]);
 
   const validate = (): string | null => {
-    const v = Object.fromEntries(Object.entries(form).map(([k, x]) => [k, x.trim()])) as Form;
+    const v = CLEAN(form) as Form;
     if (!v.name || !v.email || !v.project_type || !v.budget || !v.timeline || !v.message)
       return "Please fill in all fields before submitting.";
     if (!EMAIL_RE.test(v.email)) return "Please enter a valid email address.";
@@ -59,12 +64,15 @@ export default function ContactView() {
 
     setSending(true);
     try {
-      await sbSubmitInquiry(Object.fromEntries(Object.entries(form).map(([k, x]) => [k, x.trim()])));
+      await dbSubmitInquiry({ ...CLEAN(form), website });
       setPhase("leaving");
     } catch (err) {
+      const fallback = identity.email ? ` You can also email ${identity.email}.` : "";
       const msg = err instanceof TypeError
-        ? `Network error. Please email us directly at ${EMAIL}.`
-        : "Something went wrong. Please try again.";
+        ? `Network error. Please try again.${fallback}`
+        : err instanceof Error && err.message
+          ? err.message
+          : "Something went wrong. Please try again.";
       setError(msg);
     } finally {
       setSending(false);
@@ -79,7 +87,7 @@ export default function ContactView() {
         ghost="CONTACT"
         label="Start a Project"
         lines={["LET'S", "TALK."]}
-        sub="Fill in the brief below and we'll respond within 48 hours. No sales calls. No NDAs before hello. Just a direct conversation about what you're building."
+        sub="Fill in the brief below and tell us what you are building."
       />
 
       <section id="contact" aria-label="Client inquiry form">
@@ -87,22 +95,24 @@ export default function ContactView() {
           <div className="contact-info reveal">
             <h2 className="contact-info__title">TELL US EVERYTHING.</h2>
             <p className="contact-info__body">
-              The more context you give us, the better the conversation we can have. Don&apos;t hold back — scope, budget, timeline, the politics of the project — we can handle it.
+              The more context you give us, the better the conversation we can have. Share the scope, budget and timeline.
             </p>
-            <div className="contact-details">
-              <div>
-                <p className="contact-detail__label">Email</p>
-                <p className="contact-detail__value"><a href={`mailto:${EMAIL}`} aria-label="Send email to Arkeos">{EMAIL}</a></p>
+            {(identity.email || identity.responseTime) && (
+              <div className="contact-details">
+                {identity.email && (
+                  <div>
+                    <p className="contact-detail__label">Email</p>
+                    <p className="contact-detail__value"><a href={`mailto:${identity.email}`} aria-label={`Send email to ${identity.name}`}>{identity.email}</a></p>
+                  </div>
+                )}
+                {identity.responseTime && (
+                  <div>
+                    <p className="contact-detail__label">Response Time</p>
+                    <p className="contact-detail__value">{identity.responseTime}</p>
+                  </div>
+                )}
               </div>
-              <div>
-                <p className="contact-detail__label">Response Time</p>
-                <p className="contact-detail__value">Within 48 hours, always.</p>
-              </div>
-              <div>
-                <p className="contact-detail__label">Location</p>
-                <p className="contact-detail__value">Remote-first. Timezone-flexible.</p>
-              </div>
-            </div>
+            )}
           </div>
 
           <div className="contact-form-wrap reveal">
@@ -171,6 +181,10 @@ export default function ContactView() {
                     </div>
                   </div>
 
+                  <div className="hp-field" aria-hidden="true">
+                    <input type="text" name="website" tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} />
+                  </div>
+
                   <div className="form-error" id="form-error" ref={errBox} role="alert" aria-live="polite" style={{ display: error ? "block" : "none" }}>
                     <p id="form-error-text">{error}</p>
                   </div>
@@ -180,7 +194,7 @@ export default function ContactView() {
                       <span className="btn-label" id="btn-label">{sending ? "Sending…" : "Send Inquiry"}</span>
                       <span className="btn-arrow" aria-hidden="true" />
                     </button>
-                    <p className="form-note">We respond within 48 hours.</p>
+                    {identity.responseTime && <p className="form-note">{identity.responseTime}</p>}
                   </div>
                 </form>
               </div>
@@ -198,7 +212,7 @@ export default function ContactView() {
               <div className="form-success__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg></div>
               <h2 className="form-success__title">INQUIRY RECEIVED.</h2>
               <p className="form-success__body">
-                We&apos;ve got your brief and we&apos;re already thinking about it. Expect a response within 48 hours — usually sooner. Talk soon.
+                Thank you. We have received your brief and will be in touch.{identity.responseTime ? ` ${identity.responseTime}` : ""}
               </p>
             </div>
           </div>
