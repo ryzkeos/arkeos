@@ -5,6 +5,7 @@ export type Project = {
   tags: string[];
   media: string | null;
   color: string | null;
+  url?: string | null;
   visible: boolean;
   sort_order?: number;
 };
@@ -14,6 +15,7 @@ export type Service = {
   title: string;
   description: string;
   tags: string[];
+  price?: string | null;
   visible: boolean;
   sort_order?: number;
 };
@@ -30,6 +32,29 @@ export type Inquiry = {
   created_at: string | null;
 };
 
+export type TeamMember = {
+  name: string;
+  role: string;
+  bio: string;
+  photo: string | null;
+};
+
+export type StatItem = {
+  n: number;
+  label: string;
+  desc: string;
+};
+
+export type ValueItem = {
+  title: string;
+  desc: string;
+};
+
+export type ProcessStep = {
+  title: string;
+  desc: string;
+};
+
 export type SiteSettings = Partial<{
   accent_color: string;
   availability: "available" | "booked";
@@ -43,6 +68,15 @@ export type SiteSettings = Partial<{
   font_ui_regular: string;
   font_ui_medium: string;
   font_label: string;
+  studio_name: string;
+  founded_year: string;
+  contact_email: string;
+  response_time: string;
+  about_story: string;
+  about_stats: string;
+  about_values: string;
+  process_steps: string;
+  team: string;
 }>;
 
 export type Session = { access_token: string; [k: string]: unknown };
