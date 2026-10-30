@@ -6,6 +6,10 @@ export type StaticIdentity = {
   email?: string;
   responseTime?: string;
   foundedYear?: number;
+  heroHeadline?: string;
+  heroDeco?: string;
+  aboutImage?: string;
+  aboutImageWide?: string;
   story: string[];
   stats: StatItem[];
   values: ValueItem[];
