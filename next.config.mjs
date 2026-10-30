@@ -47,7 +47,12 @@ const nextConfig = {
   poweredByHeader: false,
   images: { unoptimized: true },
   async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
+    const noindex = [{ key: "X-Robots-Tag", value: "noindex, nofollow" }];
+    return [
+      { source: "/:path*", headers: securityHeaders },
+      { source: "/admin", headers: noindex },
+      { source: "/admin/:path*", headers: noindex },
+    ];
   },
 };
 
