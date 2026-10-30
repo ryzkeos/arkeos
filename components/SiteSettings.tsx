@@ -1,7 +1,7 @@
 "use client";
 import { createContext, useContext, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { sbLoadSiteSettings, sbRestoreSession, sbTrackPageView } from "@/lib/supabase";
+import { dbLoadSiteSettings, dbRestoreSession, dbTrackPageView } from "@/lib/db";
 import type { SiteSettings } from "@/lib/types";
 
 const Ctx = createContext<SiteSettings>({});
@@ -10,14 +10,15 @@ const LoadedCtx = createContext(false);
 export const useSiteSettings = () => useContext(Ctx);
 export const useSiteSettingsLoaded = () => useContext(LoadedCtx);
 
-const UNSAFE_URL_CHARS = /["'\\\r\n\f]/;
+const UNSAFE_URL_CHARS = /["'\\()\r\n\f]/;
 
 function safeFontUrl(raw: unknown): string | null {
   if (typeof raw !== "string") return null;
   const value = raw.trim();
   if (!value || UNSAFE_URL_CHARS.test(value)) return null;
   try {
-    const allowed = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").origin;
+    const base = process.env.NEXT_PUBLIC_STORAGE_URL || process.env.NEXT_PUBLIC_DATA_API_URL || "";
+    const allowed = new URL(base).origin;
     const url = new URL(value);
     if (url.protocol !== "https:" || url.origin !== allowed) return null;
     if (UNSAFE_URL_CHARS.test(url.href)) return null;
@@ -36,7 +37,7 @@ function applyFonts(s: SiteSettings): () => void {
   const faces: string[] = [];
   const face = (family: string, src: string, weight?: number) =>
     faces.push(
-      `@font-face{font-family:"${family}";src:url("${src}");${weight ? `font-weight:${weight};` : ""}font-display:swap}`
+      `@font-face{font-family:"${family}";src:url("${src}") format("woff2");${weight ? `font-weight:${weight};` : ""}font-display:swap}`
     );
   if (display) face("Arkeos Display", display);
   if (regular) face("Arkeos UI", regular, 400);
@@ -53,7 +54,7 @@ function applyFonts(s: SiteSettings): () => void {
   ];
 
   const style = document.createElement("style");
-  style.setAttribute("data-arkeos-fonts", "");
+  style.id = "arkeos-fonts";
   style.textContent = faces.join("");
   document.head.appendChild(style);
 
@@ -79,8 +80,8 @@ export function SiteSettingsProvider({ children }: { children: React.ReactNode }
   useEffect(() => {
     let active = true;
     let undoFonts: () => void = () => {};
-    sbRestoreSession();
-    sbLoadSiteSettings()
+    dbRestoreSession();
+    dbLoadSiteSettings()
       .then((s) => {
         if (!active) return;
         setSettings(s);
@@ -100,7 +101,7 @@ export function SiteSettingsProvider({ children }: { children: React.ReactNode }
   }, []);
 
   useEffect(() => {
-    sbTrackPageView(pathname);
+    dbTrackPageView(pathname);
   }, [pathname]);
 
   return (
