@@ -17,7 +17,16 @@ type Fields = {
   tagline: string;
   cta_text: string;
   about_story: string;
+  hero_headline: string;
+  hero_deco: string;
 };
+
+type ImageKey = "about_image" | "about_image_wide";
+
+const IMAGE_TYPES: Record<string, string> = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" };
+const IMAGE_MAX_BYTES = 5 * 1024 * 1024;
+const HERO_MAX_LINES = 3;
+const HERO_DECO_MAX = 12;
 
 const EMPTY_FIELDS: Fields = {
   studio_name: "",
@@ -27,6 +36,8 @@ const EMPTY_FIELDS: Fields = {
   tagline: "",
   cta_text: "",
   about_story: "",
+  hero_headline: "",
+  hero_deco: "",
 };
 
 let seq = 0;
@@ -74,6 +85,11 @@ type Cleaned = {
 };
 
 function validate(f: Fields, team: TeamRow[], stats: StatRow[], values: TitledRow[], steps: TitledRow[]): { error: string } | { data: Cleaned } {
+  const headlineLines = f.hero_headline.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  if (headlineLines.length > HERO_MAX_LINES) return { error: `Hero headline can have ${HERO_MAX_LINES} lines at most.` };
+  const heroDeco = f.hero_deco.trim();
+  if (Array.from(heroDeco).length > HERO_DECO_MAX) return { error: `Hero deco text can have ${HERO_DECO_MAX} characters at most.` };
+
   const fields: Fields = {
     studio_name: f.studio_name.trim(),
     founded_year: f.founded_year.trim(),
@@ -82,6 +98,8 @@ function validate(f: Fields, team: TeamRow[], stats: StatRow[], values: TitledRo
     tagline: f.tagline.trim(),
     cta_text: f.cta_text.trim(),
     about_story: normalizeStory(f.about_story),
+    hero_headline: headlineLines.join("\n"),
+    hero_deco: heroDeco,
   };
 
   if (fields.founded_year) {
@@ -196,6 +214,8 @@ export default function IdentityPanel({ toast }: Pick<PanelProps, "toast">) {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [photoBusy, setPhotoBusy] = useState<number | null>(null);
+  const [images, setImages] = useState<Record<ImageKey, string>>({ about_image: "", about_image_wide: "" });
+  const [imageBusy, setImageBusy] = useState<ImageKey | null>(null);
   const alive = useRef(true);
 
   useEffect(() => {
@@ -211,7 +231,10 @@ export default function IdentityPanel({ toast }: Pick<PanelProps, "toast">) {
           tagline: r.tagline ?? "",
           cta_text: r.cta_text ?? "",
           about_story: r.about_story ?? "",
+          hero_headline: r.hero_headline ?? "",
+          hero_deco: r.hero_deco ?? "",
         });
+        setImages({ about_image: r.about_image ?? "", about_image_wide: r.about_image_wide ?? "" });
         setTeam(parseRows(r.team).map(toTeam));
         setStats(parseRows(r.about_stats).map(toStat));
         setValues(parseRows(r.about_values).map(toTitled));
@@ -270,6 +293,52 @@ export default function IdentityPanel({ toast }: Pick<PanelProps, "toast">) {
     }
   };
 
+  const uploadImage = async (key: ImageKey, file: File | undefined) => {
+    if (!file) return;
+    const ext = IMAGE_TYPES[file.type];
+    if (!ext) return toast("Use a png, jpg or webp image.", true);
+    if (file.size > IMAGE_MAX_BYTES) return toast("Image must be 5 mb or smaller.", true);
+    setImageBusy(key);
+    try {
+      const path = `images/${key}.${ext}`;
+      await db.dbUpload(MEDIA_BUCKET, path, file);
+      const url = `${db.dbPublicUrl(MEDIA_BUCKET, path)}?v=${Date.now()}`;
+      await db.dbSaveSetting(key, url);
+      setImages((cur) => ({ ...cur, [key]: url }));
+      toast("Image saved.");
+    } catch (e) {
+      toast(msg(e, "Image upload failed."), true);
+    } finally {
+      setImageBusy(null);
+    }
+  };
+
+  const removeImage = async (key: ImageKey) => {
+    setImageBusy(key);
+    try {
+      await db.dbSaveSetting(key, "");
+      setImages((cur) => ({ ...cur, [key]: "" }));
+      toast("Image removed.");
+    } catch (e) {
+      toast(msg(e, "Failed to remove image."), true);
+    } finally {
+      setImageBusy(null);
+    }
+  };
+
+  const imageField = (key: ImageKey, label: string, id: string) => (
+    <Field id={id} label={label} full>
+      <div className="form-group-actions">
+        {images[key] && <img className="list-row__photo" src={images[key]} alt="" />}
+        <input type="file" id={id} accept="image/png,image/jpeg,image/webp" disabled={imageBusy === key} onChange={(e) => { const fl = e.target.files?.[0]; e.target.value = ""; uploadImage(key, fl); }} />
+        {imageBusy === key && <span className="field-status status--off" aria-live="polite">Working…</span>}
+        {images[key] && imageBusy !== key && (
+          <button type="button" className="admin-btn admin-btn--sm" onClick={() => removeImage(key)}>Remove Image</button>
+        )}
+      </div>
+    </Field>
+  );
+
   const input = (key: keyof Fields, label: string, id: string, ph: string, type = "text") => (
     <Field id={id} label={label}>
       <input type={type} id={id} placeholder={ph} value={f[key]} onChange={(e) => setF({ ...f, [key]: e.target.value })} />
@@ -289,6 +358,27 @@ export default function IdentityPanel({ toast }: Pick<PanelProps, "toast">) {
           {input("response_time", "Response Time", "id-response-time", "Response time")}
           {input("tagline", "Tagline", "id-tagline", "Tagline")}
           {input("cta_text", "Call To Action Text", "id-cta-text", "Button text")}
+        </div>
+      </div>
+
+      <div className="settings-section">
+        <p className="settings-section-title">Hero</p>
+        <div className="form-group">
+          <label htmlFor="id-hero-headline">Hero Headline (one line per row, 3 lines max)</label>
+          <textarea id="id-hero-headline" rows={3} value={f.hero_headline} onChange={(e) => setF({ ...f, hero_headline: e.target.value })} />
+        </div>
+        <div className="settings-grid">
+          <Field id="id-hero-deco" label="Hero Deco Text (12 characters max)">
+            <input type="text" id="id-hero-deco" maxLength={HERO_DECO_MAX} value={f.hero_deco} onChange={(e) => setF({ ...f, hero_deco: e.target.value })} />
+          </Field>
+        </div>
+      </div>
+
+      <div className="settings-section">
+        <p className="settings-section-title">About Images (png, jpg or webp, 5 mb max, saved on upload)</p>
+        <div className="admin-form-grid">
+          {imageField("about_image", "Story Image", "id-about-image")}
+          {imageField("about_image_wide", "Wide Image", "id-about-image-wide")}
         </div>
       </div>
 
