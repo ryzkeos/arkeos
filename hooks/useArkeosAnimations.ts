@@ -1,0 +1,139 @@
+"use client";
+import { useEffect } from "react";
+import { gsap, ScrollTrigger, prefersReducedMotion, isFinePointer } from "@/lib/gsap";
+
+type Opts = {
+  /** run the generic page-hero intro (about, services, contact, projects) */
+  pageHero?: boolean;
+  /** rerun when this changes (e.g. after async content renders) */
+  ready?: boolean;
+};
+
+/**
+ * port of animations.js (initPageHeroAnimations + initScrollAnimations).
+ * everything is created inside a gsap context and reverted on unmount.
+ */
+export function useArkeosAnimations({ pageHero = false, ready = true }: Opts = {}) {
+  useEffect(() => {
+    if (!ready) return;
+    const reduced = prefersReducedMotion();
+    const q = <T extends Element = HTMLElement>(s: string) => Array.from(document.querySelectorAll<T>(s));
+    const tiltEls: HTMLElement[] = [];
+
+    const ctx = gsap.context(() => {
+      /* ── page hero ── */
+      if (pageHero) {
+        const ems = q(".page-hero .section-h2 em");
+        const eyebrow = document.querySelector(".page-hero .section-lbl");
+        const sub = document.querySelector(".page-hero .page-hero__sub");
+        if (reduced) {
+          gsap.set(ems, { y: "0%" });
+          if (eyebrow) gsap.set(eyebrow, { opacity: 1, y: 0 });
+          if (sub) gsap.set(sub, { opacity: 1, y: 0 });
+        } else {
+          const tl = gsap.timeline({ delay: 0.1 });
+          if (eyebrow) tl.from(eyebrow, { opacity: 0, y: 10, duration: 0.6, ease: "power2.out" });
+          if (ems.length) tl.to(ems, { y: "0%", duration: 1, ease: "power2.out", stagger: 0.08 }, "-=0.4");
+          if (sub) gsap.to(sub, { opacity: 1, y: 0, duration: 0.75, ease: "power2.out", delay: 0.55 });
+        }
+      }
+
+      /* ── section h2 curtain lift (hero h2s are handled above) ── */
+      q(".section-h2 em").forEach((em) => {
+        if (em.closest(".page-hero")) return;
+        if (reduced) return void gsap.set(em, { y: "0%" });
+        gsap.to(em, {
+          y: "0%", duration: 1, ease: "power2.out",
+          scrollTrigger: { trigger: em.closest(".section-h2"), start: "top 82%", once: true },
+        });
+      });
+
+      /* ── .reveal ── */
+      q(".reveal").forEach((el, i) => {
+        if (reduced) return void gsap.set(el, { opacity: 1, y: 0 });
+        const inGroup = el.closest(".pillars, .proj-grid, .why-grid, .svc-grid, .val-grid, .team-grid");
+        gsap.to(el, {
+          opacity: 1, y: 0, duration: 0.9, ease: "power2.out", delay: inGroup ? i * 0.07 : 0,
+          scrollTrigger: { trigger: el, start: "top 84%", once: true },
+        });
+      });
+
+      /* ── stagger groups ── */
+      if (!reduced) {
+        if (document.querySelector(".proj-grid .p-card.reveal"))
+          gsap.to(".p-card.reveal", {
+            opacity: 1, y: 0, duration: 0.95, ease: "power2.out", stagger: 0.11,
+            scrollTrigger: { trigger: ".proj-grid", start: "top 80%", once: true },
+          });
+        if (document.querySelector(".svc-grid .svc-row.reveal"))
+          gsap.to(".svc-row.reveal", {
+            opacity: 1, y: 0, duration: 0.85, ease: "power2.out", stagger: 0.09,
+            scrollTrigger: { trigger: ".svc-grid", start: "top 82%", once: true },
+          });
+      }
+
+      /* ── buttons ── */
+      ["#btn-all", "#btn-cta"].forEach((sel) => {
+        const el = document.querySelector(sel);
+        if (!el) return;
+        if (reduced) return void gsap.set(el, { opacity: 1, y: 0 });
+        gsap.to(el, { opacity: 1, y: 0, duration: 0.65, ease: "power2.out", scrollTrigger: { trigger: el, start: "top 88%", once: true } });
+      });
+
+      /* ── counters ── */
+      q("[data-counter]").forEach((el) => {
+        const target = parseInt(el.dataset.counter ?? "0", 10);
+        const suffix = el.dataset.counterSuffix ?? "";
+        if (reduced) { el.textContent = target + suffix; return; }
+        const obj = { val: 0 };
+        ScrollTrigger.create({
+          trigger: el, start: "top 85%", once: true,
+          onEnter() {
+            gsap.to(obj, { val: target, duration: 1.8, ease: "power2.out", onUpdate: () => { el.textContent = Math.round(obj.val) + suffix; } });
+          },
+        });
+      });
+
+      /* ── labels ── */
+      q(".section-lbl, .cta-lbl").forEach((el) => {
+        if (el.closest(".page-hero")) return;
+        if (reduced) return void gsap.set(el, { opacity: 1, y: 0 });
+        gsap.from(el, { opacity: 0, y: 8, duration: 0.6, ease: "power2.out", scrollTrigger: { trigger: el, start: "top 88%", once: true } });
+      });
+
+      /* ── about image clip reveals ── */
+      q(".about-img-wrap").forEach((el) => {
+        const full = el.classList.contains("about-img-full");
+        if (reduced) return void gsap.set(el, { clipPath: "inset(0 0% 0 0)" });
+        gsap.fromTo(el, { clipPath: "inset(0 100% 0 0)" }, {
+          clipPath: "inset(0 0% 0 0)", duration: full ? 1.6 : 1.4, ease: "power2.inOut",
+          scrollTrigger: { trigger: el, start: full ? "top 75%" : "top 72%", once: true },
+        });
+      });
+    });
+
+    /* ── vanilla tilt (pointer devices only) ── */
+    let cancelled = false;
+    if (!reduced && isFinePointer()) {
+      const targets = q("[data-tilt]");
+      if (targets.length) {
+        import("vanilla-tilt").then((mod) => {
+          if (cancelled) return;
+          const VT = (mod as any).default ?? mod;
+          targets.forEach((el) => {
+            VT.init(el, { max: 8, speed: 400, glare: true, "max-glare": 0.12 });
+            tiltEls.push(el);
+          });
+        });
+      }
+    }
+
+    ScrollTrigger.refresh();
+
+    return () => {
+      cancelled = true;
+      tiltEls.forEach((el: any) => el.vanillaTilt?.destroy());
+      ctx.revert();
+    };
+  }, [pageHero, ready]);
+}
