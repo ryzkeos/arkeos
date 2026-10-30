@@ -1,5 +1,3 @@
-import type { Project, TeamMember } from "./types";
-
 export const NAV = [
   { href: "/", label: "Home" },
   { href: "/projects", label: "Projects" },
@@ -7,9 +5,5 @@ export const NAV = [
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ] as const;
-
-export const FALLBACK_PROJECTS: Project[] = [];
-
-export const TEAM: TeamMember[] = [];
 
 export const SOCIAL_LABELS = ["GitHub", "Instagram", "Facebook"] as const;
