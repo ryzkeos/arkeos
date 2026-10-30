@@ -1,7 +1,18 @@
 import type { Metadata, Viewport } from "next";
 
+const DEFAULT_SITE_URL = "http://localhost:3000";
+
+function siteUrl(): URL {
+  const raw = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  try {
+    return new URL(raw || DEFAULT_SITE_URL);
+  } catch {
+    return new URL(DEFAULT_SITE_URL);
+  }
+}
+
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  metadataBase: siteUrl(),
   title: "ARKEOS",
   description: "ARKEOS official website.",
   openGraph: {
