@@ -4,11 +4,13 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { NAV } from "@/lib/data";
 import { gsap, prefersReducedMotion } from "@/lib/gsap";
+import { getIdentity } from "@/lib/content";
 import { useSiteSettings } from "./SiteSettings";
 
 export default function Header() {
   const pathname = usePathname();
   const settings = useSiteSettings();
+  const { name } = getIdentity(settings);
   const [stuck, setStuck] = useState(false);
   const [open, setOpen] = useState(false);
   const drawer = useRef<HTMLDivElement>(null);
@@ -22,7 +24,6 @@ export default function Header() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  /* close on route change + Esc */
   useEffect(() => setOpen(false), [pathname]);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
@@ -30,7 +31,6 @@ export default function Header() {
     return () => document.removeEventListener("keydown", onKey);
   }, []);
 
-  /* drawer link animation + scroll lock */
   useEffect(() => {
     const links = drawer.current?.querySelectorAll("a");
     if (!links) return;
@@ -72,7 +72,7 @@ export default function Header() {
       </div>
 
       <header id="header" className={stuck ? "stuck" : ""} role="banner">
-        <Link href="/" className="hdr-logo" aria-label="Arkeos — Home">ARKEOS</Link>
+        <Link href="/" className="hdr-logo" aria-label={`${name} home`}>{name}</Link>
 
         <nav className="hdr-nav" role="navigation" aria-label="Main navigation">
           {NAV.map((n) => (
