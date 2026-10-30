@@ -1,3 +1,50 @@
+create table if not exists site_settings (
+  key text primary key,
+  value text
+);
+
+create table if not exists projects (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  description text not null default '',
+  tags text[] not null default '{}',
+  media text,
+  color text,
+  url text,
+  visible boolean not null default true,
+  sort_order integer not null default 0,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists services (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  description text not null default '',
+  tags text[] not null default '{}',
+  price text,
+  visible boolean not null default true,
+  sort_order integer not null default 0,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists inquiries (
+  id uuid primary key default gen_random_uuid(),
+  name text,
+  email text,
+  project_type text,
+  budget text,
+  timeline text,
+  message text,
+  status text not null default 'unread',
+  created_at timestamptz not null default now()
+);
+
+create table if not exists analytics (
+  id bigint generated always as identity primary key,
+  page text,
+  created_at timestamptz not null default now()
+);
+
 alter table projects add column if not exists url text;
 alter table services add column if not exists price text;
 
