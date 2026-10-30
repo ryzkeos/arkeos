@@ -1,5 +1,5 @@
 import { STATIC_IDENTITY, STATIC_PROJECTS, STATIC_SERVICES, STATIC_TEAM } from "@/data";
-import { sbGet } from "./supabase";
+import { dbGet } from "@/lib/db";
 import type {
   ProcessStep,
   Project,
@@ -84,7 +84,7 @@ function collect<T>(rows: unknown, convert: (v: unknown) => T | null): T[] {
 
 export async function loadProjects(): Promise<Project[]> {
   try {
-    const rows = await sbGet<unknown>("projects", "select=*&visible=eq.true&order=sort_order.asc");
+    const rows = await dbGet<unknown>("projects","select=*&visible=eq.true&order=sort_order.asc");
     const items = collect(rows, toProject).filter((p) => p.visible);
     if (items.length > 0) return items;
   } catch {}
@@ -93,7 +93,7 @@ export async function loadProjects(): Promise<Project[]> {
 
 export async function loadServices(): Promise<Service[]> {
   try {
-    const rows = await sbGet<unknown>("services", "select=*&visible=eq.true&order=sort_order.asc");
+    const rows = await dbGet<unknown>("services","select=*&visible=eq.true&order=sort_order.asc");
     const items = collect(rows, toService).filter((s) => s.visible);
     if (items.length > 0) return items;
   } catch {}
