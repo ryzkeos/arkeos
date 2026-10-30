@@ -84,7 +84,7 @@ function collect<T>(rows: unknown, convert: (v: unknown) => T | null): T[] {
 
 export async function loadProjects(): Promise<Project[]> {
   try {
-    const rows = await dbGet<unknown>("projects","select=*&visible=eq.true&order=sort_order.asc");
+    const rows = await dbGet<unknown>("projects", "select=*&visible=eq.true&order=sort_order.asc");
     const items = collect(rows, toProject).filter((p) => p.visible);
     if (items.length > 0) return items;
   } catch {}
@@ -93,11 +93,23 @@ export async function loadProjects(): Promise<Project[]> {
 
 export async function loadServices(): Promise<Service[]> {
   try {
-    const rows = await dbGet<unknown>("services","select=*&visible=eq.true&order=sort_order.asc");
+    const rows = await dbGet<unknown>("services", "select=*&visible=eq.true&order=sort_order.asc");
     const items = collect(rows, toService).filter((s) => s.visible);
     if (items.length > 0) return items;
   } catch {}
   return bySortOrder(collect(STATIC_SERVICES, toService).filter((s) => s.visible));
+}
+
+const HERO_MAX_LINES = 3;
+const HERO_DECO_MAX = 12;
+
+function headlineLines(v: unknown): string[] {
+  if (typeof v !== "string") return [];
+  return v
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .slice(0, HERO_MAX_LINES);
 }
 
 export function getIdentity(s: SiteSettings) {
@@ -114,6 +126,10 @@ export function getIdentity(s: SiteSettings) {
     email: str(s.contact_email) || str(STATIC_IDENTITY.email),
     responseTime: str(s.response_time) || str(STATIC_IDENTITY.responseTime),
     foundedYear: dbYear ?? fallbackYear,
+    heroHeadline: headlineLines(s.hero_headline).length
+      ? headlineLines(s.hero_headline)
+      : headlineLines(STATIC_IDENTITY.heroHeadline),
+    heroDeco: (str(s.hero_deco) || str(STATIC_IDENTITY.heroDeco)).slice(0, HERO_DECO_MAX),
   };
 }
 

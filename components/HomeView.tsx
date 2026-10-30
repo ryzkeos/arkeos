@@ -107,6 +107,11 @@ export default function HomeView() {
   }, [settingsLoaded, showPreloader]);
 
   const videoSrc = safeUrl(settings.hero_video);
+  const heroLines = settingsLoaded ? (identity.heroHeadline.length ? identity.heroHeadline : [identity.name]) : [];
+  const decoChars = Array.from(identity.heroDeco);
+  const decoSplit = Math.ceil(decoChars.length / 2);
+  const decoFirst = decoChars.slice(0, decoSplit).join("");
+  const decoSecond = decoChars.slice(decoSplit).join("");
   const eyebrow = identity.foundedYear ? `${identity.name} — Est.\u2009${identity.foundedYear}` : identity.name;
 
   return (
@@ -131,21 +136,23 @@ export default function HomeView() {
 
         <div className="hero-top-left">
           <p className="hero-eyebrow">{eyebrow}</p>
-          <h1 className="hero-h1" aria-label="We Build Digital Legends">
-            <span><em>WE BUILD</em></span>
-            <span><em>DIGITAL</em></span>
-            <span><em>LEGENDS.</em></span>
+          <h1 className="hero-h1" aria-label={heroLines.join(" ")}>
+            {heroLines.map((line, i) => (
+              <span key={`${i}-${line}`}><em>{line}</em></span>
+            ))}
           </h1>
           {identity.tagline && <p className="hero-sub">{identity.tagline}</p>}
           <Btn href="/projects" id="btn-hero" label={settings.cta_text || "View Work"} ariaLabel="View work" />
         </div>
 
-        <div className="hero-bottom-right" aria-hidden="true">
-          <div className="hero-studio">
-            <span><em>STU</em></span>
-            <span><em>DIO.</em></span>
+        {identity.heroDeco && (
+          <div className="hero-bottom-right" aria-hidden="true">
+            <div className="hero-studio">
+              <span><em>{decoFirst}</em></span>
+              {decoSecond && <span><em>{decoSecond}</em></span>}
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="hero-bottom-left" aria-hidden="true">
           <div className="hero-scroll" id="hero-scroll">
