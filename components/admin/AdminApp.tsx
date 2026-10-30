@@ -1,9 +1,12 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import * as sb from "@/lib/supabase";
+import * as db from "@/lib/db";
+import { NAV } from "@/lib/data";
 import type { Inquiry, Project, Service, SiteSettings } from "@/lib/types";
+import IdentityPanel from "./IdentityPanel";
+import { MEDIA_BUCKET, PanelHead, isHttpUrl, msg, type PanelProps } from "./shared";
 
-type Section = "inquiries" | "projects" | "services" | "availability" | "settings" | "fonts" | "analytics";
+type Section = "inquiries" | "projects" | "services" | "availability" | "settings" | "identity" | "fonts" | "analytics";
 
 const VIDEO_EXT = ["mp4", "webm", "mov", "ogg"];
 function mediaBadge(media: string | null) {
@@ -12,7 +15,6 @@ function mediaBadge(media: string | null) {
   return VIDEO_EXT.includes(ext) ? { label: "Video", cls: "video" } : { label: "Image", cls: "image" };
 }
 const splitTags = (s: string) => s.split(",").map((t) => t.trim()).filter(Boolean);
-const msg = (e: unknown, fallback: string) => (e instanceof Error && e.message ? e.message : fallback);
 
 export default function AdminApp() {
   const [authed, setAuthed] = useState(false);
@@ -24,7 +26,7 @@ export default function AdminApp() {
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
-    setAuthed(!!sb.sbRestoreSession()?.access_token);
+    setAuthed(!!db.dbRestoreSession()?.access_token);
     setBooted(true);
   }, []);
 
@@ -37,7 +39,7 @@ export default function AdminApp() {
   const ask = useCallback((text: string, onYes: () => void) => setConfirmState({ text, onYes }), []);
 
   const logout = async () => {
-    await sb.sbSignOut();
+    await db.dbSignOut();
     setAuthed(false);
   };
 
@@ -90,6 +92,7 @@ export default function AdminApp() {
             <nav className="sidebar-nav">
               <button className={section === "availability" ? "active" : ""} onClick={() => setSection("availability")}>Availability</button>
               <button className={section === "settings" ? "active" : ""} onClick={() => setSection("settings")}>Site Settings</button>
+              <button className={section === "identity" ? "active" : ""} onClick={() => setSection("identity")}>Identity</button>
               <button className={section === "fonts" ? "active" : ""} onClick={() => setSection("fonts")}>Font Settings</button>
               <button className={section === "analytics" ? "active" : ""} onClick={() => setSection("analytics")}>Analytics</button>
             </nav>
@@ -105,6 +108,7 @@ export default function AdminApp() {
             {section === "services" && <Services toast={showToast} ask={ask} />}
             {section === "availability" && <Availability toast={showToast} />}
             {section === "settings" && <Settings toast={showToast} ask={ask} />}
+            {section === "identity" && <IdentityPanel toast={showToast} />}
             {section === "fonts" && <Fonts toast={showToast} />}
             {section === "analytics" && <Analytics />}
           </main>
@@ -114,9 +118,6 @@ export default function AdminApp() {
   );
 }
 
-type PanelProps = { toast: (t: string, err?: boolean) => void; ask: (t: string, f: () => void) => void };
-
-/* ── login ───────────────────────────────────────────────────── */
 function Login({ onDone }: { onDone: () => void }) {
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
@@ -127,11 +128,11 @@ function Login({ onDone }: { onDone: () => void }) {
     if (busy) return;
     setErr(""); setBusy(true);
     try {
-      const data = await sb.sbSignIn(email.trim(), pass);
+      const data = await db.dbSignIn(email.trim(), pass);
       if (data.error || !data.access_token) {
         setErr(data.error_description || data.message || "Invalid credentials.");
       } else {
-        sb.sbSetSession(data);
+        db.dbSetSession(data);
         onDone();
       }
     } catch {
@@ -148,7 +149,7 @@ function Login({ onDone }: { onDone: () => void }) {
       <form className="login-card" aria-label="Admin login form" onSubmit={(e) => { e.preventDefault(); submit(); }}>
         <div className="login-field">
           <label htmlFor="login-email">Email Address</label>
-          <input type="email" id="login-email" placeholder="admin@arkeos.studio" autoComplete="username" aria-required="true" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <input type="email" id="login-email" placeholder="name@domain" autoComplete="username" aria-required="true" value={email} onChange={(e) => setEmail(e.target.value)} />
         </div>
         <div className="login-field">
           <label htmlFor="login-pass">Password</label>
@@ -163,38 +164,68 @@ function Login({ onDone }: { onDone: () => void }) {
   );
 }
 
-function PanelHead({ title, sub, error }: { title: string; sub: string; error?: string }) {
-  return (
-    <>
-      <h1 className="panel-title">{title}</h1>
-      <p className="panel-sub">{sub}</p>
-      <p className="panel-error" role="alert" style={{ display: error ? "block" : "none" }}>{error}</p>
-    </>
-  );
-}
-
-/* ── inquiries ───────────────────────────────────────────────── */
 function Inquiries({ toast, ask, onUnread }: PanelProps & { onUnread: (n: number) => void }) {
   const [filter, setFilter] = useState<"all" | "unread" | "read">("all");
   const [items, setItems] = useState<Inquiry[] | null>(null);
   const [error, setError] = useState("");
+  const [openId, setOpenId] = useState<string | null>(null);
 
   const load = useCallback(() => {
-    sb.sbGetInquiries(filter)
+    db.dbGetInquiries(filter)
       .then((d) => {
         const list = Array.isArray(d) ? d : [];
         setItems(list);
         setError("");
-        sb.sbGet<{ id: string }[]>("inquiries", "select=id&status=eq.unread").then((u) => onUnread(Array.isArray(u) ? u.length : 0)).catch(() => {});
+        db.dbCount("inquiries", "status=eq.unread").then(onUnread).catch(() => {});
       })
       .catch(() => setError("Failed to load inquiries."));
   }, [filter, onUnread]);
 
   useEffect(load, [load]);
 
-  const mark = (id: string) => sb.sbMarkInquiry(id, "read").then(load).catch(() => toast("Failed to update.", true));
+  const mark = (id: string) => db.dbMarkInquiry(id, "read").then(load).catch(() => toast("Failed to update.", true));
   const del = (id: string) =>
-    ask("Delete this inquiry? This cannot be undone.", () => sb.sbDeleteInquiry(id).then(load).catch(() => toast("Failed to delete.", true)));
+    ask("Delete this inquiry? This cannot be undone.", () =>
+      db.dbDeleteInquiry(id).then(() => { setOpenId(null); load(); }).catch(() => toast("Failed to delete.", true)));
+
+  const selected = openId && items ? items.find((i) => i.id === openId) ?? null : null;
+  const fmtDate = (d: string | null) => (d ? new Date(d).toLocaleString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "—");
+
+  if (selected) {
+    const rows: [string, string][] = [
+      ["Name", selected.name || "—"],
+      ["Email", selected.email || "—"],
+      ["Type", selected.project_type || "—"],
+      ["Budget", selected.budget || "—"],
+      ["Timeline", selected.timeline || "—"],
+      ["Received", fmtDate(selected.created_at)],
+    ];
+    return (
+      <div className="admin-panel" id="panel-inquiry-detail" style={{ display: "block" }}>
+        <PanelHead title="INQUIRY" sub="Full details of the selected inquiry." error={error} />
+        <div className="admin-actions" style={{ marginBottom: "1.2rem" }}>
+          <button className="admin-btn" onClick={() => setOpenId(null)} aria-label="Back to inquiries">Back</button>
+          {selected.status === "unread" && (
+            <button className="admin-btn admin-btn--accent" onClick={() => mark(selected.id)} aria-label="Mark as read">Mark Read</button>
+          )}
+          <button className="admin-btn admin-btn--danger" onClick={() => del(selected.id)} aria-label="Delete inquiry">Delete</button>
+          <span className={`status-badge status-${selected.status || "unread"}`}>{selected.status || "unread"}</span>
+        </div>
+        <div className="inquiry-detail">
+          <dl className="inquiry-detail__meta">
+            {rows.map(([label, value]) => (
+              <div key={label}>
+                <dt>{label}</dt>
+                <dd>{value}</dd>
+              </div>
+            ))}
+          </dl>
+          <p className="inquiry-detail__label">Message</p>
+          <div className="inquiry-detail__message">{selected.message?.trim() || "No message provided."}</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="admin-panel" id="panel-inquiries" style={{ display: "block" }}>
@@ -227,6 +258,7 @@ function Inquiries({ toast, ask, onUnread }: PanelProps & { onUnread: (n: number
                   <td>{i.created_at ? new Date(i.created_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "—"}</td>
                   <td><span className={`status-badge status-${i.status || "unread"}`}>{i.status || "unread"}</span></td>
                   <td className="admin-actions">
+                    <button className="admin-btn admin-btn--sm" onClick={() => setOpenId(i.id)} aria-label={`View inquiry from ${i.name || "unknown sender"}`}>View</button>
                     <button className="admin-btn admin-btn--sm" onClick={() => mark(i.id)} aria-label="Mark as read">Read</button>
                     <button className="admin-btn admin-btn--sm admin-btn--danger" onClick={() => del(i.id)} aria-label="Delete inquiry">Delete</button>
                   </td>
@@ -240,44 +272,47 @@ function Inquiries({ toast, ask, onUnread }: PanelProps & { onUnread: (n: number
   );
 }
 
-/* ── projects ────────────────────────────────────────────────── */
 function Projects({ toast, ask }: PanelProps) {
   const [list, setList] = useState<Project[] | null>(null);
   const [error, setError] = useState("");
-  const [editing, setEditing] = useState<{ id: string | null } | null>(null);
-  const [f, setF] = useState({ title: "", description: "", tags: "", color: "#C8FF00", visible: true });
+  const [editing, setEditing] = useState<{ id: string | null; hadUrl: boolean } | null>(null);
+  const [f, setF] = useState({ title: "", description: "", tags: "", url: "", color: "#C8FF00", visible: true });
   const [mediaStatus, setMediaStatus] = useState("No media — pure black active");
   const file = useRef<HTMLInputElement>(null);
   const dragSrc = useRef<number | null>(null);
 
   const load = useCallback(() => {
-    sb.sbGetProjects().then((d) => { setList(Array.isArray(d) ? d : []); setError(""); }).catch(() => setError("Failed to load projects."));
+    db.dbGetProjects().then((d) => { setList(Array.isArray(d) ? d : []); setError(""); }).catch(() => setError("Failed to load projects."));
   }, []);
   useEffect(load, [load]);
 
   const open = (idx: number | null) => {
     const p = idx === null ? null : list![idx];
-    setEditing({ id: p?.id ?? null });
-    setF({ title: p?.title ?? "", description: p?.description ?? "", tags: (p?.tags ?? []).join(", "), color: p?.color || "#C8FF00", visible: p ? p.visible !== false : true });
+    setEditing({ id: p?.id ?? null, hadUrl: !!p?.url });
+    setF({ title: p?.title ?? "", description: p?.description ?? "", tags: (p?.tags ?? []).join(", "), url: p?.url ?? "", color: p?.color || "#C8FF00", visible: p ? p.visible !== false : true });
     setMediaStatus(p ? mediaBadge(p.media).label : "No media — pure black active");
   };
 
   const save = async () => {
     if (!f.title.trim()) return toast("Title is required.", true);
+    const url = f.url.trim();
+    if (url && !isHttpUrl(url)) return toast("Project link must start with http:// or https://.", true);
     const payload: Partial<Project> = { title: f.title.trim(), description: f.description.trim(), tags: splitTags(f.tags), color: f.color, visible: f.visible };
+    if (url) payload.url = url;
+    else if (editing?.hadUrl) payload.url = null;
     if (!editing?.id) { payload.sort_order = list?.length ?? 0; payload.media = null; }
     try {
-      await sb.sbSaveProject(editing?.id ?? null, payload);
+      await db.dbSaveProject(editing?.id ?? null, payload);
       setEditing(null); load(); toast("Project saved.");
     } catch (e) { toast(msg(e, "Failed to save project."), true); }
   };
 
   const del = (id: string) =>
     ask("Delete this project? This cannot be undone.", () =>
-      sb.sbDeleteProject(id).then(() => { load(); toast("Project deleted."); }).catch(() => toast("Failed to delete.", true)));
+      db.dbDeleteProject(id).then(() => { load(); toast("Project deleted."); }).catch(() => toast("Failed to delete.", true)));
 
   const toggle = (p: Project) =>
-    sb.sbSaveProject(p.id!, { visible: !(p.visible !== false) }).then(load).catch(() => toast("Failed to update.", true));
+    db.dbSaveProject(p.id!, { visible: !(p.visible !== false) }).then(load).catch(() => toast("Failed to update.", true));
 
   const upload = async () => {
     if (!editing?.id) return toast("Save the project first, then upload media.", true);
@@ -286,9 +321,9 @@ function Projects({ toast, ask }: PanelProps) {
     const path = `projects/${editing.id}.${fl.name.split(".").pop()}`;
     setMediaStatus("Uploading…");
     try {
-      await sb.sbUpload("media", path, fl);
-      const url = sb.sbPublicUrl("media", path);
-      await sb.sbSaveProject(editing.id, { media: url });
+      await db.dbUpload(MEDIA_BUCKET, path, fl);
+      const url = db.dbPublicUrl(MEDIA_BUCKET, path);
+      await db.dbSaveProject(editing.id, { media: url });
       setMediaStatus(`${mediaBadge(url).label} — uploaded`);
       toast("Media uploaded."); load();
     } catch (e) { setMediaStatus("Upload failed."); toast(msg(e, "Upload failed."), true); }
@@ -301,7 +336,7 @@ function Projects({ toast, ask }: PanelProps) {
     const next = list.slice();
     next.splice(target, 0, next.splice(src, 1)[0]);
     setList(next);
-    Promise.all(next.map((p, i) => sb.sbSaveProject(p.id!, { sort_order: i }))).then(load).catch(() => { toast("Failed to reorder.", true); load(); });
+    Promise.all(next.map((p, i) => db.dbSaveProject(p.id!, { sort_order: i }))).then(load).catch(() => { toast("Failed to reorder.", true); load(); });
   };
 
   return (
@@ -320,11 +355,15 @@ function Projects({ toast, ask }: PanelProps) {
           </div>
           <div className="form-group">
             <label htmlFor="pf-tags">Tags (comma-separated)</label>
-            <input type="text" id="pf-tags" placeholder="Web, Motion, GSAP" value={f.tags} onChange={(e) => setF({ ...f, tags: e.target.value })} />
+            <input type="text" id="pf-tags" placeholder="tag one, tag two" value={f.tags} onChange={(e) => setF({ ...f, tags: e.target.value })} />
           </div>
           <div className="form-group admin-form-full">
             <label htmlFor="pf-description">Description</label>
             <textarea id="pf-description" placeholder="One-line project description…" aria-required="true" value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} />
+          </div>
+          <div className="form-group admin-form-full">
+            <label htmlFor="pf-url">Project Link (optional)</label>
+            <input type="url" id="pf-url" placeholder="https://" value={f.url} onChange={(e) => setF({ ...f, url: e.target.value })} />
           </div>
           <div className="form-group">
             <label htmlFor="pf-color">Accent Color</label>
@@ -374,40 +413,42 @@ function Projects({ toast, ask }: PanelProps) {
   );
 }
 
-/* ── services ────────────────────────────────────────────────── */
 function Services({ toast, ask }: PanelProps) {
   const [list, setList] = useState<Service[] | null>(null);
   const [error, setError] = useState("");
-  const [editing, setEditing] = useState<{ id: string | null } | null>(null);
-  const [f, setF] = useState({ title: "", description: "", tags: "", visible: true });
+  const [editing, setEditing] = useState<{ id: string | null; hadPrice: boolean } | null>(null);
+  const [f, setF] = useState({ title: "", description: "", tags: "", price: "", visible: true });
 
   const load = useCallback(() => {
-    sb.sbGetServices().then((d) => { setList(Array.isArray(d) ? d : []); setError(""); }).catch(() => setError("Failed to load services."));
+    db.dbGetServices().then((d) => { setList(Array.isArray(d) ? d : []); setError(""); }).catch(() => setError("Failed to load services."));
   }, []);
   useEffect(load, [load]);
 
   const open = (idx: number | null) => {
     const s = idx === null ? null : list![idx];
-    setEditing({ id: s?.id ?? null });
-    setF({ title: s?.title ?? "", description: s?.description ?? "", tags: (s?.tags ?? []).join(", "), visible: s ? s.visible !== false : true });
+    setEditing({ id: s?.id ?? null, hadPrice: !!s?.price });
+    setF({ title: s?.title ?? "", description: s?.description ?? "", tags: (s?.tags ?? []).join(", "), price: s?.price ?? "", visible: s ? s.visible !== false : true });
   };
 
   const save = async () => {
     if (!f.title.trim()) return toast("Title is required.", true);
+    const price = f.price.trim();
     const payload: Partial<Service> = { title: f.title.trim(), description: f.description.trim(), tags: splitTags(f.tags), visible: f.visible };
+    if (price) payload.price = price;
+    else if (editing?.hadPrice) payload.price = null;
     if (!editing?.id) payload.sort_order = list?.length ?? 0;
     try {
-      await sb.sbSaveService(editing?.id ?? null, payload);
+      await db.dbSaveService(editing?.id ?? null, payload);
       setEditing(null); load(); toast("Service saved.");
     } catch (e) { toast(msg(e, "Failed to save service."), true); }
   };
 
   const del = (id: string) =>
     ask("Delete this service? This cannot be undone.", () =>
-      sb.sbDeleteService(id).then(() => { load(); toast("Service deleted."); }).catch(() => toast("Failed to delete.", true)));
+      db.dbDeleteService(id).then(() => { load(); toast("Service deleted."); }).catch(() => toast("Failed to delete.", true)));
 
   const toggle = (s: Service) =>
-    sb.sbSaveService(s.id, { visible: !(s.visible !== false) }).then(load).catch(() => toast("Failed to update.", true));
+    db.dbSaveService(s.id, { visible: !(s.visible !== false) }).then(load).catch(() => toast("Failed to update.", true));
 
   return (
     <div className="admin-panel" id="panel-services" style={{ display: "block" }}>
@@ -425,11 +466,15 @@ function Services({ toast, ask }: PanelProps) {
           </div>
           <div className="form-group">
             <label htmlFor="sf-tags">Tags (comma-separated)</label>
-            <input type="text" id="sf-tags" placeholder="Web, GSAP, CMS" value={f.tags} onChange={(e) => setF({ ...f, tags: e.target.value })} />
+            <input type="text" id="sf-tags" placeholder="tag one, tag two" value={f.tags} onChange={(e) => setF({ ...f, tags: e.target.value })} />
           </div>
           <div className="form-group admin-form-full">
             <label htmlFor="sf-description">Description</label>
             <textarea id="sf-description" placeholder="Short service description…" aria-required="true" value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} />
+          </div>
+          <div className="form-group">
+            <label htmlFor="sf-price">Price (optional)</label>
+            <input type="text" id="sf-price" placeholder="Price text" value={f.price} onChange={(e) => setF({ ...f, price: e.target.value })} />
           </div>
           <div className="form-group checkbox-row">
             <input type="checkbox" id="sf-visible" aria-label="Service visibility" checked={f.visible} onChange={(e) => setF({ ...f, visible: e.target.checked })} />
@@ -464,12 +509,11 @@ function Services({ toast, ask }: PanelProps) {
   );
 }
 
-/* ── availability ────────────────────────────────────────────── */
 function Availability({ toast }: Pick<PanelProps, "toast">) {
   const [available, setAvailable] = useState(true);
 
   useEffect(() => {
-    sb.sbGet<{ value: string }[]>("site_settings", "key=eq.availability&select=value")
+    db.dbGet<{ value: string }[]>("site_settings", "key=eq.availability&select=value")
       .then((d) => setAvailable((d?.[0]?.value ?? "available") !== "booked"))
       .catch(() => {});
   }, []);
@@ -477,7 +521,7 @@ function Availability({ toast }: Pick<PanelProps, "toast">) {
   const change = async (next: boolean) => {
     setAvailable(next);
     try {
-      await sb.sbSaveSetting("availability", next ? "available" : "booked");
+      await db.dbSaveSetting("availability", next ? "available" : "booked");
       toast("Availability updated.");
     } catch {
       setAvailable(!next);
@@ -509,7 +553,6 @@ function Availability({ toast }: Pick<PanelProps, "toast">) {
   );
 }
 
-/* ── site settings ───────────────────────────────────────────── */
 function Settings({ toast, ask }: PanelProps) {
   const [s, setS] = useState({ tagline: "", cta_text: "", accent_color: "#C8FF00", social_github: "", social_instagram: "", social_facebook: "" });
   const [video, setVideo] = useState("");
@@ -518,7 +561,7 @@ function Settings({ toast, ask }: PanelProps) {
   const file = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    sb.sbLoadSiteSettings()
+    db.dbLoadSiteSettings()
       .then((r: SiteSettings) => {
         setS({
           tagline: r.tagline ?? "", cta_text: r.cta_text ?? "", accent_color: r.accent_color || "#C8FF00",
@@ -535,7 +578,7 @@ function Settings({ toast, ask }: PanelProps) {
       social_github: s.social_github.trim(), social_instagram: s.social_instagram.trim(), social_facebook: s.social_facebook.trim(),
     };
     try {
-      await Promise.all(Object.entries(fields).map(([k, v]) => sb.sbSaveSetting(k, v)));
+      await Promise.all(Object.entries(fields).map(([k, v]) => db.dbSaveSetting(k, v)));
       toast("Settings saved.");
     } catch { toast("Failed to save some settings.", true); }
   };
@@ -546,9 +589,9 @@ function Settings({ toast, ask }: PanelProps) {
     const path = `hero/hero-video.${fl.name.split(".").pop()}`;
     setVideoStatus("Uploading…");
     try {
-      await sb.sbUpload("media", path, fl);
-      const url = sb.sbPublicUrl("media", path);
-      await sb.sbSaveSetting("hero_video", url);
+      await db.dbUpload(MEDIA_BUCKET, path, fl);
+      const url = db.dbPublicUrl(MEDIA_BUCKET, path);
+      await db.dbSaveSetting("hero_video", url);
       setVideo(url); setVideoStatus(null);
       toast("Hero video updated.");
     } catch { setVideoStatus("Upload failed."); toast("Upload failed.", true); }
@@ -556,7 +599,7 @@ function Settings({ toast, ask }: PanelProps) {
 
   const clear = () =>
     ask("Remove hero video? Site will display pure black.", () =>
-      sb.sbSaveSetting("hero_video", "").then(() => { setVideo(""); setVideoStatus(null); toast("Hero video removed."); }).catch(() => toast("Failed to update.", true)));
+      db.dbSaveSetting("hero_video", "").then(() => { setVideo(""); setVideoStatus(null); toast("Hero video removed."); }).catch(() => toast("Failed to update.", true)));
 
   const on = !!video && videoStatus === null;
   const text = (k: keyof typeof s, label: string, id: string, ph: string, type = "text") => (
@@ -573,8 +616,8 @@ function Settings({ toast, ask }: PanelProps) {
       <div className="settings-section">
         <p className="settings-section-title">Hero &amp; Copy</p>
         <div className="settings-grid">
-          {text("tagline", "Hero Tagline", "set-tagline", "Crafting web experiences…")}
-          {text("cta_text", "Hero CTA Button Text", "set-cta-text", "View Our Work")}
+          {text("tagline", "Hero Tagline", "set-tagline", "Tagline")}
+          {text("cta_text", "Hero CTA Button Text", "set-cta-text", "Button text")}
         </div>
       </div>
 
@@ -603,9 +646,9 @@ function Settings({ toast, ask }: PanelProps) {
       <div className="settings-section">
         <p className="settings-section-title">Social Links</p>
         <div className="settings-grid">
-          {text("social_github", "GitHub URL", "set-social-gh", "https://github.com/arkeos", "url")}
-          {text("social_instagram", "Instagram URL", "set-social-ig", "https://instagram.com/arkeos", "url")}
-          {text("social_facebook", "Facebook URL", "set-social-fb", "https://facebook.com/arkeos", "url")}
+          {text("social_github", "GitHub URL", "set-social-gh", "https://", "url")}
+          {text("social_instagram", "Instagram URL", "set-social-ig", "https://", "url")}
+          {text("social_facebook", "Facebook URL", "set-social-fb", "https://", "url")}
         </div>
       </div>
 
@@ -616,39 +659,49 @@ function Settings({ toast, ask }: PanelProps) {
   );
 }
 
-/* ── fonts ───────────────────────────────────────────────────── */
 const FONT_SLOTS = [
-  { key: "font_display", name: "Zentry", label: "Display / Hero Headings", fallback: "Bebas Neue" },
-  { key: "font_ui_regular", name: "Robert Regular", label: "UI Body / Regular", fallback: "Satoshi / DM Sans" },
-  { key: "font_ui_medium", name: "Robert Medium", label: "UI Subheadings / Medium", fallback: "Satoshi / DM Sans" },
-  { key: "font_label", name: "General Sans", label: "Labels / Eyebrows / Tags", fallback: "DM Sans" },
+  { key: "font_display", name: "Zentry", label: "Display / Hero Headings" },
+  { key: "font_ui_regular", name: "Robert Regular", label: "UI Body / Regular" },
+  { key: "font_ui_medium", name: "Robert Medium", label: "UI Subheadings / Medium" },
+  { key: "font_label", name: "General Sans", label: "Labels / Eyebrows / Tags" },
 ] as const;
+
+const FONT_MAX_BYTES = 500 * 1024;
+const WOFF2_SIGNATURE = [0x77, 0x4f, 0x46, 0x32];
+
+async function checkFont(file: File): Promise<string | null> {
+  if (file.size > FONT_MAX_BYTES) return "Font file must be under 500 kb.";
+  const head = new Uint8Array(await file.slice(0, 4).arrayBuffer());
+  if (head.length < 4 || WOFF2_SIGNATURE.some((b, i) => head[i] !== b)) return "Not a valid woff2 font file.";
+  return null;
+}
 
 function Fonts({ toast }: Pick<PanelProps, "toast">) {
   const [active, setActive] = useState<Record<string, string>>({});
   const files = useRef<Record<string, HTMLInputElement | null>>({});
 
   const load = useCallback(() => {
-    sb.sbLoadSiteSettings().then((r) => setActive(r as Record<string, string>)).catch(() => {});
+    db.dbLoadSiteSettings().then((r) => setActive(r as Record<string, string>)).catch(() => {});
   }, []);
   useEffect(load, [load]);
 
   const upload = async (key: string) => {
     const fl = files.current[key]?.files?.[0];
     if (!fl) return toast("Choose a .woff2 file.", true);
-    if (!fl.name.endsWith(".woff2")) return toast("Only .woff2 files accepted.", true);
+    const problem = await checkFont(fl);
+    if (problem) return toast(problem, true);
     const path = `fonts/${key}.woff2`;
     try {
-      await sb.sbUpload("media", path, fl);
-      await sb.sbSaveSetting(key, sb.sbPublicUrl("media", path));
+      await db.dbUpload(MEDIA_BUCKET, path, fl);
+      await db.dbSaveSetting(key, `${db.dbPublicUrl(MEDIA_BUCKET, path)}?v=${Date.now()}`);
       load();
-      toast("Font uploaded. Reload site to activate.");
+      toast("font uploaded. reload the site to see it");
     } catch { toast("Font upload failed.", true); }
   };
 
   return (
     <div className="admin-panel" id="panel-fonts" style={{ display: "block" }}>
-      <PanelHead title="FONT SETTINGS" sub="Upload .woff2 font files. Green = active. Red = fallback currently rendering." />
+      <PanelHead title="FONT SETTINGS" sub="Upload .woff2 font files. Green = active. Red = bundled font currently rendering." />
       {FONT_SLOTS.map((slot) => {
         const isOn = !!active[slot.key];
         return (
@@ -657,7 +710,7 @@ function Fonts({ toast }: Pick<PanelProps, "toast">) {
               <p className="font-slot__label">{slot.label}</p>
               <p className="font-slot__name">{slot.name}</p>
             </div>
-            <span className={`font-status ${isOn ? "font-status--on" : "font-status--off"}`}>{isOn ? "Active" : `Fallback: ${slot.fallback}`}</span>
+            <span className={`font-status ${isOn ? "font-status--on" : "font-status--off"}`}>{isOn ? "Active" : "bundled font"}</span>
             <div className="font-upload-wrap">
               <input type="file" accept=".woff2" aria-label={`Upload ${slot.name} font`} ref={(el) => { files.current[slot.key] = el; }} />
               <button className="admin-btn admin-btn--sm admin-btn--accent" onClick={() => upload(slot.key)} aria-label={`Upload ${slot.label} font`}>Upload</button>
@@ -666,28 +719,31 @@ function Fonts({ toast }: Pick<PanelProps, "toast">) {
         );
       })}
       <p style={{ fontSize: "0.72rem", color: "var(--color-muted)", marginTop: "1.5rem", lineHeight: 1.7 }}>
-        Uploading a font file stores it in Supabase storage. The public site does not inject these fonts yet, so they stay on the fallback until that is wired up.
+        Uploading a font file stores it in storage.
       </p>
     </div>
   );
 }
 
-/* ── analytics ───────────────────────────────────────────────── */
 function Analytics() {
   const [v, setV] = useState({ views: "—", top: "—", inqs: "—", unread: "—" });
 
   useEffect(() => {
-    const len = (d: unknown) => (Array.isArray(d) ? String(d.length) : "—");
-    sb.sbGet("analytics", "select=id").then((d) => setV((p) => ({ ...p, views: len(d) }))).catch(() => {});
-    sb.sbGet<{ page: string }[]>("analytics", "select=page").then((d) => {
-      if (!Array.isArray(d) || !d.length) return;
-      const counts: Record<string, number> = {};
-      d.forEach((r) => (counts[r.page] = (counts[r.page] || 0) + 1));
-      const top = Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0];
-      setV((p) => ({ ...p, top: top || "—" }));
-    }).catch(() => {});
-    sb.sbGet("inquiries", "select=id").then((d) => setV((p) => ({ ...p, inqs: len(d) }))).catch(() => {});
-    sb.sbGet("inquiries", "select=id&status=eq.unread").then((d) => setV((p) => ({ ...p, unread: len(d) }))).catch(() => {});
+    const put = (key: "views" | "inqs" | "unread") => (n: number) => setV((p) => ({ ...p, [key]: String(n) }));
+    db.dbCount("analytics").then(put("views")).catch(() => {});
+    Promise.all(
+      NAV.map((n) => {
+        const page = n.href === "/" ? "index.html" : `${n.href.replace(/^\//, "")}.html`;
+        return db.dbCount("analytics", `page=eq.${encodeURIComponent(page)}`).then((count) => ({ page, count }));
+      }),
+    )
+      .then((rows) => {
+        const best = rows.reduce((a, b) => (b.count > a.count ? b : a), { page: "—", count: 0 });
+        if (best.count > 0) setV((p) => ({ ...p, top: best.page }));
+      })
+      .catch(() => {});
+    db.dbCount("inquiries").then(put("inqs")).catch(() => {});
+    db.dbCount("inquiries", "status=eq.unread").then(put("unread")).catch(() => {});
   }, []);
 
   return (
