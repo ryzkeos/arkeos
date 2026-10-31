@@ -41,8 +41,8 @@
 
 @media (max-width:768px) {
   .pg-home .section { padding:5rem 1.5rem; }
-  .pg-home .cta-deco { display:none; }
-  .pg-home #cta { padding:6rem 1.5rem; }
+  .pg-home .cta-deco:not(.cta-deco--media) { display:none; }
+  .pg-home .cta-inner { padding:6rem 1.5rem; }
 }
 
 @media (prefers-reduced-motion:reduce) {
