@@ -8,35 +8,13 @@ import { useSiteSettingsLoaded } from "./SiteSettings";
 import { useArkeosAnimations } from "@/hooks/useArkeosAnimations";
 import HeroLayout from "./hero/HeroLayout";
 import Btn from "./Btn";
+import SelectModal from "./SelectModal";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 type Form = { name: string; email: string; project_type: string; budget: string; timeline: string; message: string };
 const EMPTY: Form = { name: "", email: "", project_type: "", budget: "", timeline: "", message: "" };
 const CLEAN = (o: Record<string, string>) => Object.fromEntries(Object.entries(o).map(([k, x]) => [k, x.trim()]));
-
-type SelectProps = {
-  id: string;
-  name: string;
-  label: string;
-  placeholder: string;
-  options: string[];
-  value: string;
-  full?: boolean;
-  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
-};
-
-function SelectField({ id, name, label, placeholder, options, value, full, onChange }: SelectProps) {
-  return (
-    <div className={`form-field${full ? " form-full" : ""}`}>
-      <label htmlFor={id}>{label}</label>
-      <select id={id} name={name} required aria-required="true" value={value} onChange={onChange}>
-        <option value="" disabled>{placeholder}</option>
-        {options.map((o) => <option key={o} value={o}>{o}</option>)}
-      </select>
-    </div>
-  );
-}
 
 export default function ContactView() {
   const copy = useCopy("contact");
@@ -54,6 +32,8 @@ export default function ContactView() {
   const errBox = useRef<HTMLDivElement>(null);
 
   const { hero, info, form: f, success: ok, errors } = copy;
+
+  const set_value = (k: keyof Form) => (v: string) => setForm((prev) => ({ ...prev, [k]: v }));
 
   const set = (k: keyof Form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
     setForm((prev) => ({ ...prev, [k]: e.target.value }));
@@ -153,27 +133,27 @@ export default function ContactView() {
                     <div className="form-row">
                       <div className="form-field">
                         <label htmlFor="field-name">{f.name_label}</label>
-                        <input type="text" id="field-name" name="name" placeholder={f.name_placeholder} autoComplete="name" required aria-required="true" maxLength={100} value={form.name} onChange={set("name")} />
+                        <div className="input-wrap"><input type="text" id="field-name" name="name" placeholder={f.name_placeholder} autoComplete="name" required aria-required="true" maxLength={100} value={form.name} onChange={set("name")} /></div>
                       </div>
                       <div className="form-field">
                         <label htmlFor="field-email">{f.email_label}</label>
-                        <input type="email" id="field-email" name="email" placeholder={f.email_placeholder} autoComplete="email" required aria-required="true" maxLength={254} value={form.email} onChange={set("email")} />
+                        <div className="input-wrap"><input type="email" id="field-email" name="email" placeholder={f.email_placeholder} autoComplete="email" required aria-required="true" maxLength={254} value={form.email} onChange={set("email")} /></div>
                       </div>
                     </div>
 
                     <div className="form-row">
-                      <SelectField id="field-type" name="project_type" label={f.type_label} placeholder={f.type_placeholder} options={f.project_types} value={form.project_type} onChange={set("project_type")} />
-                      <SelectField id="field-budget" name="budget" label={f.budget_label} placeholder={f.budget_placeholder} options={f.budget_ranges} value={form.budget} onChange={set("budget")} />
+                      <SelectModal id="field-type" name="project_type" label={f.type_label} placeholder={f.type_placeholder} close_label={f.select_close_label} options={f.project_types} value={form.project_type} on_change={set_value("project_type")} />
+                      <SelectModal id="field-budget" name="budget" label={f.budget_label} placeholder={f.budget_placeholder} close_label={f.select_close_label} options={f.budget_ranges} value={form.budget} on_change={set_value("budget")} />
                     </div>
 
                     <div className="form-row">
-                      <SelectField id="field-timeline" name="timeline" label={f.timeline_label} placeholder={f.timeline_placeholder} options={f.timelines} value={form.timeline} onChange={set("timeline")} full />
+                      <SelectModal id="field-timeline" name="timeline" label={f.timeline_label} placeholder={f.timeline_placeholder} close_label={f.select_close_label} options={f.timelines} value={form.timeline} on_change={set_value("timeline")} full />
                     </div>
 
                     <div className="form-row">
                       <div className="form-field form-full">
                         <label htmlFor="field-message">{f.message_label}</label>
-                        <textarea id="field-message" name="message" required aria-required="true" maxLength={5000} value={form.message} onChange={set("message")} placeholder={f.message_placeholder} />
+                        <div className="input-wrap"><textarea id="field-message" name="message" required aria-required="true" maxLength={5000} value={form.message} onChange={set("message")} placeholder={f.message_placeholder} /></div>
                       </div>
                     </div>
 
