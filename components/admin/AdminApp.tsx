@@ -810,11 +810,11 @@ const FONT_SLOTS = [
   { key: "font_label", name: "General Sans", label: "Labels / Eyebrows / Tags" },
 ] as const;
 
-const FONT_MAX_BYTES = 500 * 1024;
+const FONT_MAX_BYTES = 2 * 1024 * 1024;
 const WOFF2_SIGNATURE = [0x77, 0x4f, 0x46, 0x32];
 
 async function checkFont(file: File): Promise<string | null> {
-  if (file.size > FONT_MAX_BYTES) return "Font file must be under 500 kb.";
+  if (file.size > FONT_MAX_BYTES) return "Font file must be under 2 MB.";
   const head = new Uint8Array(await file.slice(0, 4).arrayBuffer());
   if (head.length < 4 || WOFF2_SIGNATURE.some((b, i) => head[i] !== b)) return "Not a valid woff2 font file.";
   return null;
@@ -823,6 +823,7 @@ async function checkFont(file: File): Promise<string | null> {
 function Fonts({ toast }: Pick<PanelProps, "toast">) {
   const [active, setActive] = useState<Record<string, string>>({});
   const files = useRef<Record<string, HTMLInputElement | null>>({});
+  const [busy, setBusy] = useState("");
 
   const load = useCallback(() => {
     db.dbLoadSiteSettings().then((r) => setActive(r as Record<string, string>)).catch(() => {});
@@ -834,13 +835,25 @@ function Fonts({ toast }: Pick<PanelProps, "toast">) {
     if (!fl) return toast("Choose a .woff2 file.", true);
     const problem = await checkFont(fl);
     if (problem) return toast(problem, true);
-    const path = `fonts/${key}.woff2`;
+    const path = `fonts/${key}-${Date.now()}.woff2`;
+    setBusy(key);
     try {
-      await db.dbUpload(MEDIA_BUCKET, path, fl);
-      await db.dbSaveSetting(key, `${db.dbPublicUrl(MEDIA_BUCKET, path)}?v=${Date.now()}`);
+      await db.dbUpload(MEDIA_BUCKET, path, new File([fl], `${key}.woff2`, { type: "font/woff2" }));
+    } catch (e) {
+      setBusy("");
+      return toast(msg(e, "Font upload failed."), true);
+    }
+    try {
+      await db.dbSaveSetting(key, db.dbPublicUrl(MEDIA_BUCKET, path));
       load();
-      toast("font uploaded. reload the site to see it");
-    } catch { toast("Font upload failed.", true); }
+      const input = files.current[key];
+      if (input) input.value = "";
+      toast("Font uploaded. Reload the site to see it.");
+    } catch (e) {
+      toast(`Uploaded, but saving failed: ${msg(e, "unknown error")}`, true);
+    } finally {
+      setBusy("");
+    }
   };
 
   return (
@@ -857,7 +870,7 @@ function Fonts({ toast }: Pick<PanelProps, "toast">) {
             <span className={`font-status ${isOn ? "font-status--on" : "font-status--off"}`}>{isOn ? "Active" : "bundled font"}</span>
             <div className="font-upload-wrap">
               <input type="file" accept=".woff2" aria-label={`Upload ${slot.name} font`} ref={(el) => { files.current[slot.key] = el; }} />
-              <button className="admin-btn admin-btn--sm admin-btn--accent" onClick={() => upload(slot.key)} aria-label={`Upload ${slot.label} font`}>Upload</button>
+              <button className="admin-btn admin-btn--sm admin-btn--accent" onClick={() => upload(slot.key)} disabled={busy === slot.key} aria-label={`Upload ${slot.label} font`}>{busy === slot.key ? "Uploading…" : "Upload"}</button>
             </div>
           </div>
         );
