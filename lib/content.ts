@@ -175,7 +175,7 @@ export function getIdentity(s: SiteSettings) {
       : headlineLines(STATIC_IDENTITY.heroHeadline).length
         ? headlineLines(STATIC_IDENTITY.heroHeadline)
         : DEFAULT_HEADLINE,
-    heroDeco: (str(s.hero_deco) || str(STATIC_IDENTITY.heroDeco) || `${name.toUpperCase()}.`).slice(0, HERO_DECO_MAX),
+    heroDeco: (str(s.hero_deco) || str(STATIC_IDENTITY.heroDeco) || name.toUpperCase()).slice(0, HERO_DECO_MAX),
   };
 }
 
