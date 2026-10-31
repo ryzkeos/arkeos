@@ -22,6 +22,8 @@ export const shared_schema: CopyField[] = [
   { path: "cta.deco_b_url", label: "Call to action shape B media (empty keeps the plain outline)", type: "media" },
   { path: "cta.deco_c_type", label: "Call to action shape C media type", type: "select", options: ["image", "video", "html"] },
   { path: "cta.deco_c_url", label: "Call to action shape C media (empty keeps the plain outline)", type: "media" },
+  { path: "cta.deco_d_type", label: "Call to action shape D media type", type: "select", options: ["image", "video", "html"] },
+  { path: "cta.deco_d_url", label: "Call to action shape D media (empty keeps the plain outline)", type: "media" },
   { path: "buttons.view_all_projects", label: "Button, all projects", type: "text", max: 40 },
   { path: "buttons.view_all_services", label: "Button, all services", type: "text", max: 40 },
   { path: "buttons.view_project", label: "Button, view project", type: "text", max: 40 },
