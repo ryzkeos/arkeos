@@ -238,3 +238,35 @@ export function getStory(s: SiteSettings): string[] {
   if (fromDb.length > 0) return fromDb;
   return STATIC_IDENTITY.story.map((p) => str(p)).filter(Boolean);
 }
+
+const DEFAULT_WHAT_INTRO =
+  "We are not a production house. We are your unfair advantage. Every project we touch becomes a benchmark in its category, not by accident, by obsession.";
+const DEFAULT_WORK_INTRO = "A selection of recent projects from the studio.";
+const DEFAULT_STAT_COPY = [
+  { label: "PROJECTS SHIPPED", desc: "Every single one delivered on time, on spec, and above expectation." },
+  { label: "YEARS ACTIVE", desc: "Refusing to ship anything that would not carry the name. That standard does not drop." },
+  { label: "CLIENTS SERVED", desc: "From solo founders to funded startups. Every client gets the same obsessive attention." },
+];
+
+export function getSectionCopy(s: SiteSettings) {
+  const r = s as Record<string, unknown>;
+  return {
+    what: str(r.what_intro) || DEFAULT_WHAT_INTRO,
+    work: str(r.work_intro) || DEFAULT_WORK_INTRO,
+  };
+}
+
+function wholeNumber(v: unknown): number | null {
+  const n = Number.parseInt(str(v), 10);
+  return Number.isFinite(n) && n >= 0 ? n : null;
+}
+
+export function getHomeStats(s: SiteSettings, projectCount: number): StatItem[] {
+  const own = getStats(s);
+  if (own.length > 0) return own;
+  const r = s as Record<string, unknown>;
+  const founded = getIdentity(s).foundedYear;
+  const years = founded ? Math.max(1, new Date().getFullYear() - founded + 1) : 1;
+  const values = [wholeNumber(r.projects_count) ?? projectCount, wholeNumber(r.years_active) ?? years, wholeNumber(r.clients_count) ?? 0];
+  return DEFAULT_STAT_COPY.map((c, i) => ({ n: values[i], label: c.label, desc: c.desc }));
+}
