@@ -697,7 +697,7 @@ function Availability({ toast }: Pick<PanelProps, "toast">) {
 }
 
 function Settings({ toast, ask }: PanelProps) {
-  const [s, setS] = useState({ tagline: "", cta_text: "", accent_color: "#C8FF00", social_github: "", social_instagram: "", social_facebook: "" });
+  const [s, setS] = useState({ tagline: "", what_intro: "", work_intro: "", cta_text: "", accent_color: "#C8FF00", social_github: "", social_instagram: "", social_facebook: "" });
   const [video, setVideo] = useState("");
   const [videoStatus, setVideoStatus] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -707,7 +707,7 @@ function Settings({ toast, ask }: PanelProps) {
     db.dbLoadSiteSettings()
       .then((r: SiteSettings) => {
         setS({
-          tagline: r.tagline ?? "", cta_text: r.cta_text ?? "", accent_color: r.accent_color || "#C8FF00",
+          tagline: r.tagline ?? "", what_intro: (r as Record<string, string | undefined>).what_intro ?? "", work_intro: (r as Record<string, string | undefined>).work_intro ?? "", cta_text: r.cta_text ?? "", accent_color: r.accent_color || "#C8FF00",
           social_github: r.social_github ?? "", social_instagram: r.social_instagram ?? "", social_facebook: r.social_facebook ?? "",
         });
         setVideo(r.hero_video ?? "");
@@ -717,7 +717,7 @@ function Settings({ toast, ask }: PanelProps) {
 
   const save = async () => {
     const fields: Record<string, string> = {
-      tagline: s.tagline.trim(), cta_text: s.cta_text.trim(), accent_color: s.accent_color,
+      tagline: s.tagline.trim(), what_intro: s.what_intro.trim(), work_intro: s.work_intro.trim(), cta_text: s.cta_text.trim(), accent_color: s.accent_color,
       social_github: s.social_github.trim(), social_instagram: s.social_instagram.trim(), social_facebook: s.social_facebook.trim(),
     };
     try {
@@ -762,6 +762,8 @@ function Settings({ toast, ask }: PanelProps) {
         <div className="settings-grid">
           {text("tagline", "Hero Tagline", "set-tagline", "Tagline")}
           {text("cta_text", "Hero CTA Button Text", "set-cta-text", "Button text")}
+          {text("what_intro", "What We Do Description", "set-what-intro", "Leave empty for the default text")}
+          {text("work_intro", "Selected Work Description", "set-work-intro", "Leave empty for the default text")}
         </div>
       </div>
 
