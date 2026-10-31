@@ -8,7 +8,7 @@ Arkeos Web is the public website and admin panel for a creative studio. Every pr
 
 - Pages: home, projects, services, about, contact, privacy, and a custom 404
 - Admin panel at `/admin`: read inquiries, manage projects and services, edit the studio identity, fonts and site settings, set availability, view basic analytics
-- Animation: GSAP, Lenis and vanilla-tilt
+- Animation: GSAP and Lenis
 
 ## Installation
 
@@ -102,7 +102,7 @@ Check this list before creating a new helper or component.
 | --- | --- |
 | copy_shared (brand, nav, availability texts, menu, footer, cta, buttons, preloader, hero deco) | Website Info, Shared |
 | copy_home (hero, what, work, why, what_count, work_count, why_stats) | Website Info, Home |
-| copy_projects | Website Info, Projects |
+| copy_projects (hero, featured, more, controls, empty_text) | Website Info, Projects |
 | copy_services (hero, sections, process_steps) | Website Info, Services |
 | copy_about (hero, story, stats, values, team, about_image, about_image_wide) | Website Info, About |
 | copy_contact (labels, placeholders, option lists, success, errors) | Website Info, Contact |
@@ -146,9 +146,10 @@ Deploy to Vercel (or any Node host) and add the same environment variables there
 - Author: Arkeos (arkeos-kzenon)
 - Published: October 31, 2026
 - Fonts: Zentry, Robert, General Sans
-- Libraries: Next.js, React, GSAP, Lenis, vanilla-tilt
+- Libraries: Next.js, React, GSAP, Lenis
 
 ## Version history
 
 - v0.1 (2026-10-31): first Next.js and React version with all pages and the admin panel.
 - v0.2 (2026-10-31): content loaded from the database, no placeholder content, provider neutral data layer, privacy page.
+- v0.3 (2026-11-01): projects page featured carousel and cards or list view, services media rows and animated process flow, project cards reveal details on a timer, full width section header media.
