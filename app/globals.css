@@ -525,25 +525,7 @@ img, video {
   transform: translateY(0);
 }
 
-.p-card__media-badge {
-  position: absolute;
-  top: 1.2rem;
-  right: 1.2rem;
-  z-index: 4;
-  font-family: var(--font-label);
-  font-size: 0.5rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  padding: 0.2rem 0.5rem;
-  border: 1px solid var(--color-border);
-  color: var(--color-muted);
-  background: rgba(0,0,0,0.5);
-  backdrop-filter: blur(4px);
-}
 
-.p-card__media-badge.badge--video  { color: var(--color-accent); border-color: color-mix(in srgb, var(--color-accent) 30%, transparent); }
-.p-card__media-badge.badge--image  { color: #7df4ff; border-color: rgba(125,244,255,0.3); }
-.p-card__media-badge.badge--black  { color: var(--color-muted); }
 
 #cta {
   border-top: 1px solid var(--color-border);
