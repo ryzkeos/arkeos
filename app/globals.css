@@ -859,18 +859,18 @@ footer {
 }
 .hdr-nav-trigger:hover,
 .hdr-nav-trigger.open { color: var(--color-text); border-color: rgba(245,245,245,0.22); }
-.nav-lines { display: flex; flex-direction: column; gap: 4px; width: 16px; }
+.nav-lines { display: flex; flex-direction: column; justify-content: center; gap: 5px; width: 18px; height: 11px; flex-shrink: 0; }
 .nav-lines span {
   display: block;
+  width: 100%;
   height: 1px;
   background: currentColor;
-  transition: transform .35s var(--ease-out), opacity .25s, width .3s var(--ease-out);
+  transition: transform .4s var(--ease-out), opacity .25s var(--ease-out);
   transform-origin: center;
 }
-.nav-lines span:nth-child(2) { width: 65%; }
-.hdr-nav-trigger.open .nav-lines span:nth-child(1) { transform: translateY(5px) rotate(45deg); }
-.hdr-nav-trigger.open .nav-lines span:nth-child(2) { opacity: 0; transform: scaleX(0); }
-.hdr-nav-trigger.open .nav-lines span:nth-child(3) { transform: translateY(-5px) rotate(-45deg); }
+.hdr-nav-trigger.open .nav-lines span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.hdr-nav-trigger.open .nav-lines span:nth-child(2) { opacity: 0; }
+.hdr-nav-trigger.open .nav-lines span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 
 #nav-overlay {
   display: none;
@@ -935,18 +935,20 @@ footer {
 }
 .nav-ov__avail .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--color-accent); animation: blink 2.2s ease-in-out infinite; }
 .nav-ov__avail .dot.booked { background: #ff6b6b; }
-.nav-ov__socials { display: flex; gap: 0.6rem; flex-wrap: wrap; justify-content: flex-end; }
+.nav-ov__socials { display: flex; gap: 0.7rem; justify-content: flex-end; align-items: center; }
 .nav-ov__socials a {
-  padding: 0.4rem 0.7rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
   border: 1px solid var(--color-border);
-  font-family: var(--font-label);
-  font-size: 0.55rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  border-radius: 50%;
   color: var(--color-muted);
   transition: color .25s, border-color .25s;
 }
-.nav-ov__socials a:hover { color: var(--color-text); border-color: rgba(245,245,245,0.2); }
+.nav-ov__socials svg { width: 1rem; height: 1rem; fill: currentColor; display: block; }
+.nav-ov__socials a:hover { color: var(--color-text); border-color: var(--color-accent); }
 
 @media (pointer: coarse) {
   
