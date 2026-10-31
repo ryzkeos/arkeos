@@ -19,11 +19,11 @@ export const home: HomeCopy = {
   work: {
     label: "Selected Work",
     lines: ["THE", "WORK."],
-    intro: "A selection of recent projects from the studio.",
+    intro: "A close look at recent projects from the studio. Each one shows how we plan, design and build work that stays sharp long after launch.",
     cta: { label: "View All Projects", href: "/projects" },
   },
   work_count: 5,
-  why: { label: "Why {name}", lines: ["BUILT", "DIFFERENT."], intro: "", cta: null },
+  why: { label: "Why {name}", lines: ["BUILT", "DIFFERENT."], intro: "Our studio is small by choice. You work with the people who build your project, and every detail gets the same care from the first call to launch.", cta: { label: "Our Story", href: "/about" } },
   why_stats: [
     { n: 0, label: "PROJECTS SHIPPED", desc: "Every single one delivered on time, on spec, and above expectation." },
     { n: 0, label: "YEARS ACTIVE", desc: "Refusing to ship anything that would not carry the name. That standard does not drop." },

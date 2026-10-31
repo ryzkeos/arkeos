@@ -28,4 +28,5 @@ export const shared: SharedCopy = {
   },
   preloader: { statuses: ["Loading", "Preparing", "Almost Ready", "Welcome"] },
   hero: { deco: "ARKEOS", hover_word: "LEGACY", scroll_label: "Scroll down" },
+  section_media: { type: "image", url: "" },
 };

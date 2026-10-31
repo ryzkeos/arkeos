@@ -299,12 +299,27 @@ export default function CopyEditor({ page, toast }: { page: PageKey; toast: Pane
         Reset
       </button>
     );
-    if (f.type === "image") {
+    if (f.type === "select") {
+      const id = id_of(f.path);
+      return (
+        <div className="copy-field" key={f.path}>
+          <div className="form-group">
+            <label htmlFor={id}>{f.label}</label>
+            <select id={id} value={text} onChange={(e) => set(f.path, e.target.value)}>
+              <option value="">{`Default (${placeholder_of(f.path)})`}</option>
+              {(f.options ?? []).map((o) => <option key={o} value={o}>{o}</option>)}
+            </select>
+          </div>
+          <div className="admin-actions">{reset}</div>
+        </div>
+      );
+    }
+    if (f.type === "image" || f.type === "media") {
       return (
         <div className="copy-field" key={f.path}>
           <MediaField
             label={f.label}
-            accept="image/*"
+            accept={f.type === "media" ? "video/*,image/*,.html,.htm" : "image/*"}
             folder={`copy/${page}`}
             value={text}
             placeholder={placeholder_of(f.path) || "https://"}
