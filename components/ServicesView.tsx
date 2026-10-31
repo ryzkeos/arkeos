@@ -1,5 +1,6 @@
 "use client";
 import "@/styles/services.css";
+import { safeUrl } from "@/lib/gsap";
 import { getProcess } from "@/lib/content";
 import { useServices } from "@/lib/useContent";
 import { useArkeosAnimations } from "@/hooks/useArkeosAnimations";
@@ -45,10 +46,15 @@ export default function ServicesView() {
                 aria-label={`Service: ${s.title}`}
               >
                 <div className="svc-ico" aria-hidden="true">
-                  <svg viewBox="0 0 24 24">
-                    <rect x="3" y="7" width="18" height="13" rx="2" />
-                    <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                  </svg>
+                  {s.icon_url && safeUrl(s.icon_url) ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={safeUrl(s.icon_url)!} alt="" />
+                  ) : (
+                    <svg viewBox="0 0 24 24">
+                      <rect x="3" y="7" width="18" height="13" rx="2" />
+                      <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    </svg>
+                  )}
                 </div>
                 <div className="svc-body">
                   <p className="svc-num">{String(i + 1).padStart(2, "0")}</p>

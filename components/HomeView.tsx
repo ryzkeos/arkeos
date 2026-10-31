@@ -3,10 +3,11 @@ import "@/styles/home.css";
 import { useEffect, useRef, useState } from "react";
 import { gsap, prefersReducedMotion, safeUrl } from "@/lib/gsap";
 import { getIdentity, getStats } from "@/lib/content";
-import { useProjects, useServices } from "@/lib/useContent";
+import { usePillars, useProjects } from "@/lib/useContent";
 import { useArkeosAnimations } from "@/hooks/useArkeosAnimations";
 import { useSiteSettings, useSiteSettingsLoaded } from "./SiteSettings";
 import Btn from "./Btn";
+import { CinemaBg, CinemaOverlay, type CinemaItem } from "./CinemaMedia";
 import CtaSection from "./CtaSection";
 import ProjectCard from "./ProjectCard";
 import SectionH2 from "./SectionH2";
@@ -27,15 +28,16 @@ export default function HomeView() {
   const settings = useSiteSettings();
   const settingsLoaded = useSiteSettingsLoaded();
   const allProjects = useProjects();
-  const services = useServices();
+  const allPillars = usePillars();
+  const [cinema, setCinema] = useState<CinemaItem | null>(null);
   const [showPreloader] = useState(() => !preloaderPlayed);
   const [introDone, setIntroDone] = useState(!showPreloader);
 
   const identity = getIdentity(settings);
   const stats = getStats(settings);
   const projects = allProjects ? allProjects.slice(0, 3) : [];
-  const pillars = services ? services.slice(0, 4) : [];
-  const contentReady = settingsLoaded && allProjects !== null && services !== null;
+  const pillars = allPillars ?? [];
+  const contentReady = settingsLoaded && allProjects !== null && allPillars !== null;
 
   useArkeosAnimations({ ready: introDone && contentReady });
 
@@ -169,13 +171,36 @@ export default function HomeView() {
             <SectionH2 lines={["CRAFT", "THAT CUTS."]} />
           </div>
           <div className="pillars" role="list">
-            {pillars.map((p, i) => (
-              <article key={p.id} className="pillar reveal" role="listitem">
-                <div className="pillar-ico" aria-hidden="true"><svg viewBox="0 0 24 24">{ICONS[i % ICONS.length]}</svg></div>
-                <h3 className="pillar-title">{p.title}</h3>
-                {p.description && <p className="pillar-desc">{p.description}</p>}
-              </article>
-            ))}
+            {pillars.map((p, i) => {
+              const preview = p.cinema_url ? { url: p.cinema_url, type: p.cinema_type, label: p.title } : null;
+              return (
+                <article
+                  key={p.id}
+                  className="pillar reveal"
+                  role="listitem"
+                  data-cinema={preview ? "true" : undefined}
+                  tabIndex={preview ? 0 : undefined}
+                  aria-label={preview ? `Preview ${p.title}` : undefined}
+                  onClick={preview ? () => setCinema(preview) : undefined}
+                  onKeyDown={preview ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setCinema(preview); } } : undefined}
+                >
+                  {preview && <div className="pillar-cinema-bg" aria-hidden="true"><CinemaBg url={preview.url} type={preview.type} /></div>}
+                  <div className="pillar-body">
+                    <div className="pillar-ico" aria-hidden="true">
+                      {p.icon_url && safeUrl(p.icon_url) ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={safeUrl(p.icon_url)!} alt="" />
+                      ) : (
+                        <svg viewBox="0 0 24 24">{ICONS[i % ICONS.length]}</svg>
+                      )}
+                    </div>
+                    <h3 className="pillar-title">{p.title}</h3>
+                    {p.description && <p className="pillar-desc">{p.description}</p>}
+                    {preview && <span className="pillar-hint">Tap to preview</span>}
+                  </div>
+                </article>
+              );
+            })}
           </div>
         </section>
       )}
@@ -210,6 +235,8 @@ export default function HomeView() {
           </div>
         </section>
       )}
+
+      <CinemaOverlay item={cinema} onClose={() => setCinema(null)} />
 
       <CtaSection />
     </main>
