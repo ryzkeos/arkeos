@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { NAV } from "@/lib/data";
 import { gsap, prefersReducedMotion } from "@/lib/gsap";
 import { getIdentity } from "@/lib/content";
+import { safeUrl } from "@/lib/gsap";
 import { useSiteSettings } from "./SiteSettings";
 
 export default function Header() {
@@ -14,6 +15,11 @@ export default function Header() {
   const [stuck, setStuck] = useState(false);
   const [open, setOpen] = useState(false);
   const drawer = useRef<HTMLDivElement>(null);
+  const socials = [
+    { label: "GitHub", href: safeUrl(settings.social_github) },
+    { label: "Instagram", href: safeUrl(settings.social_instagram) },
+    { label: "Facebook", href: safeUrl(settings.social_facebook) },
+  ].filter((x): x is { label: string; href: string } => Boolean(x.href));
   const booked = settings.availability === "booked";
   const availText = booked ? "Currently Booked" : "Now Taking Projects";
 
@@ -32,15 +38,12 @@ export default function Header() {
   }, []);
 
   useEffect(() => {
-    const links = drawer.current?.querySelectorAll("a");
+    const links = drawer.current?.querySelectorAll(".nav-ov__link");
     if (!links) return;
     document.body.style.overflow = open ? "hidden" : "";
-    if (open) {
-      if (prefersReducedMotion()) gsap.set(links, { y: 0, opacity: 1 });
-      else gsap.to(links, { y: 0, opacity: 1, duration: 0.55, ease: "power2.out", stagger: 0.07, delay: 0.05 });
-    } else {
-      gsap.set(links, { y: 20, opacity: 0 });
-    }
+    if (prefersReducedMotion()) gsap.set(links, { y: open ? "0%" : "110%" });
+    else if (open) gsap.to(links, { y: "0%", duration: 0.6, ease: "power3.out", stagger: 0.07, delay: 0.18 });
+    else gsap.to(links, { y: "110%", duration: 0.35, ease: "power2.in", stagger: 0.03 });
     return () => { document.body.style.overflow = ""; };
   }, [open]);
 
@@ -49,25 +52,36 @@ export default function Header() {
   return (
     <>
       <div
-        id="mobile-nav"
+        id="nav-overlay"
         ref={drawer}
         className={open ? "open" : ""}
-        style={{ display: "flex" }}
         role="dialog"
-        aria-label="Mobile navigation"
+        aria-label="Site navigation"
         aria-modal="true"
         aria-hidden={!open}
       >
-        <nav>
-          {NAV.map((n) => (
-            <Link key={n.href} href={n.href} className={isActive(n.href) ? "is-active" : undefined} aria-current={isActive(n.href) ? "page" : undefined} tabIndex={open ? 0 : -1}>
-              {n.label}
-            </Link>
+        <div className="nav-ov__inner">
+          {NAV.map((n, i) => (
+            <div key={n.href} className="nav-ov__row">
+              <Link href={n.href} className={`nav-ov__link${isActive(n.href) ? " is-active" : ""}`} aria-current={isActive(n.href) ? "page" : undefined} tabIndex={open ? 0 : -1}>
+                <span>{n.label}</span>
+                <span className="nav-ov__idx">{String(i + 1).padStart(2, "0")}</span>
+              </Link>
+            </div>
           ))}
-        </nav>
-        <div className="mobile-nav__footer">
-          <span className={`dot${booked ? " booked" : ""}`} />
-          <span>{availText}</span>
+        </div>
+        <div className="nav-ov__foot">
+          <div className="nav-ov__avail">
+            <span className={`dot${booked ? " booked" : ""}`} />
+            <span>{availText}</span>
+          </div>
+          {socials.length > 0 && (
+            <nav className="nav-ov__socials" aria-label="Social links">
+              {socials.map(({ label, href }) => (
+                <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={`${name} on ${label}`} tabIndex={open ? 0 : -1}>{label}</a>
+              ))}
+            </nav>
+          )}
         </div>
       </div>
 
@@ -88,14 +102,15 @@ export default function Header() {
         </div>
 
         <button
-          className={`hdr-menu-btn${open ? " open" : ""}`}
-          id="menu-btn"
-          aria-label={open ? "Close navigation menu" : "Open navigation menu"}
+          className={`hdr-nav-trigger${open ? " open" : ""}`}
+          id="nav-trigger"
+          aria-label={open ? "Close navigation" : "Open navigation"}
           aria-expanded={open}
-          aria-controls="mobile-nav"
+          aria-controls="nav-overlay"
           onClick={() => setOpen((v) => !v)}
         >
-          <span /><span /><span />
+          <span className="nav-lines" aria-hidden="true"><span /><span /><span /></span>
+          <span>{open ? "Close" : "Menu"}</span>
         </button>
       </header>
     </>
