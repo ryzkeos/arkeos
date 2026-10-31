@@ -11,7 +11,17 @@ export type SharedCopy = {
   availability: { available_text: string; booked_text: string };
   menu: { open_label: string; close_label: string };
   footer: { rights_text: string; privacy_label: string };
-  cta: { label: string; headline: string; button: string };
+  cta: {
+    label: string;
+    headline: string;
+    button: string;
+    deco_a_type: string;
+    deco_a_url: string;
+    deco_b_type: string;
+    deco_b_url: string;
+    deco_c_type: string;
+    deco_c_url: string;
+  };
   buttons: {
     view_all_projects: string;
     view_all_services: string;
