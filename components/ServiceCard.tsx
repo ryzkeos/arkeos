@@ -1,30 +1,20 @@
 "use client";
-import { useEffect, useState } from "react";
 import { safeUrl } from "@/lib/gsap";
 import type { Service } from "@/lib/types";
+import { use_cinema_active } from "@/hooks/use_cinema_active";
 import { CinemaBg } from "./CinemaMedia";
 
 type Props = { service: Service; icon: React.ReactNode };
 
 export default function ServiceCard({ service, icon }: Props) {
-  const [hover, setHover] = useState(false);
-  const [touch, setTouch] = useState(false);
-
-  useEffect(() => {
-    setTouch(window.matchMedia("(hover: none)").matches);
-  }, []);
+  const { active, handlers } = use_cinema_active();
 
   const iconSrc = service.icon_url ? safeUrl(service.icon_url) : null;
-  const active = hover || touch;
-
   return (
     <article
       className="pillar reveal"
       role="listitem"
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      onFocus={() => setHover(true)}
-      onBlur={() => setHover(false)}
+      {...handlers}
       tabIndex={service.cinema_url ? 0 : undefined}
     >
       {service.cinema_url && (
