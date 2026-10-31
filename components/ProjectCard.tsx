@@ -34,22 +34,24 @@ export default function ProjectCard({ project, index, variant }: Props) {
         <div className="p-card__num">{num}</div>
         <Title className="p-card__name">{project.title.toUpperCase()}</Title>
         <p className="p-card__desc">{project.description}</p>
-        <div className="p-card__tags">
-          {(project.tags ?? []).map((t) => <span key={t} className="tag">{t}</span>)}
+        <div className="p-card__foot">
+          <div className="p-card__tags">
+            {(project.tags ?? []).map((t) => <span key={t} className="tag">{t}</span>)}
+          </div>
+          {link && (
+            <a
+              href={link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn p-card__cta"
+              aria-label={`View ${project.title} project (opens in a new tab)`}
+            >
+              <span className="btn-label">{variant === "grid" ? "View Project" : "View"}</span>
+              <span className="btn-arrow" aria-hidden="true" />
+            </a>
+          )}
         </div>
       </div>
-      {link && (
-        <a
-          href={link}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn p-card__cta"
-          aria-label={`View ${project.title} project (opens in a new tab)`}
-        >
-          <span className="btn-label">{variant === "grid" ? "View Project" : "View"}</span>
-          <span className="btn-arrow" aria-hidden="true" />
-        </a>
-      )}
     </article>
   );
 }
