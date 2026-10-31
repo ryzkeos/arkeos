@@ -1,49 +1,26 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { safeUrl } from "@/lib/gsap";
 import type { CinemaType } from "@/lib/types";
 
-export function CinemaBg({ url, type }: { url: string; type: CinemaType }) {
+export function CinemaBg({ url, type, active = false }: { url: string; type: CinemaType; active?: boolean }) {
   const src = safeUrl(url);
-  if (!src) return null;
-  if (type === "video") return <video src={src} autoPlay muted loop playsInline />;
-  if (type === "html") return <iframe src={src} tabIndex={-1} title="" sandbox="allow-scripts" />;
-  return <img src={src} alt="" aria-hidden="true" />;
-}
+  const video = useRef<HTMLVideoElement>(null);
 
-export type CinemaItem = { url: string; type: CinemaType; label: string };
-
-export function CinemaOverlay({ item, onClose }: { item: CinemaItem | null; onClose: () => void }) {
   useEffect(() => {
-    if (!item) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prev;
-    };
-  }, [item, onClose]);
+    const el = video.current;
+    if (!el) return;
+    if (active) {
+      el.play().catch(() => {});
+    } else {
+      el.pause();
+      el.currentTime = 0;
+    }
+  }, [active]);
 
-  if (!item) return null;
-  const src = safeUrl(item.url);
   if (!src) return null;
-
-  return (
-    <div className="cinema-overlay" role="dialog" aria-modal="true" aria-label={item.label} onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <button className="cinema-close" onClick={onClose} aria-label="Close preview">Close</button>
-      <div className="cinema-wrap">
-        {item.type === "video" ? (
-          <video src={src} autoPlay controls loop playsInline />
-        ) : item.type === "html" ? (
-          <iframe src={src} title={item.label} sandbox="allow-scripts" />
-        ) : (
-          <img src={src} alt={item.label} />
-        )}
-      </div>
-    </div>
-  );
+  if (type === "video") return <video ref={video} src={src} muted loop playsInline preload="metadata" aria-hidden="true" />;
+  if (type === "html") return active ? <iframe src={src} tabIndex={-1} title="" sandbox="allow-scripts" aria-hidden="true" /> : null;
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={src} alt="" aria-hidden="true" draggable={false} />;
 }
