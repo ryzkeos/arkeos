@@ -2,22 +2,22 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { NAV } from "@/lib/data";
 import { gsap, prefersReducedMotion } from "@/lib/gsap";
-import { getIdentity } from "@/lib/content";
+import { useCopy } from "@/lib/use_copy";
 import { useSiteSettings } from "./SiteSettings";
 import { SocialIcon, getSocials } from "./SocialIcons";
 
 export default function Header() {
   const pathname = usePathname();
   const settings = useSiteSettings();
-  const { name } = getIdentity(settings);
+  const { brand, nav, availability, menu } = useCopy("shared");
+  const name = brand.name;
   const [stuck, setStuck] = useState(false);
   const [open, setOpen] = useState(false);
   const drawer = useRef<HTMLDivElement>(null);
   const socials = getSocials(settings);
   const booked = settings.availability === "booked";
-  const availText = booked ? "Currently Booked" : "Now Taking Projects";
+  const availText = booked ? availability.booked_text : availability.available_text;
 
   useEffect(() => {
     const onScroll = () => setStuck(window.scrollY > 90);
@@ -52,12 +52,12 @@ export default function Header() {
         ref={drawer}
         className={open ? "open" : ""}
         role="dialog"
-        aria-label="Site navigation"
+        aria-label={menu.open_label}
         aria-modal="true"
         aria-hidden={!open}
       >
         <div className="nav-ov__inner">
-          {NAV.map((n, i) => (
+          {nav.map((n, i) => (
             <div key={n.href} className="nav-ov__row">
               <Link href={n.href} className={`nav-ov__link${isActive(n.href) ? " is-active" : ""}`} aria-current={isActive(n.href) ? "page" : undefined} tabIndex={open ? 0 : -1}>
                 <span>{n.label}</span>
@@ -72,9 +72,9 @@ export default function Header() {
             <span>{availText}</span>
           </div>
           {socials.length > 0 && (
-            <nav className="nav-ov__socials" aria-label="Social links">
+            <nav className="nav-ov__socials" aria-label={name}>
               {socials.map(({ label, href }) => (
-                <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={`${name} on ${label}`} tabIndex={open ? 0 : -1}><SocialIcon label={label} /></a>
+                <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={`${name} ${label}`} tabIndex={open ? 0 : -1}><SocialIcon label={label} /></a>
               ))}
             </nav>
           )}
@@ -82,17 +82,17 @@ export default function Header() {
       </div>
 
       <header id="header" className={stuck ? "stuck" : ""} role="banner">
-        <Link href="/" className="hdr-logo" aria-label={`${name} home`}>{name}</Link>
+        <Link href="/" className="hdr-logo" aria-label={name}>{name}</Link>
 
-        <nav className="hdr-nav" role="navigation" aria-label="Main navigation">
-          {NAV.map((n) => (
+        <nav className="hdr-nav" role="navigation" aria-label={menu.open_label}>
+          {nav.map((n) => (
             <Link key={n.href} href={n.href} className={isActive(n.href) ? "is-active" : undefined} aria-current={isActive(n.href) ? "page" : undefined}>
               {n.label}
             </Link>
           ))}
         </nav>
 
-        <div className="hdr-badge" id="availability-badge" aria-label={`Studio availability: ${availText}`}>
+        <div className="hdr-badge" id="availability-badge" aria-label={availText}>
           <span className={`dot${booked ? " booked" : ""}`} />
           <span id="availability-text">{availText}</span>
         </div>
@@ -100,13 +100,13 @@ export default function Header() {
         <button
           className={`hdr-nav-trigger${open ? " open" : ""}`}
           id="nav-trigger"
-          aria-label={open ? "Close navigation" : "Open navigation"}
+          aria-label={open ? menu.close_label : menu.open_label}
           aria-expanded={open}
           aria-controls="nav-overlay"
           onClick={() => setOpen((v) => !v)}
         >
           <span className="nav-lines" aria-hidden="true"><span /><span /><span /></span>
-          <span>{open ? "Close" : "Menu"}</span>
+          <span>{open ? menu.close_label : menu.open_label}</span>
         </button>
       </header>
     </>
