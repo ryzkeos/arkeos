@@ -1,3 +1,6 @@
+import { useRef, useState } from "react";
+import * as db from "@/lib/db";
+
 export const MEDIA_BUCKET = "media";
 
 export type PanelProps = {
@@ -25,3 +28,54 @@ export const isHttpUrl = (value: string) => {
     return false;
   }
 };
+
+export function MediaField({
+  label,
+  accept,
+  folder,
+  value,
+  onChange,
+  toast,
+  placeholder,
+}: {
+  label: string;
+  accept: string;
+  folder: string;
+  value: string;
+  onChange: (v: string) => void;
+  toast: PanelProps["toast"];
+  placeholder: string;
+}) {
+  const file = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  const upload = async () => {
+    const fl = file.current?.files?.[0];
+    if (!fl) return toast("Choose a file first.", true);
+    const ext = fl.name.split(".").pop() ?? "bin";
+    const path = `${folder}/${Date.now()}.${ext}`;
+    setBusy(true);
+    try {
+      await db.dbUpload(MEDIA_BUCKET, path, fl);
+      onChange(db.dbPublicUrl(MEDIA_BUCKET, path));
+      toast("File uploaded.");
+    } catch (e) {
+      toast(msg(e, "Upload failed."), true);
+    } finally {
+      setBusy(false);
+      if (file.current) file.current.value = "";
+    }
+  };
+  return (
+    <div className="form-group admin-form-full">
+      <label>{label}</label>
+      <div className="media-actions-row" style={{ marginBottom: "0.5rem" }}>
+        <input type="file" ref={file} accept={accept} aria-label={`${label} file`} />
+        <button type="button" className="admin-btn admin-btn--sm admin-btn--accent" onClick={upload} disabled={busy} aria-label={`Upload ${label}`}>{busy ? "Uploading…" : "Upload"}</button>
+        <button type="button" className="admin-btn admin-btn--sm admin-btn--danger" onClick={() => onChange("")} aria-label={`Clear ${label}`}>Clear</button>
+      </div>
+      <input type="text" value={value} placeholder={placeholder} aria-label={`${label} URL`} onChange={(e) => onChange(e.target.value)} />
+    </div>
+  );
+}
+
+export const CINEMA_TYPES: [string, string][] = [["video", "Video"], ["image", "Image"], ["html", "HTML/iframe"]];
