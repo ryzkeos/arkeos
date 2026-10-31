@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import * as db from "@/lib/db";
 import { NAV } from "@/lib/data";
 import type { Inquiry, Project, Service, SiteSettings } from "@/lib/types";
+import { applyAccent } from "@/components/SiteSettings";
 import IdentityPanel from "./IdentityPanel";
 import { MEDIA_BUCKET, PanelHead, isHttpUrl, msg, type PanelProps } from "./shared";
 
@@ -579,6 +580,7 @@ function Settings({ toast, ask }: PanelProps) {
     };
     try {
       await Promise.all(Object.entries(fields).map(([k, v]) => db.dbSaveSetting(k, v)));
+      applyAccent(s.accent_color);
       toast("Settings saved.");
     } catch { toast("Failed to save some settings.", true); }
   };
