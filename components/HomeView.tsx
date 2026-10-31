@@ -1,19 +1,17 @@
 "use client";
 import "@/styles/home.css";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { gsap, prefersReducedMotion, safeUrl } from "@/lib/gsap";
 import { getHomeStats, getIdentity, getSectionCopy } from "@/lib/content";
 import { usePillars, useProjects } from "@/lib/useContent";
 import { useArkeosAnimations } from "@/hooks/useArkeosAnimations";
-import { usePreloadProgress } from "@/hooks/usePreloadProgress";
+import { useIntroDone } from "@/lib/preloader";
 import { useSiteSettings, useSiteSettingsLoaded } from "./SiteSettings";
 import Btn from "./Btn";
 import PillarCard from "./PillarCard";
 import CtaSection from "./CtaSection";
-import ProjectCard from "./ProjectCard";
+import ProjectGrid from "./ProjectGrid";
 import SectionH2 from "./SectionH2";
-
-let preloaderPlayed = false;
 
 const ICONS = [
   <><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></>,
@@ -23,8 +21,6 @@ const ICONS = [
 ];
 
 const HOVER_WORD = "LEGACY";
-const STATUSES = ["Loading", "Preparing", "Almost Ready", "Welcome"];
-const statusFor = (p: number) => STATUSES[p >= 100 ? 3 : Math.min(Math.floor(p / 34), 2)];
 
 export default function HomeView() {
   const root = useRef<HTMLElement>(null);
@@ -32,76 +28,16 @@ export default function HomeView() {
   const settingsLoaded = useSiteSettingsLoaded();
   const allProjects = useProjects();
   const allPillars = usePillars();
-  const [showPreloader] = useState(() => !preloaderPlayed);
-  const [introDone, setIntroDone] = useState(!showPreloader);
+  const introDone = useIntroDone();
 
   const identity = getIdentity(settings);
-  const projects = allProjects ? allProjects.slice(0, 3) : [];
+  const projects = allProjects ? allProjects.slice(0, 5) : [];
   const pillars = allPillars ?? [];
   const copy = getSectionCopy(settings);
   const stats = getHomeStats(settings, allProjects?.length ?? 0);
   const contentReady = settingsLoaded && allProjects !== null && allPillars !== null;
 
   useArkeosAnimations({ ready: introDone && contentReady });
-
-  const progress = usePreloadProgress(showPreloader, contentReady, root);
-  const shown = useRef({ v: 0 });
-  const finishing = useRef(false);
-
-  useEffect(() => {
-    if (!showPreloader || !root.current) return;
-    const brand = root.current.querySelector(".pre__brand");
-    gsap.to(brand, { opacity: 1, duration: prefersReducedMotion() ? 0 : 0.35, ease: "power2.out" });
-  }, [showPreloader]);
-
-  useEffect(() => {
-    if (!showPreloader || !root.current) return;
-    const el = root.current;
-    const preloader = el.querySelector<HTMLElement>("#preloader");
-    const bar = el.querySelector<HTMLElement>("#pre-bar");
-    const pctEl = el.querySelector("#pre-pct");
-    const statusEl = el.querySelector("#pre-status");
-    if (!preloader || !bar) return;
-    const reduced = prefersReducedMotion();
-
-    const render = () => {
-      const v = Math.round(shown.current.v);
-      bar.style.width = `${shown.current.v}%`;
-      if (pctEl) pctEl.textContent = `${v}%`;
-      if (statusEl) statusEl.textContent = statusFor(v);
-    };
-
-    const finish = () => {
-      if (finishing.current) return;
-      finishing.current = true;
-      gsap.to(preloader, {
-        opacity: 0,
-        duration: reduced ? 0 : 0.35,
-        delay: reduced ? 0 : 0.15,
-        ease: "power2.inOut",
-        onComplete: () => {
-          preloader.style.display = "none";
-          preloaderPlayed = true;
-          setIntroDone(true);
-        },
-      });
-    };
-
-    const tween = gsap.to(shown.current, {
-      v: progress,
-      duration: reduced ? 0 : 0.45,
-      ease: "power1.out",
-      overwrite: true,
-      onUpdate: render,
-      onComplete: () => {
-        render();
-        if (progress >= 100) finish();
-      },
-    });
-    return () => {
-      tween.kill();
-    };
-  }, [progress, showPreloader]);
 
   useEffect(() => {
     if (!settingsLoaded || !introDone) return;
@@ -142,24 +78,6 @@ export default function HomeView() {
 
   return (
     <main className="pg-home" ref={root}>
-      {showPreloader && (
-        <div id="preloader" aria-hidden="true">
-          <span className="pre__corner pre__corner--tl" />
-          <span className="pre__corner pre__corner--tr" />
-          <span className="pre__corner pre__corner--bl" />
-          <span className="pre__corner pre__corner--br" />
-          <div className="pre__glow" />
-          <div className="pre__center">
-            <div className="pre__brand">{identity.name}</div>
-            <div className="pre__track"><div className="pre__bar" id="pre-bar" /></div>
-          </div>
-          <div className="pre__foot">
-            <span className="pre__status" id="pre-status">{STATUSES[0]}</span>
-            <span className="pre__pct" id="pre-pct">0%</span>
-          </div>
-        </div>
-      )}
-
       <section id="hero" aria-label="Hero">
         <div className="hero-video" aria-hidden="true">
           {videoSrc && <video src={videoSrc} autoPlay muted loop playsInline aria-hidden="true" />}
@@ -228,9 +146,7 @@ export default function HomeView() {
               <Btn href="/projects" id="btn-all" label="View All Projects" ariaLabel="View all projects" />
             </div>
           </div>
-          <div className="proj-grid" role="list">
-            {projects.map((p, i) => <ProjectCard key={p.id ?? p.title} project={p} index={i} variant="home" />)}
-          </div>
+          <ProjectGrid projects={projects} variant="home" />
         </section>
       )}
 
