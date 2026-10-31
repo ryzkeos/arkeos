@@ -96,6 +96,33 @@ Check this list before creating a new helper or component.
 - `components/admin/copy/CopyEditor.tsx`: generic admin form built from the schema.
 - `components/admin/WebsiteInfoPanel.tsx`: the Website Info tab.
 
+### Admin configuration map
+
+| key or page | admin location |
+| --- | --- |
+| copy_shared (brand, nav, availability texts, menu, footer, cta, buttons, preloader, hero deco) | Website Info, Shared |
+| copy_home (hero, what, work, why, what_count, work_count, why_stats) | Website Info, Home |
+| copy_projects | Website Info, Projects |
+| copy_services (hero, sections, process_steps) | Website Info, Services |
+| copy_about (hero, story, stats, values, team, about_image, about_image_wide) | Website Info, About |
+| copy_contact (labels, placeholders, option lists, success, errors) | Website Info, Contact |
+| copy_privacy | Website Info, Privacy |
+| copy_not_found | Website Info, Not Found |
+| studio_name, tagline, contact_email, response_time, founded_year, hero_headline, hero_deco, cta_text, what_intro, work_intro, about_story, about_stats, about_values, process_steps, team, about_image, about_image_wide (legacy keys, used as fallback under copy_*) | Website Info, same fields as above; Identity points there |
+| projects_count, years_active, clients_count | Site Settings, Home Counters |
+| accent_color, social_github, social_instagram, social_facebook | Site Settings |
+| hero_video | Site Settings, Hero Background Video |
+| availability | Availability |
+| font_display, font_ui_regular, font_ui_medium, font_label | Font Settings |
+| projects table | Projects |
+| services table | Services |
+| inquiries table | Inquiries |
+| analytics | Analytics |
+
+Not editable by design: null cta values in page defaults (hero cta on inner pages, section cta on services and about), because overrides must match the default type. Fallback project and service lists in defaults are edited in Projects and Services.
+
+The pillars table in db/schema.sql is no longer used.
+
 ### Data layer
 
 The app only imports from `lib/db`. `lib/db/adapter.ts` is the current adapter. It talks to a PostgREST style REST api with token auth and object storage (currently Supabase). To use another backend, add a new adapter file with the same exports and switch the re-export in `lib/db/index.ts`.

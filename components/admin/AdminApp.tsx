@@ -2,13 +2,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as db from "@/lib/db";
 import { NAV } from "@/lib/data";
-import type { CinemaType, Inquiry, Pillar, Project, Service, SiteSettings } from "@/lib/types";
+import type { CinemaType, Inquiry, Project, Service, SiteSettings } from "@/lib/types";
 import { applyAccent } from "@/components/SiteSettings";
 import IdentityPanel from "./IdentityPanel";
 import WebsiteInfoPanel from "./WebsiteInfoPanel";
 import { CINEMA_TYPES, MEDIA_BUCKET, MediaField, PanelHead, isHttpUrl, msg, type PanelProps } from "./shared";
 
-type Section = "inquiries" | "projects" | "services" | "pillars" | "availability" | "settings" | "website_info" | "identity" | "fonts" | "analytics";
+type Section = "inquiries" | "projects" | "services" | "availability" | "settings" | "website_info" | "identity" | "fonts" | "analytics";
 
 const VIDEO_EXT = ["mp4", "webm", "mov", "ogg"];
 function mediaBadge(media: string | null) {
@@ -19,7 +19,7 @@ function mediaBadge(media: string | null) {
 const splitTags = (s: string) => s.split(",").map((t) => t.trim()).filter(Boolean);
 
 const NAV_GROUPS: { label: string; items: [Section, string][] }[] = [
-  { label: "Content", items: [["inquiries", "Inquiries"], ["projects", "Projects"], ["services", "Services"], ["pillars", "Pillars"]] },
+  { label: "Content", items: [["inquiries", "Inquiries"], ["projects", "Projects"], ["services", "Services"]] },
   { label: "Studio", items: [["availability", "Availability"], ["settings", "Site Settings"], ["website_info", "Website Info"], ["identity", "Identity"], ["fonts", "Font Settings"], ["analytics", "Analytics"]] },
 ];
 
@@ -149,11 +149,10 @@ export default function AdminApp() {
             {section === "inquiries" && <Inquiries toast={showToast} ask={ask} onUnread={setUnread} />}
             {section === "projects" && <Projects toast={showToast} ask={ask} />}
             {section === "services" && <Services toast={showToast} ask={ask} />}
-            {section === "pillars" && <Pillars toast={showToast} ask={ask} />}
             {section === "availability" && <Availability toast={showToast} />}
             {section === "settings" && <Settings toast={showToast} ask={ask} />}
             {section === "website_info" && <WebsiteInfoPanel toast={showToast} />}
-            {section === "identity" && <IdentityPanel toast={showToast} />}
+            {section === "identity" && <IdentityPanel onOpenWebsiteInfo={() => setSection("website_info")} />}
             {section === "fonts" && <Fonts toast={showToast} />}
             {section === "analytics" && <Analytics />}
           </main>
@@ -562,98 +561,6 @@ function Services({ toast, ask }: PanelProps) {
   );
 }
 
-function Pillars({ toast, ask }: PanelProps) {
-  const [list, setList] = useState<Pillar[] | null>(null);
-  const [error, setError] = useState("");
-  const [editing, setEditing] = useState<{ id: string | null } | null>(null);
-  const [f, setF] = useState({ title: "", description: "", sort: "0", icon_url: "", cinema_url: "", cinema_type: "video" as CinemaType });
-
-  const load = useCallback(() => {
-    db.dbGetPillars().then((d) => { setList(Array.isArray(d) ? d : []); setError(""); }).catch(() => setError("Failed to load pillars."));
-  }, []);
-  useEffect(load, [load]);
-
-  const open = (idx: number | null) => {
-    const p = idx === null ? null : list![idx];
-    setEditing({ id: p?.id ?? null });
-    setF({ title: p?.title ?? "", description: p?.description ?? "", sort: String(p?.sort_order ?? list?.length ?? 0), icon_url: p?.icon_url ?? "", cinema_url: p?.cinema_url ?? "", cinema_type: p?.cinema_type ?? "video" });
-  };
-
-  const save = async () => {
-    if (!f.title.trim()) return toast("Title is required.", true);
-    const payload: Partial<Pillar> = {
-      title: f.title.trim(),
-      description: f.description.trim(),
-      sort_order: Number.parseInt(f.sort, 10) || 0,
-      icon_url: f.icon_url.trim() || null,
-      cinema_url: f.cinema_url.trim() || null,
-      cinema_type: f.cinema_type,
-    };
-    try {
-      await db.dbSavePillar(editing?.id ?? null, payload);
-      setEditing(null); load(); toast(editing?.id ? "Pillar updated." : "Pillar added.");
-    } catch (e) { toast(msg(e, "Failed to save pillar."), true); }
-  };
-
-  const del = (id: string) =>
-    ask("Delete this pillar? This cannot be undone.", () =>
-      db.dbDeletePillar(id).then(() => { load(); toast("Pillar deleted."); }).catch(() => toast("Failed to delete.", true)));
-
-  return (
-    <div className="admin-panel" id="panel-pillars" style={{ display: "block" }}>
-      <PanelHead title="PILLARS" sub={'Homepage "What We Do" cards. Each can have an icon and a cinema preview. When empty, the first services are shown.'} error={error} />
-      <div className="admin-actions" style={{ marginBottom: "1.2rem" }}>
-        <button className="admin-btn admin-btn--accent" onClick={() => open(null)} aria-label="Add a new pillar">+ Add Pillar</button>
-      </div>
-
-      <div className="admin-form" id="pillar-form" aria-label="Pillar editor" style={{ display: editing ? "block" : "none" }}>
-        <p className="form-title">{editing?.id ? "EDIT PILLAR" : "ADD PILLAR"}</p>
-        <div className="admin-form-grid">
-          <div className="form-group">
-            <label htmlFor="pf-title">Title</label>
-            <input type="text" id="pf-title" placeholder="Pillar title" aria-required="true" value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} />
-          </div>
-          <div className="form-group">
-            <label htmlFor="pf-sort">Sort Order</label>
-            <input type="number" id="pf-sort" min={0} value={f.sort} onChange={(e) => setF({ ...f, sort: e.target.value })} />
-          </div>
-          <div className="form-group admin-form-full">
-            <label htmlFor="pf-desc">Description</label>
-            <textarea id="pf-desc" placeholder="Short pillar description…" value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} />
-          </div>
-          <MediaField label="Icon Image" accept="image/*" folder="pillars" value={f.icon_url} onChange={(v) => setF((x) => ({ ...x, icon_url: v }))} toast={toast} placeholder="or paste icon URL" />
-          <MediaField label="Cinema Preview" accept="video/*,image/*" folder="pillars" value={f.cinema_url} onChange={(v) => setF((x) => ({ ...x, cinema_url: v }))} toast={toast} placeholder="or paste cinema URL" />
-          <div className="form-group">
-            <label htmlFor="pf-cinema-type">Cinema type</label>
-            <select id="pf-cinema-type" value={f.cinema_type} onChange={(e) => setF({ ...f, cinema_type: e.target.value as CinemaType })}>
-              {CINEMA_TYPES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-            </select>
-          </div>
-        </div>
-        <div className="admin-actions">
-          <button className="admin-btn admin-btn--accent" onClick={save} aria-label="Save pillar">Save Pillar</button>
-          <button className="admin-btn" onClick={() => setEditing(null)} aria-label="Cancel editing">Cancel</button>
-        </div>
-      </div>
-
-      <div className="list-wrap" id="pillars-list" aria-label="Pillars list" role="list">
-        {list === null ? <p className="admin-empty">Loading…</p> : list.length === 0 ? (
-          <p className="admin-empty">No pillars yet.</p>
-        ) : list.map((p, i) => (
-          <div key={p.id} className="project-row" aria-label={`Pillar: ${p.title}`}>
-            <div className="project-row__info"><strong>{p.title || "Untitled"}</strong><span className="project-row__tags">{p.description ? p.description.slice(0, 60) + "…" : ""}</span></div>
-            <span className={`vis-badge ${p.cinema_url ? "vis--on" : "vis--off"}`}>{p.cinema_url ? p.cinema_type : "No cinema"}</span>
-            <div className="admin-actions">
-              <button className="admin-btn admin-btn--sm" onClick={() => open(i)} aria-label="Edit">Edit</button>
-              <button className="admin-btn admin-btn--sm admin-btn--danger" onClick={() => del(p.id)} aria-label="Delete">Delete</button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function Availability({ toast }: Pick<PanelProps, "toast">) {
   const [available, setAvailable] = useState(true);
 
@@ -699,7 +606,7 @@ function Availability({ toast }: Pick<PanelProps, "toast">) {
 }
 
 function Settings({ toast, ask }: PanelProps) {
-  const [s, setS] = useState({ tagline: "", what_intro: "", work_intro: "", cta_text: "", accent_color: "#C8FF00", social_github: "", social_instagram: "", social_facebook: "" });
+  const [s, setS] = useState({ projects_count: "", years_active: "", clients_count: "", accent_color: "#C8FF00", social_github: "", social_instagram: "", social_facebook: "" });
   const [video, setVideo] = useState("");
   const [videoStatus, setVideoStatus] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -709,7 +616,7 @@ function Settings({ toast, ask }: PanelProps) {
     db.dbLoadSiteSettings()
       .then((r: SiteSettings) => {
         setS({
-          tagline: r.tagline ?? "", what_intro: (r as Record<string, string | undefined>).what_intro ?? "", work_intro: (r as Record<string, string | undefined>).work_intro ?? "", cta_text: r.cta_text ?? "", accent_color: r.accent_color || "#C8FF00",
+          projects_count: r.projects_count ?? "", years_active: r.years_active ?? "", clients_count: r.clients_count ?? "", accent_color: r.accent_color || "#C8FF00",
           social_github: r.social_github ?? "", social_instagram: r.social_instagram ?? "", social_facebook: r.social_facebook ?? "",
         });
         setVideo(r.hero_video ?? "");
@@ -719,7 +626,7 @@ function Settings({ toast, ask }: PanelProps) {
 
   const save = async () => {
     const fields: Record<string, string> = {
-      tagline: s.tagline.trim(), what_intro: s.what_intro.trim(), work_intro: s.work_intro.trim(), cta_text: s.cta_text.trim(), accent_color: s.accent_color,
+      projects_count: s.projects_count.trim(), years_active: s.years_active.trim(), clients_count: s.clients_count.trim(), accent_color: s.accent_color,
       social_github: s.social_github.trim(), social_instagram: s.social_instagram.trim(), social_facebook: s.social_facebook.trim(),
     };
     try {
@@ -760,12 +667,12 @@ function Settings({ toast, ask }: PanelProps) {
       <PanelHead title="SITE SETTINGS" sub="Edit global site content. Changes reflect live." error={error} />
 
       <div className="settings-section">
-        <p className="settings-section-title">Hero &amp; Copy</p>
+        <p className="settings-section-title">Home Counters</p>
+        <p className="panel-sub">Leave empty to count automatically. Page text is edited in Website Info.</p>
         <div className="settings-grid">
-          {text("tagline", "Hero Tagline", "set-tagline", "Tagline")}
-          {text("cta_text", "Hero CTA Button Text", "set-cta-text", "Button text")}
-          {text("what_intro", "What We Do Description", "set-what-intro", "Leave empty for the default text")}
-          {text("work_intro", "Selected Work Description", "set-work-intro", "Leave empty for the default text")}
+          {text("projects_count", "Projects Count", "set-projects-count", "Auto", "number")}
+          {text("years_active", "Years Active", "set-years-active", "Auto", "number")}
+          {text("clients_count", "Clients Count", "set-clients-count", "Auto", "number")}
         </div>
       </div>
 
