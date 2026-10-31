@@ -100,7 +100,7 @@ Check this list before creating a new helper or component.
 
 | key or page | admin location |
 | --- | --- |
-| copy_shared (brand, nav, availability texts, menu, footer, cta and its three shape media, buttons, preloader, hero deco) | Website Info, Shared |
+| copy_shared (brand, nav, availability texts, menu, footer, cta and its four corridor wall media, buttons, preloader, hero deco) | Website Info, Shared |
 | copy_home (hero, what, work, why, what_count, work_count, why_stats) | Website Info, Home |
 | copy_projects (hero, featured, more, controls, empty_text) | Website Info, Projects |
 | copy_services (hero, sections, process_steps) | Website Info, Services |
