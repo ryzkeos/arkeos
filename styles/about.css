@@ -205,7 +205,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(200,255,0,0.03) 0%, transparent 60%);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 3%, transparent) 0%, transparent 60%);
 }
 
 .pg-about .team-card__photo img {
