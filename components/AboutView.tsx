@@ -1,6 +1,6 @@
 "use client";
 import { useMemo } from "react";
-import { STATIC_IDENTITY } from "@/data";
+import { DEFAULTS } from "@/defaults";
 import { dbPublicUrl } from "@/lib/db";
 import { getIdentity, getStats, getStory, getTeam, getValues } from "@/lib/content";
 import { useArkeosAnimations } from "@/hooks/useArkeosAnimations";
@@ -28,8 +28,8 @@ export default function AboutView() {
       stats: getStats(settings),
       values: getValues(settings),
       team: getTeam(settings),
-      storyImage: pickImage(settings.about_image, STATIC_IDENTITY.aboutImage),
-      wideImage: pickImage(settings.about_image_wide, STATIC_IDENTITY.aboutImageWide),
+      storyImage: pickImage(settings.about_image, DEFAULTS.about.about_image),
+      wideImage: pickImage(settings.about_image_wide, DEFAULTS.about.about_image_wide),
     }),
     [settings]
   );
