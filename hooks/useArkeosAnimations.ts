@@ -1,13 +1,16 @@
 "use client";
 import { useEffect } from "react";
 import { gsap, ScrollTrigger, prefersReducedMotion, isFinePointer } from "@/lib/gsap";
+import { useIntroDone } from "@/lib/preloader";
 
 type Opts = {
   pageHero?: boolean;
   ready?: boolean;
 };
 
-export function useArkeosAnimations({ pageHero = false, ready = true }: Opts = {}) {
+export function useArkeosAnimations({ pageHero = false, ready: readyProp = true }: Opts = {}) {
+  const introDone = useIntroDone();
+  const ready = readyProp && introDone;
   useEffect(() => {
     if (!ready) return;
     const reduced = prefersReducedMotion();
@@ -47,11 +50,14 @@ export function useArkeosAnimations({ pageHero = false, ready = true }: Opts = {
         });
       });
       if (!reduced) {
-        if (document.querySelector(".proj-grid .p-card.reveal"))
-          gsap.to(".p-card.reveal", {
+        q(".proj-grid").forEach((grid) => {
+          const cards = grid.querySelectorAll(".p-card.reveal");
+          if (!cards.length) return;
+          gsap.to(cards, {
             opacity: 1, y: 0, duration: 0.95, ease: "power2.out", stagger: 0.11,
-            scrollTrigger: { trigger: ".proj-grid", start: "top 80%", once: true },
+            scrollTrigger: { trigger: grid, start: "top 80%", once: true },
           });
+        });
         if (document.querySelector(".svc-grid .svc-row.reveal"))
           gsap.to(".svc-row.reveal", {
             opacity: 1, y: 0, duration: 0.85, ease: "power2.out", stagger: 0.09,

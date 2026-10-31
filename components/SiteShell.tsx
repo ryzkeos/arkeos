@@ -1,6 +1,7 @@
 "use client";
 import "@/app/globals.css";
 import Cursor from "./Cursor";
+import Preloader from "./Preloader";
 import PageTransition from "./PageTransition";
 import SmoothScroll from "./SmoothScroll";
 import Header from "./Header";
@@ -10,6 +11,7 @@ import { SiteSettingsProvider } from "./SiteSettings";
 export default function SiteShell({ children }: { children: React.ReactNode }) {
   return (
     <SiteSettingsProvider>
+      <Preloader />
       <Cursor />
       <PageTransition />
       <SmoothScroll />
