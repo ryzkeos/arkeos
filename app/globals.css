@@ -744,9 +744,9 @@ html[data-intro-seen] #preloader { display: none !important; }
   background: linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 4%, transparent) 0%, transparent 55%);
 }
 
-.cta-deco-a { width: 190px; height: 255px; top: 8%; left: 3%; }
-.cta-deco-b { width: 145px; height: 200px; top: 16%; right: 6%; }
-.cta-deco-c { width: 115px; height: 155px; bottom: 12%; left: 18%; }
+.cta-deco-a { width: clamp(140px, 19vw, 360px); aspect-ratio: 3 / 4; top: -3rem; left: 2%; }
+.cta-deco-b { width: clamp(120px, 15vw, 290px); aspect-ratio: 3 / 4; top: 0.5rem; right: 3%; }
+.cta-deco-c { width: clamp(110px, 14vw, 270px); aspect-ratio: 3 / 4; bottom: 2rem; left: 30%; }
 
 .cta-deco--media { border: 0; }
 .cta-deco--media::after { display: none; }
@@ -762,14 +762,15 @@ html[data-intro-seen] #preloader { display: none !important; }
 
 @media (max-width: 768px) {
   #cta .cta-deco.cta-deco--media { display: block; }
-  #cta .cta-deco-a { width: 30vw; height: 38vw; top: 3%; left: 2%; }
-  #cta .cta-deco-b { width: 26vw; height: 34vw; top: 8%; right: 2%; }
-  #cta .cta-deco-c { width: 24vw; height: 30vw; bottom: 4%; left: 10%; }
+  #cta .cta-deco-a { width: 32vw; top: -2rem; left: -2%; }
+  #cta .cta-deco-b { width: 28vw; top: 2rem; right: -2%; }
+  #cta .cta-deco-c { width: 26vw; bottom: 3rem; left: 22%; }
 }
 
 .cta-inner {
   position: relative;
   z-index: 1;
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -783,6 +784,12 @@ html[data-intro-seen] #preloader { display: none !important; }
   text-transform: uppercase;
   color: var(--color-accent);
 }
+
+.cta-title { display: grid; justify-items: center; }
+.cta-title > .cta-h2 { grid-area: 1 / 1; position: relative; }
+.cta-h2:not(.cta-h2--burn) { z-index: 1; color: #fff; mix-blend-mode: difference; }
+.cta-h2--burn { z-index: 2; color: var(--cta-burn, #c9a36a); mix-blend-mode: color-burn; pointer-events: none; user-select: none; }
+.cta-lbl, #btn-cta { position: relative; z-index: 3; }
 
 .cta-h2 {
   font-family: var(--font-display);
