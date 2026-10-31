@@ -1,3 +1,15 @@
+export type CinemaType = "video" | "image" | "html";
+
+export type Pillar = {
+  id: string;
+  title: string;
+  description: string;
+  icon_url: string | null;
+  cinema_url: string | null;
+  cinema_type: CinemaType;
+  sort_order?: number;
+};
+
 export type Project = {
   id?: string;
   title: string;
@@ -16,6 +28,9 @@ export type Service = {
   description: string;
   tags: string[];
   price?: string | null;
+  icon_url?: string | null;
+  cinema_url?: string | null;
+  cinema_type?: CinemaType | null;
   visible: boolean;
   sort_order?: number;
 };
