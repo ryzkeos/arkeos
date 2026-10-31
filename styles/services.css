@@ -38,6 +38,14 @@
   padding: 7rem 3.5rem 9rem;
 }
 
+.pg-services .sec-hdr { margin-bottom: 0; }
+
+.pg-services .svc-empty {
+  margin-top: 3rem;
+  font-size: 0.82rem;
+  color: var(--color-muted);
+}
+
 .pg-services .svc-grid {
   margin-top: 5rem;
   border-top: 1px solid var(--color-border);

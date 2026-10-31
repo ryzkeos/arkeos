@@ -39,6 +39,8 @@
   transform: translateY(14px);
 }
 
+.pg-about .sec-hdr { margin-bottom: 0; }
+
 .pg-about #story {
   padding: 7rem 3.5rem;
   border-top: 1px solid var(--color-border);
