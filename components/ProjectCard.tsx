@@ -1,6 +1,8 @@
+"use client";
 import type { CSSProperties } from "react";
 import type { Project } from "@/lib/types";
 import { safeUrl } from "@/lib/gsap";
+import { useCopy } from "@/lib/use_copy";
 
 const VIDEO_EXT = ["mp4", "webm", "mov", "ogg"];
 const HTML_EXT = ["html", "htm"];
@@ -11,6 +13,7 @@ export type CardLayout = { c: number; r: number; ct: number; rt: number; rm: num
 type Props = { project: Project; index: number; variant: "home" | "grid"; layout: CardLayout };
 
 export default function ProjectCard({ project, index, variant, layout }: Props) {
+  const { buttons } = useCopy("shared");
   const num = String(index + 1).padStart(2, "0");
   const mod = `p-card--${(index % 6) + 1}`;
   const media = safeUrl(project.media);
@@ -22,7 +25,7 @@ export default function ProjectCard({ project, index, variant, layout }: Props) 
       className={`p-card ${mod} reveal`}
       role="listitem"
       data-tilt
-      aria-label={`Project: ${project.title}`}
+      aria-label={project.title}
       style={{
         "--card-accent": project.color || "var(--color-accent)",
         "--c": layout.c, "--r": layout.r, "--ct": layout.ct, "--rt": layout.rt, "--rm": layout.rm,
@@ -57,9 +60,9 @@ export default function ProjectCard({ project, index, variant, layout }: Props) 
               target="_blank"
               rel="noopener noreferrer"
               className="btn p-card__cta"
-              aria-label={`View ${project.title} project (opens in a new tab)`}
+              aria-label={`${buttons.view_project}: ${project.title}`}
             >
-              <span className="btn-label">{variant === "grid" ? "View Project" : "View"}</span>
+              <span className="btn-label">{variant === "grid" ? buttons.view_project : buttons.view_project_short}</span>
               <span className="btn-arrow" aria-hidden="true" />
             </a>
           )}

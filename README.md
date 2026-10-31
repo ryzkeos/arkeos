@@ -89,6 +89,7 @@ Check this list before creating a new helper or component.
 - `components/PageHero.tsx`: thin wrapper over `HeroLayout` for older call sites.
 - `components/SectionHeader.tsx`: section label, title lines, intro and right aligned button.
 - `styles/section_header.css`: css for `SectionHeader`.
+- `components/ServiceCard.tsx`: the home "What We Do" card, built from a service (image always visible, video or html plays on hover).
 - `components/Btn.tsx`, `SectionH2.tsx`, `SocialIcons.tsx`, `CinemaMedia.tsx`, `SiteSettings.tsx` (`useSiteSettings`): kept as is.
 - `components/admin/copy/copy_schema.ts`: `CopyField`, `COPY_SCHEMA`, `PAGE_LABELS`.
 - `components/admin/copy/schema/<page>.ts`: editable fields for each page.
