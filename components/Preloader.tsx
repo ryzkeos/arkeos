@@ -2,13 +2,15 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { gsap, prefersReducedMotion } from "@/lib/gsap";
-import { getIdentity } from "@/lib/content";
 import { PRELOADER_KEY, markIntroDone } from "@/lib/preloader";
+import { useCopy } from "@/lib/use_copy";
 import { usePreloadProgress } from "@/hooks/usePreloadProgress";
-import { useSiteSettings, useSiteSettingsLoaded } from "./SiteSettings";
+import { useSiteSettingsLoaded } from "./SiteSettings";
 
-const STATUSES = ["Loading", "Preparing", "Almost Ready", "Welcome"];
-const statusFor = (p: number) => STATUSES[p >= 100 ? 3 : Math.min(Math.floor(p / 34), 2)];
+const status_for = (list: string[], p: number) => {
+  const i = p >= 100 ? 3 : Math.min(Math.floor(p / 34), 2);
+  return list[Math.min(i, list.length - 1)] ?? "";
+};
 
 const seen = () => {
   try { return sessionStorage.getItem(PRELOADER_KEY) === "1"; } catch { return false; }
@@ -16,8 +18,10 @@ const seen = () => {
 
 export default function Preloader() {
   const pathname = usePathname();
-  const settings = useSiteSettings();
   const settingsLoaded = useSiteSettingsLoaded();
+  const { brand, preloader } = useCopy("shared");
+  const statuses = useRef(preloader.statuses);
+  statuses.current = preloader.statuses;
   const root = useRef<HTMLDivElement>(null);
   const page = useRef<HTMLElement | null>(null);
   const shown = useRef({ v: 0 });
@@ -36,7 +40,7 @@ export default function Preloader() {
 
   const running = mounted && active;
   const progress = usePreloadProgress(running, settingsLoaded, page);
-  const { name } = getIdentity(settings);
+  const name = brand.name;
 
   useEffect(() => {
     if (!running || !root.current) return;
@@ -57,7 +61,7 @@ export default function Preloader() {
       const v = Math.round(shown.current.v);
       bar.style.width = `${shown.current.v}%`;
       if (pctEl) pctEl.textContent = `${v}%`;
-      if (statusEl) statusEl.textContent = statusFor(v);
+      if (statusEl) statusEl.textContent = status_for(statuses.current, v);
     };
 
     const finish = () => {
@@ -104,7 +108,7 @@ export default function Preloader() {
         <div className="pre__track"><div className="pre__bar" id="pre-bar" /></div>
       </div>
       <div className="pre__foot">
-        <span className="pre__status" id="pre-status">{STATUSES[0]}</span>
+        <span className="pre__status" id="pre-status">{status_for(preloader.statuses, 0)}</span>
         <span className="pre__pct" id="pre-pct">0%</span>
       </div>
     </div>
