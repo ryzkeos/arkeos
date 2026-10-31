@@ -96,6 +96,19 @@ export type SiteSettings = Partial<{
   hero_deco: string;
   about_image: string;
   about_image_wide: string;
+  what_intro: string;
+  work_intro: string;
+  projects_count: string;
+  years_active: string;
+  clients_count: string;
+  copy_shared: string;
+  copy_home: string;
+  copy_projects: string;
+  copy_services: string;
+  copy_about: string;
+  copy_contact: string;
+  copy_privacy: string;
+  copy_not_found: string;
 }>;
 
 export type Session = { access_token: string; [k: string]: unknown };
