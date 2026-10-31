@@ -23,7 +23,7 @@ export const home_schema: CopyField[] = [
   { path: "what_count", label: "Cards in What we do (first services shown)", type: "text", max: 2 },
   ...section_fields("work", "Selected work", true),
   { path: "work_count", label: "Projects shown on home", type: "text", max: 2 },
-  ...section_fields("why", "Why us. Label can use {name}", false),
+  ...section_fields("why", "Why us. Label can use {name}", true),
   {
     path: "why_stats",
     label: "Why us numbers (a number of 0 is counted automatically)",
