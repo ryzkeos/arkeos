@@ -3,16 +3,10 @@ import { useEffect } from "react";
 import { gsap, ScrollTrigger, prefersReducedMotion, isFinePointer } from "@/lib/gsap";
 
 type Opts = {
-  /** run the generic page-hero intro (about, services, contact, projects) */
   pageHero?: boolean;
-  /** rerun when this changes (e.g. after async content renders) */
   ready?: boolean;
 };
 
-/**
- * port of animations.js (initPageHeroAnimations + initScrollAnimations).
- * everything is created inside a gsap context and reverted on unmount.
- */
 export function useArkeosAnimations({ pageHero = false, ready = true }: Opts = {}) {
   useEffect(() => {
     if (!ready) return;
@@ -21,7 +15,6 @@ export function useArkeosAnimations({ pageHero = false, ready = true }: Opts = {
     const tiltEls: HTMLElement[] = [];
 
     const ctx = gsap.context(() => {
-      /* ── page hero ── */
       if (pageHero) {
         const ems = q(".page-hero .section-h2 em");
         const eyebrow = document.querySelector(".page-hero .section-lbl");
@@ -37,8 +30,6 @@ export function useArkeosAnimations({ pageHero = false, ready = true }: Opts = {
           if (sub) gsap.to(sub, { opacity: 1, y: 0, duration: 0.75, ease: "power2.out", delay: 0.55 });
         }
       }
-
-      /* ── section h2 curtain lift (hero h2s are handled above) ── */
       q(".section-h2 em").forEach((em) => {
         if (em.closest(".page-hero")) return;
         if (reduced) return void gsap.set(em, { y: "0%" });
@@ -47,8 +38,6 @@ export function useArkeosAnimations({ pageHero = false, ready = true }: Opts = {
           scrollTrigger: { trigger: em.closest(".section-h2"), start: "top 82%", once: true },
         });
       });
-
-      /* ── .reveal ── */
       q(".reveal").forEach((el, i) => {
         if (reduced) return void gsap.set(el, { opacity: 1, y: 0 });
         const inGroup = el.closest(".pillars, .proj-grid, .why-grid, .svc-grid, .val-grid, .team-grid");
@@ -57,8 +46,6 @@ export function useArkeosAnimations({ pageHero = false, ready = true }: Opts = {
           scrollTrigger: { trigger: el, start: "top 84%", once: true },
         });
       });
-
-      /* ── stagger groups ── */
       if (!reduced) {
         if (document.querySelector(".proj-grid .p-card.reveal"))
           gsap.to(".p-card.reveal", {
@@ -71,16 +58,12 @@ export function useArkeosAnimations({ pageHero = false, ready = true }: Opts = {
             scrollTrigger: { trigger: ".svc-grid", start: "top 82%", once: true },
           });
       }
-
-      /* ── buttons ── */
       ["#btn-all", "#btn-cta"].forEach((sel) => {
         const el = document.querySelector(sel);
         if (!el) return;
         if (reduced) return void gsap.set(el, { opacity: 1, y: 0 });
         gsap.to(el, { opacity: 1, y: 0, duration: 0.65, ease: "power2.out", scrollTrigger: { trigger: el, start: "top 88%", once: true } });
       });
-
-      /* ── counters ── */
       q("[data-counter]").forEach((el) => {
         const target = parseInt(el.dataset.counter ?? "0", 10);
         const suffix = el.dataset.counterSuffix ?? "";
@@ -93,15 +76,11 @@ export function useArkeosAnimations({ pageHero = false, ready = true }: Opts = {
           },
         });
       });
-
-      /* ── labels ── */
       q(".section-lbl, .cta-lbl").forEach((el) => {
         if (el.closest(".page-hero")) return;
         if (reduced) return void gsap.set(el, { opacity: 1, y: 0 });
         gsap.from(el, { opacity: 0, y: 8, duration: 0.6, ease: "power2.out", scrollTrigger: { trigger: el, start: "top 88%", once: true } });
       });
-
-      /* ── about image clip reveals ── */
       q(".about-img-wrap").forEach((el) => {
         const full = el.classList.contains("about-img-full");
         if (reduced) return void gsap.set(el, { clipPath: "inset(0 0% 0 0)" });
@@ -111,8 +90,6 @@ export function useArkeosAnimations({ pageHero = false, ready = true }: Opts = {
         });
       });
     });
-
-    /* ── vanilla tilt (pointer devices only) ── */
     let cancelled = false;
     if (!reduced && isFinePointer()) {
       const targets = q("[data-tilt]");
