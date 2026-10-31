@@ -1,17 +1,28 @@
 "use client";
 import "@/styles/home.css";
-import type { HeroCopy } from "@/defaults";
-import { getHomeStats, getIdentity, getSectionCopy } from "@/lib/content";
-import { usePillars, useProjects } from "@/lib/useContent";
+import { DEFAULTS, type HeroCopy, type SectionCopy } from "@/defaults";
+import { fill_vars, legacy_stats } from "@/lib/copy";
+import { useProjects, useServices } from "@/lib/useContent";
+import { useCopy, useCopyVars } from "@/lib/use_copy";
 import { useArkeosAnimations } from "@/hooks/useArkeosAnimations";
 import { useIntroDone } from "@/lib/preloader";
+import type { StatItem } from "@/lib/types";
 import { useSiteSettings, useSiteSettingsLoaded } from "./SiteSettings";
 import HeroLayout from "./hero/HeroLayout";
-import PillarCard from "./PillarCard";
+import ServiceCard from "./ServiceCard";
 import CtaSection from "./CtaSection";
 import ProjectGrid from "./ProjectGrid";
-import SectionH2 from "./SectionH2";
 import SectionHeader from "./SectionHeader";
+
+const MAX_CARDS = 24;
+const clamp_count = (n: number) => Math.min(MAX_CARDS, Math.max(0, Math.floor(n)));
+
+const whole_number = (v?: string): number | null => {
+  const n = Number.parseInt((v ?? "").trim(), 10);
+  return Number.isFinite(n) && n >= 0 ? n : null;
+};
+
+const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 
 const ICONS = [
   <><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></>,
@@ -24,56 +35,61 @@ export default function HomeView() {
   const settings = useSiteSettings();
   const settingsLoaded = useSiteSettingsLoaded();
   const allProjects = useProjects();
-  const allPillars = usePillars();
+  const allServices = useServices();
   const introDone = useIntroDone();
+  const copy = useCopy("home");
+  const { brand } = useCopy("shared");
+  const vars = useCopyVars();
 
-  const identity = getIdentity(settings);
-  const projects = allProjects ? allProjects.slice(0, 5) : [];
-  const pillars = allPillars ?? [];
-  const copy = getSectionCopy(settings);
-  const stats = getHomeStats(settings, allProjects?.length ?? 0);
-  const contentReady = settingsLoaded && allProjects !== null && allPillars !== null;
+  const projects = allProjects ? allProjects.slice(0, clamp_count(copy.work_count)) : [];
+  const services = allServices ? allServices.slice(0, clamp_count(copy.what_count)) : [];
+  const contentReady = settingsLoaded && allProjects !== null && allServices !== null;
 
   useArkeosAnimations({ ready: introDone && contentReady });
 
+  const text = (v: string) => fill_vars(v, vars);
+  const section = (c: SectionCopy): SectionCopy => ({ ...c, label: text(c.label) });
+
   const hero_copy: HeroCopy = {
-    eyebrow: identity.foundedYear ? `est. ${identity.foundedYear}` : "",
-    lines: identity.heroHeadline.length ? identity.heroHeadline : [identity.name],
-    sub: identity.tagline,
-    ghost: identity.name,
-    cta: { label: settings.cta_text || "View Work", href: "/projects" },
+    ...copy.hero,
+    eyebrow: text(copy.hero.eyebrow),
+    sub: copy.hero.sub || brand.tagline,
+    ghost: copy.hero.ghost || brand.name,
   };
+
+  const years = Math.max(1, new Date().getFullYear() - brand.founded_year + 1);
+  const auto_n = [whole_number(settings.projects_count) ?? allProjects?.length ?? 0, whole_number(settings.years_active) ?? years, whole_number(settings.clients_count) ?? 0];
+  const own_stats = !same(copy.why_stats, DEFAULTS.home.why_stats);
+  const legacy = legacy_stats(settings);
+  const stats: StatItem[] =
+    !own_stats && legacy.length > 0
+      ? legacy
+      : copy.why_stats.map((w, i) => ({ ...w, n: w.n > 0 ? w.n : auto_n[i] ?? 0 }));
+  const why = section(copy.why);
 
   return (
     <main className="pg-home">
-      <HeroLayout copy={hero_copy} ariaLabel="Hero" variant="full" />
+      <HeroLayout copy={hero_copy} ariaLabel={brand.name} variant="full" />
 
-      {pillars.length > 0 && (
-        <section id="what" className="section" aria-label="What we do">
-          <SectionHeader
-            cta_id="btn-svc"
-            copy={{ label: "What We Do", lines: ["CRAFT", "THAT CUTS."], intro: copy.what, cta: { label: "View All Services", href: "/services" } }}
-          />
+      {services.length > 0 && (
+        <section id="what" className="section" aria-label={copy.what.label}>
+          <SectionHeader cta_id="btn-svc" copy={section(copy.what)} />
           <div className="pillars" role="list">
-            {pillars.map((p, i) => <PillarCard key={p.id} pillar={p} icon={ICONS[i % ICONS.length]} />)}
+            {services.map((s, i) => <ServiceCard key={s.id} service={s} icon={ICONS[i % ICONS.length]} />)}
           </div>
         </section>
       )}
 
       {projects.length > 0 && (
-        <section id="projects" className="section" aria-label="Featured projects">
-          <SectionHeader
-            cta_id="btn-all"
-            copy={{ label: "Selected Work", lines: ["THE", "WORK."], intro: copy.work, cta: { label: "View All Projects", href: "/projects" } }}
-          />
+        <section id="projects" className="section" aria-label={copy.work.label}>
+          <SectionHeader cta_id="btn-all" copy={section(copy.work)} />
           <ProjectGrid projects={projects} variant="home" />
         </section>
       )}
 
       {contentReady && stats.length > 0 && (
-        <section id="why" className="section" aria-label={`Why ${identity.name}`}>
-          <span className="section-lbl">{`Why ${identity.name}`}</span>
-          <SectionH2 lines={["BUILT", "DIFFERENT."]} />
+        <section id="why" className="section" aria-label={why.label}>
+          <SectionHeader copy={why} />
           <div className="why-grid" role="list">
             {stats.map((w) => (
               <div key={w.label} className="why-item reveal" role="listitem">
