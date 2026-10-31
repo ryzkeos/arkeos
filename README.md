@@ -8,7 +8,7 @@ Arkeos Web is the public website and admin panel for a creative studio. Every pr
 
 - Pages: home, projects, services, about, contact, privacy, and a custom 404
 - Admin panel at `/admin`: read inquiries, manage projects and services, edit the studio identity, fonts and site settings, set availability, view basic analytics
-- Animation: GSAP, Lenis and vanilla-tilt
+- Animation: GSAP and Lenis
 
 ## Installation
 
@@ -146,7 +146,7 @@ Deploy to Vercel (or any Node host) and add the same environment variables there
 - Author: Arkeos (arkeos-kzenon)
 - Published: October 31, 2026
 - Fonts: Zentry, Robert, General Sans
-- Libraries: Next.js, React, GSAP, Lenis, vanilla-tilt
+- Libraries: Next.js, React, GSAP, Lenis
 
 ## Version history
 
