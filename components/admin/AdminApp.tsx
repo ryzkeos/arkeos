@@ -2,12 +2,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as db from "@/lib/db";
 import { NAV } from "@/lib/data";
-import type { Inquiry, Project, Service, SiteSettings } from "@/lib/types";
+import type { CinemaType, Inquiry, Pillar, Project, Service, SiteSettings } from "@/lib/types";
 import { applyAccent } from "@/components/SiteSettings";
 import IdentityPanel from "./IdentityPanel";
-import { MEDIA_BUCKET, PanelHead, isHttpUrl, msg, type PanelProps } from "./shared";
+import { CINEMA_TYPES, MEDIA_BUCKET, MediaField, PanelHead, isHttpUrl, msg, type PanelProps } from "./shared";
 
-type Section = "inquiries" | "projects" | "services" | "availability" | "settings" | "identity" | "fonts" | "analytics";
+type Section = "inquiries" | "projects" | "services" | "pillars" | "availability" | "settings" | "identity" | "fonts" | "analytics";
 
 const VIDEO_EXT = ["mp4", "webm", "mov", "ogg"];
 function mediaBadge(media: string | null) {
@@ -18,7 +18,7 @@ function mediaBadge(media: string | null) {
 const splitTags = (s: string) => s.split(",").map((t) => t.trim()).filter(Boolean);
 
 const NAV_GROUPS: { label: string; items: [Section, string][] }[] = [
-  { label: "Content", items: [["inquiries", "Inquiries"], ["projects", "Projects"], ["services", "Services"]] },
+  { label: "Content", items: [["inquiries", "Inquiries"], ["projects", "Projects"], ["services", "Services"], ["pillars", "Pillars"]] },
   { label: "Studio", items: [["availability", "Availability"], ["settings", "Site Settings"], ["identity", "Identity"], ["fonts", "Font Settings"], ["analytics", "Analytics"]] },
 ];
 
@@ -148,6 +148,7 @@ export default function AdminApp() {
             {section === "inquiries" && <Inquiries toast={showToast} ask={ask} onUnread={setUnread} />}
             {section === "projects" && <Projects toast={showToast} ask={ask} />}
             {section === "services" && <Services toast={showToast} ask={ask} />}
+            {section === "pillars" && <Pillars toast={showToast} ask={ask} />}
             {section === "availability" && <Availability toast={showToast} />}
             {section === "settings" && <Settings toast={showToast} ask={ask} />}
             {section === "identity" && <IdentityPanel toast={showToast} />}
@@ -459,7 +460,7 @@ function Services({ toast, ask }: PanelProps) {
   const [list, setList] = useState<Service[] | null>(null);
   const [error, setError] = useState("");
   const [editing, setEditing] = useState<{ id: string | null; hadPrice: boolean } | null>(null);
-  const [f, setF] = useState({ title: "", description: "", tags: "", price: "", visible: true });
+  const [f, setF] = useState({ title: "", description: "", tags: "", price: "", visible: true, icon_url: "", cinema_url: "", cinema_type: "video" as CinemaType });
 
   const load = useCallback(() => {
     db.dbGetServices().then((d) => { setList(Array.isArray(d) ? d : []); setError(""); }).catch(() => setError("Failed to load services."));
@@ -469,13 +470,13 @@ function Services({ toast, ask }: PanelProps) {
   const open = (idx: number | null) => {
     const s = idx === null ? null : list![idx];
     setEditing({ id: s?.id ?? null, hadPrice: !!s?.price });
-    setF({ title: s?.title ?? "", description: s?.description ?? "", tags: (s?.tags ?? []).join(", "), price: s?.price ?? "", visible: s ? s.visible !== false : true });
+    setF({ title: s?.title ?? "", description: s?.description ?? "", tags: (s?.tags ?? []).join(", "), price: s?.price ?? "", visible: s ? s.visible !== false : true, icon_url: s?.icon_url ?? "", cinema_url: s?.cinema_url ?? "", cinema_type: s?.cinema_type ?? "video" });
   };
 
   const save = async () => {
     if (!f.title.trim()) return toast("Title is required.", true);
     const price = f.price.trim();
-    const payload: Partial<Service> = { title: f.title.trim(), description: f.description.trim(), tags: splitTags(f.tags), visible: f.visible };
+    const payload: Partial<Service> = { title: f.title.trim(), description: f.description.trim(), tags: splitTags(f.tags), visible: f.visible, icon_url: f.icon_url.trim() || null, cinema_url: f.cinema_url.trim() || null, cinema_type: f.cinema_type };
     if (price) payload.price = price;
     else if (editing?.hadPrice) payload.price = null;
     if (!editing?.id) payload.sort_order = list?.length ?? 0;
@@ -494,7 +495,7 @@ function Services({ toast, ask }: PanelProps) {
 
   return (
     <div className="admin-panel" id="panel-services" style={{ display: "block" }}>
-      <PanelHead title="SERVICES" sub="Manage studio services. Toggle visibility per service." error={error} />
+      <PanelHead title="SERVICES" sub="Manage studio services. Supports icon, cinema preview and pricing." error={error} />
       <div className="admin-actions" style={{ marginBottom: "1.2rem" }}>
         <button className="admin-btn admin-btn--accent" onClick={() => open(null)} aria-label="Add a new service">+ Add Service</button>
       </div>
@@ -522,6 +523,14 @@ function Services({ toast, ask }: PanelProps) {
             <input type="checkbox" id="sf-visible" aria-label="Service visibility" checked={f.visible} onChange={(e) => setF({ ...f, visible: e.target.checked })} />
             <label htmlFor="sf-visible">Visible on site</label>
           </div>
+          <MediaField label="Icon Image" accept="image/*" folder="services" value={f.icon_url} onChange={(v) => setF((x) => ({ ...x, icon_url: v }))} toast={toast} placeholder="or paste icon URL" />
+          <MediaField label="Cinema Preview" accept="video/*,image/*" folder="services" value={f.cinema_url} onChange={(v) => setF((x) => ({ ...x, cinema_url: v }))} toast={toast} placeholder="or paste cinema URL" />
+          <div className="form-group">
+            <label htmlFor="sf-cinema-type">Cinema type</label>
+            <select id="sf-cinema-type" value={f.cinema_type} onChange={(e) => setF({ ...f, cinema_type: e.target.value as CinemaType })}>
+              {CINEMA_TYPES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+            </select>
+          </div>
         </div>
         <div className="admin-actions">
           <button className="admin-btn admin-btn--accent" onClick={save} aria-label="Save service">Save Service</button>
@@ -546,6 +555,98 @@ function Services({ toast, ask }: PanelProps) {
             </div>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+function Pillars({ toast, ask }: PanelProps) {
+  const [list, setList] = useState<Pillar[] | null>(null);
+  const [error, setError] = useState("");
+  const [editing, setEditing] = useState<{ id: string | null } | null>(null);
+  const [f, setF] = useState({ title: "", description: "", sort: "0", icon_url: "", cinema_url: "", cinema_type: "video" as CinemaType });
+
+  const load = useCallback(() => {
+    db.dbGetPillars().then((d) => { setList(Array.isArray(d) ? d : []); setError(""); }).catch(() => setError("Failed to load pillars."));
+  }, []);
+  useEffect(load, [load]);
+
+  const open = (idx: number | null) => {
+    const p = idx === null ? null : list![idx];
+    setEditing({ id: p?.id ?? null });
+    setF({ title: p?.title ?? "", description: p?.description ?? "", sort: String(p?.sort_order ?? list?.length ?? 0), icon_url: p?.icon_url ?? "", cinema_url: p?.cinema_url ?? "", cinema_type: p?.cinema_type ?? "video" });
+  };
+
+  const save = async () => {
+    if (!f.title.trim()) return toast("Title is required.", true);
+    const payload: Partial<Pillar> = {
+      title: f.title.trim(),
+      description: f.description.trim(),
+      sort_order: Number.parseInt(f.sort, 10) || 0,
+      icon_url: f.icon_url.trim() || null,
+      cinema_url: f.cinema_url.trim() || null,
+      cinema_type: f.cinema_type,
+    };
+    try {
+      await db.dbSavePillar(editing?.id ?? null, payload);
+      setEditing(null); load(); toast(editing?.id ? "Pillar updated." : "Pillar added.");
+    } catch (e) { toast(msg(e, "Failed to save pillar."), true); }
+  };
+
+  const del = (id: string) =>
+    ask("Delete this pillar? This cannot be undone.", () =>
+      db.dbDeletePillar(id).then(() => { load(); toast("Pillar deleted."); }).catch(() => toast("Failed to delete.", true)));
+
+  return (
+    <div className="admin-panel" id="panel-pillars" style={{ display: "block" }}>
+      <PanelHead title="PILLARS" sub={'Homepage "What We Do" cards. Each can have an icon and a cinema preview. When empty, the first services are shown.'} error={error} />
+      <div className="admin-actions" style={{ marginBottom: "1.2rem" }}>
+        <button className="admin-btn admin-btn--accent" onClick={() => open(null)} aria-label="Add a new pillar">+ Add Pillar</button>
+      </div>
+
+      <div className="admin-form" id="pillar-form" aria-label="Pillar editor" style={{ display: editing ? "block" : "none" }}>
+        <p className="form-title">{editing?.id ? "EDIT PILLAR" : "ADD PILLAR"}</p>
+        <div className="admin-form-grid">
+          <div className="form-group">
+            <label htmlFor="pf-title">Title</label>
+            <input type="text" id="pf-title" placeholder="Pillar title" aria-required="true" value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} />
+          </div>
+          <div className="form-group">
+            <label htmlFor="pf-sort">Sort Order</label>
+            <input type="number" id="pf-sort" min={0} value={f.sort} onChange={(e) => setF({ ...f, sort: e.target.value })} />
+          </div>
+          <div className="form-group admin-form-full">
+            <label htmlFor="pf-desc">Description</label>
+            <textarea id="pf-desc" placeholder="Short pillar description…" value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} />
+          </div>
+          <MediaField label="Icon Image" accept="image/*" folder="pillars" value={f.icon_url} onChange={(v) => setF((x) => ({ ...x, icon_url: v }))} toast={toast} placeholder="or paste icon URL" />
+          <MediaField label="Cinema Preview" accept="video/*,image/*" folder="pillars" value={f.cinema_url} onChange={(v) => setF((x) => ({ ...x, cinema_url: v }))} toast={toast} placeholder="or paste cinema URL" />
+          <div className="form-group">
+            <label htmlFor="pf-cinema-type">Cinema type</label>
+            <select id="pf-cinema-type" value={f.cinema_type} onChange={(e) => setF({ ...f, cinema_type: e.target.value as CinemaType })}>
+              {CINEMA_TYPES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+            </select>
+          </div>
+        </div>
+        <div className="admin-actions">
+          <button className="admin-btn admin-btn--accent" onClick={save} aria-label="Save pillar">Save Pillar</button>
+          <button className="admin-btn" onClick={() => setEditing(null)} aria-label="Cancel editing">Cancel</button>
+        </div>
+      </div>
+
+      <div className="list-wrap" id="pillars-list" aria-label="Pillars list" role="list">
+        {list === null ? <p className="admin-empty">Loading…</p> : list.length === 0 ? (
+          <p className="admin-empty">No pillars yet.</p>
+        ) : list.map((p, i) => (
+          <div key={p.id} className="project-row" aria-label={`Pillar: ${p.title}`}>
+            <div className="project-row__info"><strong>{p.title || "Untitled"}</strong><span className="project-row__tags">{p.description ? p.description.slice(0, 60) + "…" : ""}</span></div>
+            <span className={`vis-badge ${p.cinema_url ? "vis--on" : "vis--off"}`}>{p.cinema_url ? p.cinema_type : "No cinema"}</span>
+            <div className="admin-actions">
+              <button className="admin-btn admin-btn--sm" onClick={() => open(i)} aria-label="Edit">Edit</button>
+              <button className="admin-btn admin-btn--sm admin-btn--danger" onClick={() => del(p.id)} aria-label="Delete">Delete</button>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
