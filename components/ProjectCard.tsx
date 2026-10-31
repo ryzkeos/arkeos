@@ -6,9 +6,11 @@ const VIDEO_EXT = ["mp4", "webm", "mov", "ogg"];
 const HTML_EXT = ["html", "htm"];
 const extOf = (m: string) => m.split("?")[0].split(".").pop()?.toLowerCase() ?? "";
 
-type Props = { project: Project; index: number; variant: "home" | "grid" };
+export type CardLayout = { c: number; r: number; ct: number; rt: number; rm: number };
 
-export default function ProjectCard({ project, index, variant }: Props) {
+type Props = { project: Project; index: number; variant: "home" | "grid"; layout: CardLayout };
+
+export default function ProjectCard({ project, index, variant, layout }: Props) {
   const num = String(index + 1).padStart(2, "0");
   const mod = `p-card--${(index % 6) + 1}`;
   const media = safeUrl(project.media);
@@ -21,7 +23,10 @@ export default function ProjectCard({ project, index, variant }: Props) {
       role="listitem"
       data-tilt
       aria-label={`Project: ${project.title}`}
-      style={{ "--card-accent": project.color || "var(--color-accent)" } as CSSProperties}
+      style={{
+        "--card-accent": project.color || "var(--color-accent)",
+        "--c": layout.c, "--r": layout.r, "--ct": layout.ct, "--rt": layout.rt, "--rm": layout.rm,
+      } as CSSProperties}
     >
       <div className="p-card__bg" aria-hidden="true">
         {media && (
@@ -35,11 +40,12 @@ export default function ProjectCard({ project, index, variant }: Props) {
           )
         )}
       </div>
-      <div className="p-card__veil" aria-hidden="true" />
       <div className="p-card__hover" aria-hidden="true" />
       <div className="p-card__body">
-        <div className="p-card__num">{num}</div>
-        <Title className="p-card__name">{project.title.toUpperCase()}</Title>
+        <div className="p-card__head">
+          <span className="p-card__num">{num}</span>
+          <Title className="p-card__name">{project.title.toUpperCase()}</Title>
+        </div>
         <p className="p-card__desc">{project.description}</p>
         <div className="p-card__foot">
           <div className="p-card__tags">
