@@ -198,27 +198,28 @@
 
 .pg-home .hero-studio { pointer-events:auto; cursor:none; outline:none; }
 .pg-home .hero-studio-word { display:inline-grid; position:relative; }
-.pg-home .hs-a, .pg-home .hs-b {
+.pg-home .hero-studio .hero-studio-word { display:inline-grid; overflow:visible; }
+.pg-home .hero-studio-word .hs-a, .pg-home .hero-studio-word .hs-b {
   grid-area:1 / 1; justify-self:end; display:block;
   transition:clip-path .9s var(--ease-inout), color .6s var(--ease-out), text-shadow .7s var(--ease-out);
 }
-.pg-home .hs-a { clip-path:inset(0 0 0 0); }
-.pg-home .hs-b {
+.pg-home .hero-studio-word .hs-a { clip-path:inset(0 0 0 0); }
+.pg-home .hero-studio-word .hs-b {
   clip-path:inset(0 100% 0 0);
   color:rgba(245,245,245,0.92);
 }
-.pg-home .hero-studio:hover .hs-a, .pg-home .hero-studio:focus-visible .hs-a { clip-path:inset(0 0 0 100%); }
-.pg-home .hero-studio:hover .hs-b, .pg-home .hero-studio:focus-visible .hs-b {
+.pg-home .hero-studio:hover .hero-studio-word .hs-a, .pg-home .hero-studio:focus-visible .hero-studio-word .hs-a { clip-path:inset(0 0 0 100%); }
+.pg-home .hero-studio:hover .hero-studio-word .hs-b, .pg-home .hero-studio:focus-visible .hero-studio-word .hs-b {
   clip-path:inset(0 0 0 0);
   text-shadow:0 0 6px rgba(255,255,255,0.3), 0 0 30px rgba(255,255,255,0.12);
 }
 .pg-home .sec-hdr { display:grid; grid-template-columns:1fr 1fr; gap:3.5rem; align-items:end; margin-bottom:4rem; }
-.pg-home .sec-side { display:flex; flex-direction:column; align-items:flex-start; gap:1.8rem; justify-self:end; max-width:380px; width:100%; }
+.pg-home .sec-side { display:flex; flex-direction:column; align-items:flex-end; gap:1.8rem; justify-self:end; max-width:380px; width:100%; text-align:right; }
 .pg-home .sec-intro {
   font-size:clamp(0.82rem, 1.05vw, 0.96rem); color:var(--color-muted);
   line-height:1.82;
 }
 @media (max-width:768px) {
   .pg-home .sec-hdr { grid-template-columns:1fr; gap:1.6rem; margin-bottom:3rem; }
-  .pg-home .sec-side { justify-self:start; max-width:100%; }
+  .pg-home .sec-side { justify-self:stretch; max-width:100%; text-align:left; }
 }
