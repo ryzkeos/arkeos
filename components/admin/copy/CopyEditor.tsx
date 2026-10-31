@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { DEFAULTS, type PageKey } from "@/defaults";
 import * as db from "@/lib/db";
 import { COPY_SETTING_KEY } from "@/lib/copy";
-import { MediaField, PanelHead, msg, type PanelProps } from "../shared";
+import { Checkbox, IconBtn, MediaField, PanelHead, msg, type PanelProps } from "../shared";
 import { COPY_SCHEMA, LINK_FIELDS, PAGE_LABELS, type CopyField } from "./copy_schema";
 
 type Row = Record<string, string>;
@@ -226,9 +226,9 @@ export default function CopyEditor({ page, toast }: { page: PageKey; toast: Pane
                 onChange={(e) => set(f.path, list.map((x, j) => (j === i ? e.target.value : x)))}
               />
               <div className="admin-actions">
-                <button type="button" className="admin-btn admin-btn--sm" aria-label={`Move ${label} ${i + 1} up`} onClick={() => set(f.path, swap(list, i, i - 1))}>Up</button>
-                <button type="button" className="admin-btn admin-btn--sm" aria-label={`Move ${label} ${i + 1} down`} onClick={() => set(f.path, swap(list, i, i + 1))}>Down</button>
-                <button type="button" className="admin-btn admin-btn--sm admin-btn--danger" aria-label={`Remove ${label} ${i + 1}`} onClick={() => set(f.path, list.filter((_, j) => j !== i))}>Remove</button>
+                <IconBtn icon="up" label={`Move ${label} ${i + 1} up`} onClick={() => set(f.path, swap(list, i, i - 1))} />
+                <IconBtn icon="down" label={`Move ${label} ${i + 1} down`} onClick={() => set(f.path, swap(list, i, i + 1))} />
+                <IconBtn icon="trash" danger label={`Remove ${label} ${i + 1}`} onClick={() => set(f.path, list.filter((_, j) => j !== i))} />
               </div>
             </div>
           ))}
@@ -246,15 +246,12 @@ export default function CopyEditor({ page, toast }: { page: PageKey; toast: Pane
             {fields_of.map((sf) => sf.type === "photo" ? (
               <div className="copy-photo" key={sf.path}>
                 <div className="form-group">
-                  <label htmlFor={id_of(f.path, `-${i}-${sf.path}-on`)}>
-                    <input
-                      type="checkbox"
-                      id={id_of(f.path, `-${i}-${sf.path}-on`)}
-                      checked={!!row[sf.path + ON_SUFFIX]}
-                      onChange={(e) => set(f.path, list.map((r, j) => (j === i ? { ...r, [sf.path + ON_SUFFIX]: e.target.checked ? "1" : "" } : r)))}
-                    />{" "}
-                    {`${sf.label} (${i + 1})`}
-                  </label>
+                  <Checkbox
+                    id={id_of(f.path, `-${i}-${sf.path}-on`)}
+                    label={`${sf.label} (${i + 1})`}
+                    checked={!!row[sf.path + ON_SUFFIX]}
+                    onChange={(on) => set(f.path, list.map((r, j) => (j === i ? { ...r, [sf.path + ON_SUFFIX]: on ? "1" : "" } : r)))}
+                  />
                 </div>
                 {row[sf.path + ON_SUFFIX] && (
                   <MediaField
@@ -281,9 +278,9 @@ export default function CopyEditor({ page, toast }: { page: PageKey; toast: Pane
               />
             ))}
             <div className="admin-actions">
-              <button type="button" className="admin-btn admin-btn--sm" aria-label={`Move ${label} row ${i + 1} up`} onClick={() => set(f.path, swap(list, i, i - 1))}>Up</button>
-              <button type="button" className="admin-btn admin-btn--sm" aria-label={`Move ${label} row ${i + 1} down`} onClick={() => set(f.path, swap(list, i, i + 1))}>Down</button>
-              <button type="button" className="admin-btn admin-btn--sm admin-btn--danger" aria-label={`Remove ${label} row ${i + 1}`} onClick={() => set(f.path, list.filter((_, j) => j !== i))}>Remove</button>
+              <IconBtn icon="up" label={`Move ${label} row ${i + 1} up`} onClick={() => set(f.path, swap(list, i, i - 1))} />
+              <IconBtn icon="down" label={`Move ${label} row ${i + 1} down`} onClick={() => set(f.path, swap(list, i, i + 1))} />
+              <IconBtn icon="trash" danger label={`Remove ${label} row ${i + 1}`} onClick={() => set(f.path, list.filter((_, j) => j !== i))} />
             </div>
           </div>
         ))}
