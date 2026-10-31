@@ -30,6 +30,7 @@ export const contact_schema: CopyField[] = [
   { path: "form.message_placeholder", label: "Form: message placeholder", type: "textarea", max: 240 },
   { path: "form.submit_label", label: "Form: send button", type: "text", max: 40 },
   { path: "form.sending_label", label: "Form: sending button text", type: "text", max: 40 },
+  { path: "form.select_close_label", label: "Form: close label on the option picker", type: "text", max: 40 },
   { path: "form.note", label: "Form: note beside the button (empty uses the response time)", type: "text", max: 120 },
 
   { path: "success.title", label: "Success: title", type: "text", max: 60 },
