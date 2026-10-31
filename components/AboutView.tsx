@@ -36,7 +36,7 @@ export default function AboutView() {
 
   return (
     <main className="pg-about">
-      <HeroLayout variant="page" ariaLabel={hero.lines.join(" ")} copy={hero} />
+      <HeroLayout variant="full" ariaLabel={hero.lines.join(" ")} copy={hero} />
 
       {loaded && story.length + (storyImage ? 1 : 0) > 0 && (
         <section id="story" aria-label={copy.story.label}>
