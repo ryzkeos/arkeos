@@ -34,7 +34,14 @@ export type HomeCopy = {
   why_stats: StatItem[];
 };
 
-export type ProjectsCopy = { hero: HeroCopy; empty_text: string; projects: Project[] };
+export type ProjectsCopy = {
+  hero: HeroCopy;
+  featured: SectionCopy;
+  more: SectionCopy;
+  controls: { view_label: string; cards: string; list: string; previous: string; next: string; go_to: string };
+  empty_text: string;
+  projects: Project[];
+};
 
 export type ServicesCopy = {
   hero: HeroCopy;
