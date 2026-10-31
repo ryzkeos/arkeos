@@ -26,6 +26,6 @@ export const shared: SharedCopy = {
     view_project_short: "View",
     back_home: "Back to Home",
   },
-  preloader: { statuses: ["Loading Assets", "Building Experience", "Almost Ready", "Welcome"] },
+  preloader: { statuses: ["Loading", "Preparing", "Almost Ready", "Welcome"] },
   hero: { deco: "ARKEOS", hover_word: "LEGACY", scroll_label: "Scroll down" },
 };
