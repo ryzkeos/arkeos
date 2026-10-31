@@ -4,7 +4,7 @@ import { useArkeosAnimations } from "@/hooks/useArkeosAnimations";
 import { useProjects } from "@/lib/useContent";
 import CtaSection from "./CtaSection";
 import PageHero from "./PageHero";
-import ProjectCard from "./ProjectCard";
+import ProjectGrid from "./ProjectGrid";
 
 export default function ProjectsView() {
   const projects = useProjects();
@@ -22,11 +22,7 @@ export default function ProjectsView() {
       />
 
       <section id="work" aria-label="All projects">
-        <div className="work-grid proj-grid" id="projects-grid" role="list" aria-busy={projects === null}>
-          {projects === null ? null : (
-            projects.map((p, i) => <ProjectCard key={p.id ?? p.title} project={p} index={i} variant="grid" />)
-          )}
-        </div>
+        <ProjectGrid projects={projects} variant="grid" id="projects-grid" />
       </section>
 
       <CtaSection />
