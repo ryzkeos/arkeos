@@ -7,35 +7,41 @@ import Btn from "./Btn";
 import { CinemaBg } from "./CinemaMedia";
 
 const DECOS = [
-  { id: "deco-a", key: "a", cls: "cta-deco-a", fx: 0.045, fy: 0.04 },
-  { id: "deco-b", key: "b", cls: "cta-deco-b", fx: -0.035, fy: -0.028 },
-  { id: "deco-c", key: "c", cls: "cta-deco-c", fx: 0.025, fy: 0.032 },
-  { id: "deco-d", key: "d", cls: "cta-deco-d", fx: -0.03, fy: 0.026 },
+  { id: "deco-a", key: "a", cls: "cta-deco-a" },
+  { id: "deco-b", key: "b", cls: "cta-deco-b" },
+  { id: "deco-c", key: "c", cls: "cta-deco-c" },
+  { id: "deco-d", key: "d", cls: "cta-deco-d" },
 ] as const;
 
 const MEDIA_TYPES: CinemaType[] = ["image", "video", "html"];
 
 export default function CtaSection() {
-  const refs = useRef<(HTMLDivElement | null)[]>([]);
+  const tunnel = useRef<HTMLDivElement>(null);
   const { cta } = useCopy("shared");
 
   useEffect(() => {
-    if (prefersReducedMotion()) return;
-    const pos = DECOS.map(() => ({ x: 0, y: 0 }));
+    const el = tunnel.current;
+    if (!el || prefersReducedMotion()) return;
+    const pos = { x: 0, y: 0 };
+    const target = { x: 0, y: 0 };
+    let raf = 0;
+    const step = () => {
+      pos.x += (target.x - pos.x) * 0.06;
+      pos.y += (target.y - pos.y) * 0.06;
+      el.style.setProperty("--ox", `${pos.x}px`);
+      el.style.setProperty("--oy", `${pos.y}px`);
+      raf = Math.abs(target.x - pos.x) + Math.abs(target.y - pos.y) > 0.05 ? requestAnimationFrame(step) : 0;
+    };
     const onMove = (e: MouseEvent) => {
-      const cx = window.innerWidth / 2, cy = window.innerHeight / 2;
-      DECOS.forEach((d, i) => {
-        const el = refs.current[i];
-        if (!el) return;
-        const p = pos[i];
-        p.x += ((e.clientX - cx) * d.fx - p.x) * 0.05;
-        p.y += ((e.clientY - cy) * d.fy - p.y) * 0.05;
-        el.style.setProperty("--dx", `${p.x}px`);
-        el.style.setProperty("--dy", `${p.y}px`);
-      });
+      target.x = (e.clientX / window.innerWidth - 0.5) * 60;
+      target.y = (e.clientY / window.innerHeight - 0.5) * 40;
+      if (!raf) raf = requestAnimationFrame(step);
     };
     document.addEventListener("mousemove", onMove);
-    return () => document.removeEventListener("mousemove", onMove);
+    return () => {
+      document.removeEventListener("mousemove", onMove);
+      cancelAnimationFrame(raf);
+    };
   }, []);
 
   return (
@@ -48,33 +54,28 @@ export default function CtaSection() {
           </radialGradient>
         </defs>
         <ellipse cx="50" cy="50" rx="34" ry="42" fill="url(#cta-focal-glow)" />
-        <path className="cta-corridor__line" d="M0 0L43 43M100 0L57 43M0 100L43 57M100 100L57 57" />
-        <rect className="cta-corridor__line" x="19" y="19" width="62" height="62" />
-        <rect className="cta-corridor__line" x="31" y="31" width="38" height="38" />
-        <rect className="cta-corridor__line" x="38.5" y="38.5" width="23" height="23" />
-        <rect className="cta-corridor__line cta-corridor__far" x="43" y="43" width="14" height="14" />
       </svg>
       <div className="cta-inner reveal">
-        {DECOS.map((d, i) => {
-          const url = cta[`deco_${d.key}_url`];
-          const raw = cta[`deco_${d.key}_type`];
-          const type = MEDIA_TYPES.find((t) => t === raw) ?? "image";
-          return (
-            <div
-              key={d.id}
-              id={d.id}
-              ref={(el) => { refs.current[i] = el; }}
-              className={url ? `cta-deco ${d.cls} cta-deco--media` : `cta-deco ${d.cls}`}
-              aria-hidden="true"
-            >
-              {url && (
-                <div className="cta-deco__media">
-                  <CinemaBg url={url} type={type} active />
-                </div>
-              )}
-            </div>
-          );
-        })}
+        <div className="cta-tunnel" ref={tunnel} aria-hidden="true">
+          {DECOS.map((d) => {
+            const url = cta[`deco_${d.key}_url`];
+            const raw = cta[`deco_${d.key}_type`];
+            const type = MEDIA_TYPES.find((t) => t === raw) ?? "image";
+            return (
+              <div
+                key={d.id}
+                id={d.id}
+                className={url ? `cta-deco ${d.cls} cta-deco--media` : `cta-deco ${d.cls}`}
+              >
+                {url && (
+                  <div className="cta-deco__media">
+                    <CinemaBg url={url} type={type} active />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
         <span className="cta-lbl">{cta.label}</span>
         <div className="cta-title">
           <h2 className="cta-h2">{cta.headline}</h2>
