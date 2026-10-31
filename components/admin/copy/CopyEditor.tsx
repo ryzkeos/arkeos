@@ -29,8 +29,16 @@ const as_text = (v: unknown): string =>
 
 const row_fields = (f: CopyField): CopyField[] | null => (f.type === "links" ? LINK_FIELDS : f.type === "list" ? f.item_fields ?? null : null);
 
+const ON_SUFFIX = "__on";
+
 function to_row(fields: CopyField[], item: unknown): Row {
-  return Object.fromEntries(fields.map((sf) => [sf.path, as_text(get_path(item, sf.path))]));
+  const row: Row = {};
+  for (const sf of fields) {
+    const v = as_text(get_path(item, sf.path));
+    row[sf.path] = v;
+    if (sf.type === "photo") row[sf.path + ON_SUFFIX] = v ? "1" : "";
+  }
+  return row;
 }
 
 function to_val(f: CopyField, raw: unknown): Val {
@@ -60,7 +68,9 @@ function from_val(f: CopyField, v: Val | undefined, sample: unknown): unknown {
       let filled = false;
       for (const sf of fields) {
         const t = (row[sf.path] ?? "").trim();
-        if (sf.type === "lines") {
+        if (sf.type === "photo") {
+          o[sf.path] = row[sf.path + ON_SUFFIX] ? t : "";
+        } else if (sf.type === "lines") {
           const lines = split_lines(row[sf.path] ?? "");
           o[sf.path] = lines;
           if (lines.length) filled = true;
@@ -78,6 +88,23 @@ function from_val(f: CopyField, v: Val | undefined, sample: unknown): unknown {
   const text = (v as string).trim();
   if (!text) return undefined;
   return f.type === "lines" ? split_lines(text) : text;
+}
+
+function photo_missing(fields: CopyField[], vals: Record<string, Val>): string {
+  for (const f of fields) {
+    const sub = row_fields(f)?.filter((sf) => sf.type === "photo") ?? [];
+    if (!sub.length) continue;
+    const rows = (vals[f.path] as Row[] | undefined) ?? [];
+    for (let i = 0; i < rows.length; i++) {
+      for (const sf of sub) {
+        if (rows[i][sf.path + ON_SUFFIX] && !(rows[i][sf.path] ?? "").trim()) {
+          const who = (rows[i].name ?? "").trim() || `row ${i + 1}`;
+          return `${f.label}: upload a photo for ${who} or turn the photo off.`;
+        }
+      }
+    }
+  }
+  return "";
 }
 
 const swap = <T,>(arr: T[], i: number, j: number): T[] => {
@@ -144,6 +171,11 @@ export default function CopyEditor({ page, toast }: { page: PageKey; toast: Pane
 
   const save = async () => {
     if (!vals) return;
+    const missing = photo_missing(fields, vals);
+    if (missing) {
+      toast(missing, true);
+      return;
+    }
     setSaving(true);
     try {
       const out: Obj = {};
@@ -211,7 +243,32 @@ export default function CopyEditor({ page, toast }: { page: PageKey; toast: Pane
         {list.length === 0 && <p className="copy-empty">Using default list.</p>}
         {list.map((row, i) => (
           <div className="copy-row" key={i}>
-            {fields_of.map((sf) => (
+            {fields_of.map((sf) => sf.type === "photo" ? (
+              <div className="copy-photo" key={sf.path}>
+                <div className="form-group">
+                  <label htmlFor={id_of(f.path, `-${i}-${sf.path}-on`)}>
+                    <input
+                      type="checkbox"
+                      id={id_of(f.path, `-${i}-${sf.path}-on`)}
+                      checked={!!row[sf.path + ON_SUFFIX]}
+                      onChange={(e) => set(f.path, list.map((r, j) => (j === i ? { ...r, [sf.path + ON_SUFFIX]: e.target.checked ? "1" : "" } : r)))}
+                    />{" "}
+                    {`${sf.label} (${i + 1})`}
+                  </label>
+                </div>
+                {row[sf.path + ON_SUFFIX] && (
+                  <MediaField
+                    label={`Photo (${i + 1}). Required while the photo is on`}
+                    accept="image/*"
+                    folder={`copy/${page}/team`}
+                    value={row[sf.path] ?? ""}
+                    placeholder="https://"
+                    toast={toast}
+                    onChange={(url) => set(f.path, list.map((r, j) => (j === i ? { ...r, [sf.path]: url } : r)))}
+                  />
+                )}
+              </div>
+            ) : (
               <TextControl
                 key={sf.path}
                 id={id_of(f.path, `-${i}-${sf.path}`)}
@@ -230,7 +287,7 @@ export default function CopyEditor({ page, toast }: { page: PageKey; toast: Pane
             </div>
           </div>
         ))}
-        {list_actions(Object.fromEntries(fields_of.map((sf) => [sf.path, ""])), default_arr.map((it) => to_row(fields_of, it)))}
+        {list_actions(to_row(fields_of, {}), default_arr.map((it) => to_row(fields_of, it)))}
       </fieldset>
     );
   };

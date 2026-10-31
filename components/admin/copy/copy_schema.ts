@@ -8,7 +8,7 @@ import { projects_schema } from "./schema/projects";
 import { services_schema } from "./schema/services";
 import { shared_schema } from "./schema/shared";
 
-export type CopyFieldType = "text" | "textarea" | "lines" | "list" | "links" | "image";
+export type CopyFieldType = "text" | "textarea" | "lines" | "list" | "links" | "image" | "photo";
 
 export type CopyField = {
   path: string;
