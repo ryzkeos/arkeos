@@ -25,4 +25,6 @@ export const shared_schema: CopyField[] = [
   { path: "hero.deco", label: "Hero corner word (max 12 characters)", type: "text", max: 12 },
   { path: "hero.hover_word", label: "Hero corner word on hover", type: "text", max: 12 },
   { path: "hero.scroll_label", label: "Scroll hint label", type: "text", max: 40 },
+  { path: "section_media.type", label: "Section header media type (shown behind every section header)", type: "select", options: ["image", "video", "html"] },
+  { path: "section_media.url", label: "Section header media (empty shows none)", type: "media" },
 ];
