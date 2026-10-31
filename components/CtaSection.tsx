@@ -38,29 +38,32 @@ export default function CtaSection() {
 
   return (
     <section id="cta" aria-label={cta.label}>
-      {DECOS.map((d, i) => {
-        const url = cta[`deco_${d.key}_url`];
-        const raw = cta[`deco_${d.key}_type`];
-        const type = MEDIA_TYPES.find((t) => t === raw) ?? "image";
-        return (
-          <div
-            key={d.id}
-            id={d.id}
-            ref={(el) => { refs.current[i] = el; }}
-            className={url ? `cta-deco ${d.cls} cta-deco--media` : `cta-deco ${d.cls}`}
-            aria-hidden="true"
-          >
-            {url && (
-              <div className="cta-deco__media">
-                <CinemaBg url={url} type={type} active />
-              </div>
-            )}
-          </div>
-        );
-      })}
       <div className="cta-inner reveal">
+        {DECOS.map((d, i) => {
+          const url = cta[`deco_${d.key}_url`];
+          const raw = cta[`deco_${d.key}_type`];
+          const type = MEDIA_TYPES.find((t) => t === raw) ?? "image";
+          return (
+            <div
+              key={d.id}
+              id={d.id}
+              ref={(el) => { refs.current[i] = el; }}
+              className={url ? `cta-deco ${d.cls} cta-deco--media` : `cta-deco ${d.cls}`}
+              aria-hidden="true"
+            >
+              {url && (
+                <div className="cta-deco__media">
+                  <CinemaBg url={url} type={type} active />
+                </div>
+              )}
+            </div>
+          );
+        })}
         <span className="cta-lbl">{cta.label}</span>
-        <h2 className="cta-h2">{cta.headline}</h2>
+        <div className="cta-title">
+          <h2 className="cta-h2">{cta.headline}</h2>
+          <h2 className="cta-h2 cta-h2--burn" aria-hidden="true">{cta.headline}</h2>
+        </div>
         <Btn href="/contact" id="btn-cta" label={cta.button} />
       </div>
     </section>
