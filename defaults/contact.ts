@@ -32,6 +32,7 @@ export const contact: ContactCopy = {
     message_placeholder: "What are you building? What is the goal? What is not working today? Share as much as you can.",
     submit_label: "Send Inquiry",
     sending_label: "Sending...",
+    select_close_label: "Close",
     note: "",
   },
   success: {
