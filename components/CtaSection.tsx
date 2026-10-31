@@ -10,6 +10,7 @@ const DECOS = [
   { id: "deco-a", key: "a", cls: "cta-deco-a", fx: 0.045, fy: 0.04 },
   { id: "deco-b", key: "b", cls: "cta-deco-b", fx: -0.035, fy: -0.028 },
   { id: "deco-c", key: "c", cls: "cta-deco-c", fx: 0.025, fy: 0.032 },
+  { id: "deco-d", key: "d", cls: "cta-deco-d", fx: -0.03, fy: 0.026 },
 ] as const;
 
 const MEDIA_TYPES: CinemaType[] = ["image", "video", "html"];
