@@ -14,7 +14,7 @@ import type {
 
 const DEFAULT_NAME = "ARKEOS";
 const DEFAULT_YEAR = 2026;
-const DEFAULT_HEADLINE = ["WE BUILD", "DIGITAL", "LEGENDS."];
+const DEFAULT_HEADLINE = ["WE BUILD", "DIGITAL", "LEGACIES."];
 
 type Raw = Record<string, unknown>;
 
