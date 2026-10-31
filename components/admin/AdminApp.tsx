@@ -17,11 +17,17 @@ function mediaBadge(media: string | null) {
 }
 const splitTags = (s: string) => s.split(",").map((t) => t.trim()).filter(Boolean);
 
+const NAV_GROUPS: { label: string; items: [Section, string][] }[] = [
+  { label: "Content", items: [["inquiries", "Inquiries"], ["projects", "Projects"], ["services", "Services"]] },
+  { label: "Studio", items: [["availability", "Availability"], ["settings", "Site Settings"], ["identity", "Identity"], ["fonts", "Font Settings"], ["analytics", "Analytics"]] },
+];
+
 export default function AdminApp() {
   const [authed, setAuthed] = useState(false);
   const [booted, setBooted] = useState(false);
   const [section, setSection] = useState<Section>("inquiries");
   const [unread, setUnread] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [toast, setToast] = useState<{ text: string; err: boolean } | null>(null);
   const [confirmState, setConfirmState] = useState<{ text: string; onYes: () => void } | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -43,6 +49,45 @@ export default function AdminApp() {
     await db.dbSignOut();
     setAuthed(false);
   };
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
+
+  const go = (id: Section, closeMenu: boolean) => {
+    setSection(id);
+    if (closeMenu) setMenuOpen(false);
+  };
+
+  const renderNav = (closeMenu: boolean) => (
+    <>
+      {NAV_GROUPS.map((group) => (
+        <div key={group.label}>
+          <div className="sidebar-label">{group.label}</div>
+          <nav className="sidebar-nav">
+            {group.items.map(([id, label]) => (
+              <button key={id} className={section === id ? "active" : ""} onClick={() => go(id, closeMenu)}>
+                {label}
+                {id === "inquiries" && (
+                  <span className="sidebar-badge" aria-label="Unread count" style={{ display: unread > 0 ? "inline-flex" : "none" }}>
+                    {unread > 0 ? unread : ""}
+                  </span>
+                )}
+              </button>
+            ))}
+          </nav>
+        </div>
+      ))}
+      <div className="sidebar-footer">
+        <button aria-label="Log out of admin panel" onClick={logout}>Log Out</button>
+      </div>
+    </>
+  );
 
   if (!booted) return null;
 
@@ -74,33 +119,29 @@ export default function AdminApp() {
         <Login onDone={() => { setAuthed(true); setSection("inquiries"); }} />
       ) : (
         <div id="app-shell" style={{ display: "flex" }}>
+          <header className="admin-topbar">
+            <span className="sidebar-logo">ARKEOS</span>
+            <button
+              className="admin-topbar__toggle"
+              aria-label={menuOpen ? "Close menu" : "Open menu"}
+              aria-expanded={menuOpen}
+              aria-controls="admin-menu"
+              onClick={() => setMenuOpen((o) => !o)}
+            >
+              <span aria-hidden="true">{menuOpen ? "Close" : "Menu"}</span>
+              {!menuOpen && unread > 0 && <span className="sidebar-badge" style={{ display: "inline-flex" }}>{unread}</span>}
+            </button>
+          </header>
+
+          {menuOpen && (
+            <div className="admin-menu" id="admin-menu" role="navigation" aria-label="Admin navigation">
+              {renderNav(true)}
+            </div>
+          )}
+
           <aside className="admin-sidebar" role="navigation" aria-label="Admin navigation">
             <div className="sidebar-logo">ARKEOS</div>
-
-            <div className="sidebar-label">Content</div>
-            <nav className="sidebar-nav">
-              <button className={section === "inquiries" ? "active" : ""} onClick={() => setSection("inquiries")}>
-                Inquiries
-                <span className="sidebar-badge" id="inquiries-badge" aria-label="Unread count" style={{ display: unread > 0 ? "inline-flex" : "none" }}>
-                  {unread > 0 ? unread : ""}
-                </span>
-              </button>
-              <button className={section === "projects" ? "active" : ""} onClick={() => setSection("projects")}>Projects</button>
-              <button className={section === "services" ? "active" : ""} onClick={() => setSection("services")}>Services</button>
-            </nav>
-
-            <div className="sidebar-label">Studio</div>
-            <nav className="sidebar-nav">
-              <button className={section === "availability" ? "active" : ""} onClick={() => setSection("availability")}>Availability</button>
-              <button className={section === "settings" ? "active" : ""} onClick={() => setSection("settings")}>Site Settings</button>
-              <button className={section === "identity" ? "active" : ""} onClick={() => setSection("identity")}>Identity</button>
-              <button className={section === "fonts" ? "active" : ""} onClick={() => setSection("fonts")}>Font Settings</button>
-              <button className={section === "analytics" ? "active" : ""} onClick={() => setSection("analytics")}>Analytics</button>
-            </nav>
-
-            <div className="sidebar-footer">
-              <button id="logout-btn" aria-label="Log out of admin panel" onClick={logout}>Log Out</button>
-            </div>
+            {renderNav(false)}
           </aside>
 
           <main className="admin-main" role="main">
