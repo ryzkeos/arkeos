@@ -10,6 +10,12 @@ const LoadedCtx = createContext(false);
 export const useSiteSettings = () => useContext(Ctx);
 export const useSiteSettingsLoaded = () => useContext(LoadedCtx);
 
+export function applyAccent(color: unknown) {
+  if (typeof color === "string" && /^#[0-9a-fA-F]{3,6}$/.test(color)) {
+    document.documentElement.style.setProperty("--color-accent", color);
+  }
+}
+
 const UNSAFE_URL_CHARS = /["'\\()\r\n\f]/;
 
 function safeFontUrl(raw: unknown): string | null {
@@ -72,7 +78,7 @@ function applyFonts(s: SiteSettings): () => void {
   };
 }
 
-export function SiteSettingsProvider({ children }: { children: React.ReactNode }) {
+export function SiteSettingsProvider({ children, track = true }: { children: React.ReactNode; track?: boolean }) {
   const [settings, setSettings] = useState<SiteSettings>({});
   const [loaded, setLoaded] = useState(false);
   const pathname = usePathname();
@@ -86,9 +92,7 @@ export function SiteSettingsProvider({ children }: { children: React.ReactNode }
         if (!active) return;
         setSettings(s);
         setLoaded(true);
-        if (s.accent_color && /^#[0-9a-fA-F]{3,6}$/.test(s.accent_color)) {
-          document.documentElement.style.setProperty("--color-accent", s.accent_color);
-        }
+        applyAccent(s.accent_color);
         undoFonts = applyFonts(s);
       })
       .catch(() => {
@@ -101,8 +105,8 @@ export function SiteSettingsProvider({ children }: { children: React.ReactNode }
   }, []);
 
   useEffect(() => {
-    dbTrackPageView(pathname);
-  }, [pathname]);
+    if (track) dbTrackPageView(pathname);
+  }, [pathname, track]);
 
   return (
     <Ctx.Provider value={settings}>
