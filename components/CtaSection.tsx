@@ -2,7 +2,6 @@
 import { useEffect, useRef } from "react";
 import { prefersReducedMotion } from "@/lib/gsap";
 import Btn from "./Btn";
-import { useSiteSettings } from "./SiteSettings";
 
 const DECOS = [
   { id: "deco-a", cls: "cta-deco-a", fx: 0.045, fy: 0.04 },
@@ -11,7 +10,6 @@ const DECOS = [
 ];
 
 export default function CtaSection() {
-  const settings = useSiteSettings();
   const refs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
@@ -38,8 +36,9 @@ export default function CtaSection() {
         <div key={d.id} id={d.id} ref={(el) => { refs.current[i] = el; }} className={`cta-deco ${d.cls}`} aria-hidden="true" />
       ))}
       <div className="cta-inner reveal">
-        <h2 className="cta-h2">START A PROJECT.</h2>
-        <Btn href="/contact" id="btn-cta" label={settings.cta_text?.trim() || "Get in Touch"} ariaLabel="Go to the contact page" />
+        <span className="cta-lbl">Ready to Begin</span>
+        <h2 className="cta-h2">LET&apos;S BUILD SOMETHING EPIC TOGETHER.</h2>
+        <Btn href="/contact" id="btn-cta" label="Contact Us" ariaLabel="Contact us" />
       </div>
     </section>
   );
