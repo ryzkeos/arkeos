@@ -5,6 +5,7 @@ import { gsap, prefersReducedMotion, safeUrl } from "@/lib/gsap";
 import { getIdentity, getStats } from "@/lib/content";
 import { usePillars, useProjects } from "@/lib/useContent";
 import { useArkeosAnimations } from "@/hooks/useArkeosAnimations";
+import { usePreloadProgress } from "@/hooks/usePreloadProgress";
 import { useSiteSettings, useSiteSettingsLoaded } from "./SiteSettings";
 import Btn from "./Btn";
 import { CinemaBg, CinemaOverlay, type CinemaItem } from "./CinemaMedia";
@@ -22,6 +23,7 @@ const ICONS = [
 ];
 
 const STATUSES = ["Loading", "Preparing", "Almost Ready", "Welcome"];
+const statusFor = (p: number) => STATUSES[p >= 100 ? 3 : Math.min(Math.floor(p / 34), 2)];
 
 export default function HomeView() {
   const root = useRef<HTMLElement>(null);
@@ -41,10 +43,68 @@ export default function HomeView() {
 
   useArkeosAnimations({ ready: introDone && contentReady });
 
+  const progress = usePreloadProgress(showPreloader, contentReady, root);
+  const shown = useRef({ v: 0 });
+  const finishing = useRef(false);
+
   useEffect(() => {
-    if (!settingsLoaded) return;
+    if (!showPreloader || !root.current) return;
+    const brand = root.current.querySelector(".pre__brand");
+    gsap.to(brand, { opacity: 1, duration: prefersReducedMotion() ? 0 : 0.35, ease: "power2.out" });
+  }, [showPreloader]);
+
+  useEffect(() => {
+    if (!showPreloader || !root.current) return;
+    const el = root.current;
+    const preloader = el.querySelector<HTMLElement>("#preloader");
+    const bar = el.querySelector<HTMLElement>("#pre-bar");
+    const pctEl = el.querySelector("#pre-pct");
+    const statusEl = el.querySelector("#pre-status");
+    if (!preloader || !bar) return;
     const reduced = prefersReducedMotion();
-    let ctx: gsap.Context;
+
+    const render = () => {
+      const v = Math.round(shown.current.v);
+      bar.style.width = `${shown.current.v}%`;
+      if (pctEl) pctEl.textContent = `${v}%`;
+      if (statusEl) statusEl.textContent = statusFor(v);
+    };
+
+    const finish = () => {
+      if (finishing.current) return;
+      finishing.current = true;
+      gsap.to(preloader, {
+        opacity: 0,
+        duration: reduced ? 0 : 0.35,
+        delay: reduced ? 0 : 0.15,
+        ease: "power2.inOut",
+        onComplete: () => {
+          preloader.style.display = "none";
+          preloaderPlayed = true;
+          setIntroDone(true);
+        },
+      });
+    };
+
+    const tween = gsap.to(shown.current, {
+      v: progress,
+      duration: reduced ? 0 : 0.45,
+      ease: "power1.out",
+      overwrite: true,
+      onUpdate: render,
+      onComplete: () => {
+        render();
+        if (progress >= 100) finish();
+      },
+    });
+    return () => {
+      tween.kill();
+    };
+  }, [progress, showPreloader]);
+
+  useEffect(() => {
+    if (!settingsLoaded || !introDone) return;
+    const reduced = prefersReducedMotion();
 
     const runHero = () => {
       const $ = (s: string) => root.current!.querySelector(s);
@@ -72,41 +132,10 @@ export default function HomeView() {
       if (line) gsap.to(line, { scaleX: 1.5, opacity: 0.4, duration: 1.1, ease: "power2.inOut", repeat: -1, yoyo: true, delay: 2.5 });
     };
 
-    ctx = gsap.context(() => {
-      if (!showPreloader) return void runHero();
-
-      const preloader = root.current!.querySelector<HTMLElement>("#preloader")!;
-
-      const finish = () => {
-        preloader.style.display = "none";
-        preloaderPlayed = true;
-        setIntroDone(true);
-        ctx.add(runHero);
-      };
-
-      if (reduced) return void finish();
-
-      const bar = root.current!.querySelector("#pre-bar");
-      const brand = root.current!.querySelector(".pre__brand");
-      const pctEl = root.current!.querySelector("#pre-pct");
-      const statusEl = root.current!.querySelector("#pre-status");
-
-      gsap.timeline()
-        .to(brand, { opacity: 1, duration: 0.35, ease: "power2.out" })
-        .to(bar, {
-          width: "100%", duration: 0.75, ease: "power2.inOut",
-          onUpdate() {
-            const p = (this as unknown as gsap.core.Tween).progress();
-            const si = Math.min(Math.floor(p * STATUSES.length), STATUSES.length - 1);
-            if (pctEl) pctEl.textContent = Math.round(p * 100) + "%";
-            if (statusEl) statusEl.textContent = STATUSES[si];
-          },
-        }, "+=0.05")
-        .to(preloader, { opacity: 0, duration: 0.35, ease: "power2.inOut", onComplete: finish }, "+=0.05");
-    }, root);
+    const ctx = gsap.context(runHero, root);
 
     return () => ctx.revert();
-  }, [settingsLoaded, showPreloader]);
+  }, [settingsLoaded, introDone]);
 
   const videoSrc = safeUrl(settings.hero_video);
   const heroLines = settingsLoaded ? (identity.heroHeadline.length ? identity.heroHeadline : [identity.name]) : [];
