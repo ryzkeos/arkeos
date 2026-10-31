@@ -58,7 +58,7 @@ export function useArkeosAnimations({ pageHero = false, ready = true }: Opts = {
             scrollTrigger: { trigger: ".svc-grid", start: "top 82%", once: true },
           });
       }
-      ["#btn-all", "#btn-cta"].forEach((sel) => {
+      ["#btn-all", "#btn-svc", "#btn-cta"].forEach((sel) => {
         const el = document.querySelector(sel);
         if (!el) return;
         if (reduced) return void gsap.set(el, { opacity: 1, y: 0 });
