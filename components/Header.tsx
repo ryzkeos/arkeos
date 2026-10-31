@@ -5,8 +5,8 @@ import { usePathname } from "next/navigation";
 import { NAV } from "@/lib/data";
 import { gsap, prefersReducedMotion } from "@/lib/gsap";
 import { getIdentity } from "@/lib/content";
-import { safeUrl } from "@/lib/gsap";
 import { useSiteSettings } from "./SiteSettings";
+import { SocialIcon, getSocials } from "./SocialIcons";
 
 export default function Header() {
   const pathname = usePathname();
@@ -15,11 +15,7 @@ export default function Header() {
   const [stuck, setStuck] = useState(false);
   const [open, setOpen] = useState(false);
   const drawer = useRef<HTMLDivElement>(null);
-  const socials = [
-    { label: "GitHub", href: safeUrl(settings.social_github) },
-    { label: "Instagram", href: safeUrl(settings.social_instagram) },
-    { label: "Facebook", href: safeUrl(settings.social_facebook) },
-  ].filter((x): x is { label: string; href: string } => Boolean(x.href));
+  const socials = getSocials(settings);
   const booked = settings.availability === "booked";
   const availText = booked ? "Currently Booked" : "Now Taking Projects";
 
@@ -78,7 +74,7 @@ export default function Header() {
           {socials.length > 0 && (
             <nav className="nav-ov__socials" aria-label="Social links">
               {socials.map(({ label, href }) => (
-                <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={`${name} on ${label}`} tabIndex={open ? 0 : -1}>{label}</a>
+                <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={`${name} on ${label}`} tabIndex={open ? 0 : -1}><SocialIcon label={label} /></a>
               ))}
             </nav>
           )}
