@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
-import { prefersReducedMotion } from "@/lib/gsap";
+import { gsap, ScrollTrigger, prefersReducedMotion } from "@/lib/gsap";
 import { useCopy } from "@/lib/use_copy";
 import type { CinemaType } from "@/lib/types";
 import Btn from "./Btn";
@@ -15,9 +15,50 @@ const DECOS = [
 
 const MEDIA_TYPES: CinemaType[] = ["image", "video", "html"];
 
+const MOTION = [
+  { from_x: -170, from_y: 0, depth: 70, float: 12, float_time: 3.4 },
+  { from_x: 170, from_y: 0, depth: 110, float: 14, float_time: 4.1 },
+  { from_x: -60, from_y: 130, depth: 40, float: 10, float_time: 3.8 },
+  { from_x: 60, from_y: -130, depth: 30, float: 9, float_time: 4.6 },
+];
+
 export default function CtaSection() {
+  const section = useRef<HTMLElement>(null);
   const tunnel = useRef<HTMLDivElement>(null);
   const { cta } = useCopy("shared");
+
+  useEffect(() => {
+    const root = section.current;
+    const wrap = tunnel.current;
+    if (!root || !wrap || prefersReducedMotion()) return;
+    const ctx = gsap.context(() => {
+      const els = Array.from(wrap.querySelectorAll<HTMLElement>(".cta-deco"));
+      els.forEach((el, i) => {
+        const m = MOTION[i];
+        if (!m) return;
+        const state = { ex: m.from_x, ey: m.from_y, eo: 0, py: 0, fy: 0 };
+        const apply = () => {
+          el.style.setProperty("--ex", `${state.ex}px`);
+          el.style.setProperty("--ey", `${state.ey + state.py + state.fy}px`);
+          el.style.setProperty("--eo", `${state.eo}`);
+        };
+        apply();
+        gsap.to(state, {
+          ex: 0, ey: 0, eo: 1, duration: 1.3, ease: "power3.out", delay: i * 0.14, onUpdate: apply,
+          scrollTrigger: { trigger: root, start: "top 75%", once: true },
+        });
+        gsap.fromTo(state, { py: m.depth }, {
+          py: -m.depth, ease: "none", onUpdate: apply,
+          scrollTrigger: { trigger: root, start: "top bottom", end: "bottom top", scrub: 0.8 },
+        });
+        gsap.to(state, {
+          fy: m.float, duration: m.float_time, ease: "sine.inOut", yoyo: true, repeat: -1, onUpdate: apply,
+        });
+      });
+    }, root);
+    ScrollTrigger.refresh();
+    return () => ctx.revert();
+  }, []);
 
   useEffect(() => {
     const el = tunnel.current;
@@ -45,7 +86,7 @@ export default function CtaSection() {
   }, []);
 
   return (
-    <section id="cta" aria-label={cta.label}>
+    <section id="cta" ref={section} aria-label={cta.label}>
       <svg className="cta-corridor" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false">
         <defs>
           <radialGradient id="cta-focal-glow" cx="50%" cy="50%" r="50%">
