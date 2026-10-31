@@ -1,3 +1,5 @@
+export type CinemaType = "video" | "image" | "html";
+
 export type Project = {
   id?: string;
   title: string;
@@ -16,6 +18,9 @@ export type Service = {
   description: string;
   tags: string[];
   price?: string | null;
+  icon_url?: string | null;
+  cinema_url?: string | null;
+  cinema_type?: CinemaType | null;
   visible: boolean;
   sort_order?: number;
 };
@@ -81,6 +86,19 @@ export type SiteSettings = Partial<{
   hero_deco: string;
   about_image: string;
   about_image_wide: string;
+  what_intro: string;
+  work_intro: string;
+  projects_count: string;
+  years_active: string;
+  clients_count: string;
+  copy_shared: string;
+  copy_home: string;
+  copy_projects: string;
+  copy_services: string;
+  copy_about: string;
+  copy_contact: string;
+  copy_privacy: string;
+  copy_not_found: string;
 }>;
 
 export type Session = { access_token: string; [k: string]: unknown };

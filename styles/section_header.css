@@ -1,0 +1,11 @@
+.sec-hdr { display:grid; grid-template-columns:1fr 1fr; gap:3.5rem; align-items:end; margin-bottom:4rem; }
+.sec-side { display:flex; flex-direction:column; align-items:flex-end; gap:1.8rem; justify-self:end; max-width:380px; width:100%; text-align:right; }
+.sec-intro {
+  font-size:clamp(0.82rem, 1.05vw, 0.96rem); color:var(--color-muted);
+  line-height:1.82;
+}
+@media (max-width:768px) {
+  .sec-hdr { grid-template-columns:1fr; gap:1.6rem; margin-bottom:3rem; }
+  .sec-side { justify-self:stretch; max-width:100%; text-align:left; align-items:flex-end; }
+  .sec-intro { align-self:stretch; }
+}
