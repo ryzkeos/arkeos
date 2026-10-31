@@ -8,7 +8,7 @@ import { projects_schema } from "./schema/projects";
 import { services_schema } from "./schema/services";
 import { shared_schema } from "./schema/shared";
 
-export type CopyFieldType = "text" | "textarea" | "lines" | "list" | "links" | "image" | "photo";
+export type CopyFieldType = "text" | "textarea" | "lines" | "list" | "links" | "image" | "photo" | "media" | "select";
 
 export type CopyField = {
   path: string;
@@ -16,6 +16,7 @@ export type CopyField = {
   type: CopyFieldType;
   max?: number;
   item_fields?: CopyField[];
+  options?: string[];
 };
 
 export const COPY_SCHEMA: Record<PageKey, CopyField[]> = {
