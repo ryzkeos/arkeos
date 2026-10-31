@@ -3,7 +3,6 @@ import { dbGet } from "@/lib/db";
 import { getCopy, legacy_stats } from "./copy";
 import type {
   CinemaType,
-  Pillar,
   ProcessStep,
   Project,
   Service,
@@ -54,21 +53,6 @@ function toCinemaType(v: unknown): CinemaType {
   return v === "image" || v === "html" ? v : "video";
 }
 
-function toPillar(v: unknown): Pillar | null {
-  if (!isObj(v)) return null;
-  const title = str(v.title);
-  if (!title) return null;
-  return {
-    id: typeof v.id === "string" || typeof v.id === "number" ? String(v.id) : title,
-    title,
-    description: str(v.description),
-    icon_url: strOrNull(v.icon_url),
-    cinema_url: strOrNull(v.cinema_url),
-    cinema_type: toCinemaType(v.cinema_type),
-    sort_order: typeof v.sort_order === "number" ? v.sort_order : undefined,
-  };
-}
-
 function toService(v: unknown): Service | null {
   if (!isObj(v)) return null;
   const title = str(v.title);
@@ -113,23 +97,6 @@ export async function loadServices(): Promise<Service[]> {
     if (items.length > 0) return items;
   } catch {}
   return bySortOrder(collect(DEFAULTS.services.services, toService).filter((s) => s.visible));
-}
-
-export async function loadPillars(): Promise<Pillar[]> {
-  try {
-    const rows = await dbGet<unknown>("pillars", "select=*&order=sort_order.asc,created_at.asc");
-    const items = collect(rows, toPillar);
-    if (items.length > 0) return items;
-  } catch {}
-  const services = await loadServices();
-  return services.slice(0, 4).map((s) => ({
-    id: s.id,
-    title: s.title,
-    description: s.description,
-    icon_url: s.icon_url ?? null,
-    cinema_url: s.cinema_url ?? null,
-    cinema_type: s.cinema_type ?? "video",
-  }));
 }
 
 export function getIdentity(s: SiteSettings) {
