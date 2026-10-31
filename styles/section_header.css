@@ -5,7 +5,7 @@
   font-size:clamp(0.82rem, 1.05vw, 0.96rem); color:var(--color-muted);
   line-height:1.82;
 }
-.sec-hdr__media { position:absolute; inset:-1.5rem 0; z-index:-1; overflow:hidden; opacity:0.16; pointer-events:none; }
+.sec-hdr__media { position:absolute; top:-1.5rem; bottom:-1.5rem; left:50%; width:100vw; transform:translateX(-50%); z-index:-1; overflow:hidden; opacity:0.16; pointer-events:none; }
 .sec-hdr__media img, .sec-hdr__media video, .sec-hdr__media iframe { width:100%; height:100%; object-fit:cover; border:0; display:block; }
 @media (prefers-reduced-motion: reduce) { .sec-hdr__media video, .sec-hdr__media iframe { display:none; } }
 @media (max-width:768px) {
