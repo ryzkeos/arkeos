@@ -1,6 +1,6 @@
 "use client";
 import { useEffect } from "react";
-import { gsap, ScrollTrigger, prefersReducedMotion, isFinePointer } from "@/lib/gsap";
+import { gsap, ScrollTrigger, prefersReducedMotion } from "@/lib/gsap";
 import { useIntroDone } from "@/lib/preloader";
 
 type Opts = {
@@ -15,7 +15,6 @@ export function useArkeosAnimations({ pageHero = false, ready: readyProp = true 
     if (!ready) return;
     const reduced = prefersReducedMotion();
     const q = <T extends Element = HTMLElement>(s: string) => Array.from(document.querySelectorAll<T>(s));
-    const tiltEls: HTMLElement[] = [];
 
     const ctx = gsap.context(() => {
       if (pageHero) {
@@ -96,26 +95,9 @@ export function useArkeosAnimations({ pageHero = false, ready: readyProp = true 
         });
       });
     });
-    let cancelled = false;
-    if (!reduced && isFinePointer()) {
-      const targets = q("[data-tilt]");
-      if (targets.length) {
-        import("vanilla-tilt").then((mod) => {
-          if (cancelled) return;
-          const VT = (mod as any).default ?? mod;
-          targets.forEach((el) => {
-            VT.init(el, { max: 8, speed: 400, glare: true, "max-glare": 0.12 });
-            tiltEls.push(el);
-          });
-        });
-      }
-    }
-
     ScrollTrigger.refresh();
 
     return () => {
-      cancelled = true;
-      tiltEls.forEach((el: any) => el.vanillaTilt?.destroy());
       ctx.revert();
     };
   }, [pageHero, ready]);

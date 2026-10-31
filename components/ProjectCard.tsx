@@ -1,30 +1,36 @@
 "use client";
-import type { CSSProperties } from "react";
+import { useRef, type CSSProperties } from "react";
 import type { Project } from "@/lib/types";
 import { safeUrl } from "@/lib/gsap";
 import { useCopy } from "@/lib/use_copy";
-
-const VIDEO_EXT = ["mp4", "webm", "mov", "ogg"];
-const HTML_EXT = ["html", "htm"];
-const extOf = (m: string) => m.split("?")[0].split(".").pop()?.toLowerCase() ?? "";
+import { use_card_peek } from "@/hooks/use_card_peek";
+import ProjectMedia from "./ProjectMedia";
 
 export type CardLayout = { c: number; r: number; ct: number; rt: number; rm: number };
 
-type Props = { project: Project; index: number; variant: "home" | "grid"; layout: CardLayout };
+type Props = {
+  project: Project;
+  index: number;
+  variant: "home" | "grid";
+  layout: CardLayout;
+  reveal?: boolean;
+};
 
-export default function ProjectCard({ project, index, variant, layout }: Props) {
+export default function ProjectCard({ project, index, variant, layout, reveal = true }: Props) {
   const { buttons } = useCopy("shared");
+  const root = useRef<HTMLElement>(null);
+  const peek = use_card_peek(root, index, variant === "home");
   const num = String(index + 1).padStart(2, "0");
   const mod = `p-card--${(index % 6) + 1}`;
-  const media = safeUrl(project.media);
   const link = safeUrl(project.url);
   const Title = variant === "grid" ? "h2" : "h3";
+  const cls = ["p-card", mod, reveal ? "reveal" : "", peek ? "is-peek" : ""].filter(Boolean).join(" ");
 
   return (
     <article
-      className={`p-card ${mod} reveal`}
+      ref={root}
+      className={cls}
       role="listitem"
-      data-tilt
       aria-label={project.title}
       style={{
         "--card-accent": project.color || "var(--color-accent)",
@@ -32,22 +38,13 @@ export default function ProjectCard({ project, index, variant, layout }: Props) 
       } as CSSProperties}
     >
       <div className="p-card__bg" aria-hidden="true">
-        {media && (
-          VIDEO_EXT.includes(extOf(media)) ? (
-            <video src={media} autoPlay muted loop playsInline aria-hidden="true" />
-          ) : HTML_EXT.includes(extOf(media)) ? (
-            <iframe src={media} title="" tabIndex={-1} sandbox="allow-scripts" loading="lazy" aria-hidden="true" />
-          ) : (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={media} alt="" aria-hidden="true" loading="lazy" draggable={false} />
-          )
-        )}
+        <ProjectMedia src={project.media} />
       </div>
       <div className="p-card__hover" aria-hidden="true" />
       <div className="p-card__body">
         <div className="p-card__head">
-          <span className="p-card__num">{num}</span>
           <Title className="p-card__name">{project.title.toUpperCase()}</Title>
+          <span className="p-card__num" aria-hidden="true">{num}</span>
         </div>
         <p className="p-card__desc">{project.description}</p>
         <div className="p-card__foot">
