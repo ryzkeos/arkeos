@@ -5,6 +5,8 @@ export const contact_schema: CopyField[] = [
   { path: "hero.lines", label: "Hero: title lines (one per line)", type: "lines", max: 40 },
   { path: "hero.sub", label: "Hero: subtitle", type: "textarea", max: 240 },
   { path: "hero.ghost", label: "Hero: large background word", type: "text", max: 24 },
+  { path: "hero.cta.label", label: "Hero button label (empty hides the button)", type: "text", max: 40 },
+  { path: "hero.cta.href", label: "Hero button link", type: "text", max: 300 },
 
   { path: "info.title", label: "Info: title", type: "text", max: 60 },
   { path: "info.body", label: "Info: text", type: "textarea", max: 400 },
