@@ -1,4 +1,4 @@
-import type { Inquiry, Project, Service, Session, SiteSettings } from "@/lib/types";
+import type { Inquiry, Pillar, Project, Service, Session, SiteSettings } from "@/lib/types";
 
 const API_URL = process.env.NEXT_PUBLIC_DATA_API_URL ?? "";
 const API_KEY = process.env.NEXT_PUBLIC_DATA_API_KEY ?? "";
@@ -169,3 +169,8 @@ export const dbGetServices = () => dbGet<Service[]>("services", "select=*&order=
 export const dbSaveService = (id: string | null, payload: Partial<Service>) =>
   id ? dbUpdate("services", `id=eq.${id}`, payload) : dbInsert("services", payload);
 export const dbDeleteService = (id: string) => dbDelete("services", `id=eq.${id}`);
+
+export const dbGetPillars = () => dbGet<Pillar[]>("pillars", "select=*&order=sort_order.asc,created_at.asc");
+export const dbSavePillar = (id: string | null, payload: Partial<Pillar>) =>
+  id ? dbUpdate("pillars", `id=eq.${id}`, payload) : dbInsert("pillars", payload);
+export const dbDeletePillar = (id: string) => dbDelete("pillars", `id=eq.${id}`);
