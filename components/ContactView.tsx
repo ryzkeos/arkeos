@@ -3,10 +3,11 @@ import "@/styles/contact.css";
 import { useEffect, useRef, useState } from "react";
 import { gsap, prefersReducedMotion } from "@/lib/gsap";
 import { dbSubmitInquiry } from "@/lib/db";
-import { getIdentity } from "@/lib/content";
-import { useSiteSettings, useSiteSettingsLoaded } from "./SiteSettings";
+import { useCopy } from "@/lib/use_copy";
+import { useSiteSettingsLoaded } from "./SiteSettings";
 import { useArkeosAnimations } from "@/hooks/useArkeosAnimations";
-import PageHero from "./PageHero";
+import HeroLayout from "./hero/HeroLayout";
+import Btn from "./Btn";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -14,11 +15,34 @@ type Form = { name: string; email: string; project_type: string; budget: string;
 const EMPTY: Form = { name: "", email: "", project_type: "", budget: "", timeline: "", message: "" };
 const CLEAN = (o: Record<string, string>) => Object.fromEntries(Object.entries(o).map(([k, x]) => [k, x.trim()]));
 
+type SelectProps = {
+  id: string;
+  name: string;
+  label: string;
+  placeholder: string;
+  options: string[];
+  value: string;
+  full?: boolean;
+  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+};
+
+function SelectField({ id, name, label, placeholder, options, value, full, onChange }: SelectProps) {
+  return (
+    <div className={`form-field${full ? " form-full" : ""}`}>
+      <label htmlFor={id}>{label}</label>
+      <select id={id} name={name} required aria-required="true" value={value} onChange={onChange}>
+        <option value="" disabled>{placeholder}</option>
+        {options.map((o) => <option key={o} value={o}>{o}</option>)}
+      </select>
+    </div>
+  );
+}
+
 export default function ContactView() {
-  const settings = useSiteSettings();
+  const copy = useCopy("contact");
+  const { brand } = useCopy("shared");
   const loaded = useSiteSettingsLoaded();
-  const identity = getIdentity(settings);
-  useArkeosAnimations({ pageHero: true, ready: loaded });
+  useArkeosAnimations({ ready: loaded });
 
   const [form, setForm] = useState<Form>(EMPTY);
   const [website, setWebsite] = useState("");
@@ -29,8 +53,10 @@ export default function ContactView() {
   const success = useRef<HTMLDivElement>(null);
   const errBox = useRef<HTMLDivElement>(null);
 
+  const { hero, info, form: f, success: ok, errors } = copy;
+
   const set = (k: keyof Form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
-    setForm((f) => ({ ...f, [k]: e.target.value }));
+    setForm((prev) => ({ ...prev, [k]: e.target.value }));
 
   useEffect(() => {
     if (error && errBox.current && !prefersReducedMotion())
@@ -50,9 +76,8 @@ export default function ContactView() {
 
   const validate = (): string | null => {
     const v = CLEAN(form) as Form;
-    if (!v.name || !v.email || !v.project_type || !v.budget || !v.timeline || !v.message)
-      return "Please fill in all fields before submitting.";
-    if (!EMAIL_RE.test(v.email)) return "Please enter a valid email address.";
+    if (!v.name || !v.email || !v.project_type || !v.budget || !v.timeline || !v.message) return errors.required;
+    if (!EMAIL_RE.test(v.email)) return errors.invalid_email;
     return null;
   };
 
@@ -67,156 +92,127 @@ export default function ContactView() {
       await dbSubmitInquiry({ ...CLEAN(form), website });
       setPhase("leaving");
     } catch (err) {
-      const fallback = identity.email ? ` You can also email ${identity.email}.` : "";
-      const msg = err instanceof TypeError
-        ? `Network error. Please try again.${fallback}`
-        : err instanceof Error && err.message
-          ? err.message
-          : "Something went wrong. Please try again.";
-      setError(msg);
+      setError(err instanceof TypeError ? errors.network : errors.server);
     } finally {
       setSending(false);
     }
   };
 
+  const note = f.note || brand.response_time;
+
   return (
     <main className="pg-contact">
-      <PageHero
-        grouped
-        ariaLabel="Contact page hero"
-        ghost="CONTACT"
-        label="Start a Project"
-        lines={["LET'S", "TALK."]}
-        sub="Fill in the brief below and tell us what you are building."
-      />
+      <HeroLayout variant="page" ariaLabel={hero.lines.join(" ")} copy={hero} />
 
-      <section id="contact" aria-label="Client inquiry form">
-        <div className="contact-layout">
-          <div className="contact-info reveal">
-            <h2 className="contact-info__title">TELL US EVERYTHING.</h2>
-            <p className="contact-info__body">
-              The more context you give us, the better the conversation we can have. Share the scope, budget and timeline.
-            </p>
-            {(identity.email || identity.responseTime) && (
-              <div className="contact-details">
-                {identity.email && (
-                  <div>
-                    <p className="contact-detail__label">Email</p>
-                    <p className="contact-detail__value"><a href={`mailto:${identity.email}`} aria-label={`Send email to ${identity.name}`}>{identity.email}</a></p>
-                  </div>
-                )}
-                {identity.responseTime && (
-                  <div>
-                    <p className="contact-detail__label">Response Time</p>
-                    <p className="contact-detail__value">{identity.responseTime}</p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          <div className="contact-form-wrap reveal">
-            {phase !== "done" && (
-              <div id="inquiry-form-wrap" ref={formWrap}>
-                <form
-                  className="contact-form"
-                  id="inquiry-form"
-                  aria-label="Project inquiry form"
-                  noValidate
-                  onSubmit={(e) => { e.preventDefault(); submit(); }}
-                >
-                  <div className="form-row">
-                    <div className="form-field">
-                      <label htmlFor="field-name">Your Name</label>
-                      <input type="text" id="field-name" name="name" placeholder="Full name" autoComplete="name" required aria-required="true" value={form.name} onChange={set("name")} />
-                    </div>
-                    <div className="form-field">
-                      <label htmlFor="field-email">Email Address</label>
-                      <input type="email" id="field-email" name="email" placeholder="your@email.com" autoComplete="email" required aria-required="true" value={form.email} onChange={set("email")} />
-                    </div>
-                  </div>
-
-                  <div className="form-row">
-                    <div className="form-field">
-                      <label htmlFor="field-type">Project Type</label>
-                      <select id="field-type" name="project_type" required aria-required="true" value={form.project_type} onChange={set("project_type")}>
-                        <option value="" disabled>Select a type</option>
-                        <option value="Web">Web Development</option>
-                        <option value="Motion">Motion Design</option>
-                        <option value="Interactive">Interactive Experience</option>
-                        <option value="Branding">Branding System</option>
-                        <option value="Other">Other</option>
-                      </select>
-                    </div>
-                    <div className="form-field">
-                      <label htmlFor="field-budget">Budget Range</label>
-                      <select id="field-budget" name="budget" required aria-required="true" value={form.budget} onChange={set("budget")}>
-                        <option value="" disabled>Select a range</option>
-                        <option value="Under $1k">Under $1,000</option>
-                        <option value="$1k–$5k">$1,000 – $5,000</option>
-                        <option value="$5k–$10k">$5,000 – $10,000</option>
-                        <option value="$10k+">$10,000+</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="form-row">
-                    <div className="form-field form-full">
-                      <label htmlFor="field-timeline">Timeline</label>
-                      <select id="field-timeline" name="timeline" required aria-required="true" value={form.timeline} onChange={set("timeline")}>
-                        <option value="" disabled>When do you need this?</option>
-                        <option value="ASAP">ASAP</option>
-                        <option value="1 Month">Within 1 Month</option>
-                        <option value="3 Months">Within 3 Months</option>
-                        <option value="Flexible">Flexible</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="form-row">
-                    <div className="form-field form-full">
-                      <label htmlFor="field-message">Tell Us About the Project</label>
-                      <textarea id="field-message" name="message" required aria-required="true" value={form.message} onChange={set("message")}
-                        placeholder="What are you building? What's the goal? What's broken about the current state of things? Give us everything." />
-                    </div>
-                  </div>
-
-                  <div className="hp-field" aria-hidden="true">
-                    <input type="text" name="website" tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} />
-                  </div>
-
-                  <div className="form-error" id="form-error" ref={errBox} role="alert" aria-live="polite" style={{ display: error ? "block" : "none" }}>
-                    <p id="form-error-text">{error}</p>
-                  </div>
-
-                  <div className="form-submit">
-                    <button type="submit" className="btn btn-submit" id="btn-submit" aria-label="Submit project inquiry" aria-disabled={sending || undefined}>
-                      <span className="btn-label" id="btn-label">{sending ? "Sending…" : "Send Inquiry"}</span>
-                      <span className="btn-arrow" aria-hidden="true" />
-                    </button>
-                    {identity.responseTime && <p className="form-note">{identity.responseTime}</p>}
-                  </div>
-                </form>
-              </div>
-            )}
-
-            <div
-              className="form-success"
-              id="form-success"
-              ref={success}
-              role="status"
-              aria-live="polite"
-              aria-label="Form submitted successfully"
-              style={{ display: phase === "done" ? "flex" : "none" }}
-            >
-              <div className="form-success__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg></div>
-              <h2 className="form-success__title">INQUIRY RECEIVED.</h2>
-              <p className="form-success__body">
-                Thank you. We have received your brief and will be in touch.{identity.responseTime ? ` ${identity.responseTime}` : ""}
-              </p>
+      <section id="contact" aria-label={info.title} aria-busy={!loaded}>
+        {!loaded ? (
+          <div className="contact-layout contact-skeleton" aria-hidden="true">
+            <div className="contact-skeleton__info">
+              <span className="sk sk--title" />
+              <span className="sk sk--line" />
+              <span className="sk sk--line" />
+            </div>
+            <div className="contact-skeleton__form">
+              {[0, 1, 2, 3, 4].map((i) => <span key={i} className="sk sk--field" />)}
+              <span className="sk sk--area" />
             </div>
           </div>
-        </div>
+        ) : (
+          <div className="contact-layout">
+            <div className="contact-info reveal">
+              <h2 className="contact-info__title">{info.title}</h2>
+              <p className="contact-info__body">{info.body}</p>
+              {(brand.email || brand.response_time) && (
+                <div className="contact-details">
+                  {brand.email && (
+                    <div>
+                      <p className="contact-detail__label">{info.email_label}</p>
+                      <p className="contact-detail__value"><a href={`mailto:${brand.email}`} aria-label={`${info.email_label}: ${brand.email}`}>{brand.email}</a></p>
+                    </div>
+                  )}
+                  {brand.response_time && (
+                    <div>
+                      <p className="contact-detail__label">{info.response_label}</p>
+                      <p className="contact-detail__value">{brand.response_time}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="contact-form-wrap reveal">
+              {phase !== "done" && (
+                <div id="inquiry-form-wrap" ref={formWrap}>
+                  <form
+                    className="contact-form"
+                    id="inquiry-form"
+                    aria-label={hero.eyebrow || info.title}
+                    noValidate
+                    onSubmit={(e) => { e.preventDefault(); submit(); }}
+                  >
+                    <div className="form-row">
+                      <div className="form-field">
+                        <label htmlFor="field-name">{f.name_label}</label>
+                        <input type="text" id="field-name" name="name" placeholder={f.name_placeholder} autoComplete="name" required aria-required="true" maxLength={100} value={form.name} onChange={set("name")} />
+                      </div>
+                      <div className="form-field">
+                        <label htmlFor="field-email">{f.email_label}</label>
+                        <input type="email" id="field-email" name="email" placeholder={f.email_placeholder} autoComplete="email" required aria-required="true" maxLength={254} value={form.email} onChange={set("email")} />
+                      </div>
+                    </div>
+
+                    <div className="form-row">
+                      <SelectField id="field-type" name="project_type" label={f.type_label} placeholder={f.type_placeholder} options={f.project_types} value={form.project_type} onChange={set("project_type")} />
+                      <SelectField id="field-budget" name="budget" label={f.budget_label} placeholder={f.budget_placeholder} options={f.budget_ranges} value={form.budget} onChange={set("budget")} />
+                    </div>
+
+                    <div className="form-row">
+                      <SelectField id="field-timeline" name="timeline" label={f.timeline_label} placeholder={f.timeline_placeholder} options={f.timelines} value={form.timeline} onChange={set("timeline")} full />
+                    </div>
+
+                    <div className="form-row">
+                      <div className="form-field form-full">
+                        <label htmlFor="field-message">{f.message_label}</label>
+                        <textarea id="field-message" name="message" required aria-required="true" maxLength={5000} value={form.message} onChange={set("message")} placeholder={f.message_placeholder} />
+                      </div>
+                    </div>
+
+                    <div className="hp-field" aria-hidden="true">
+                      <input type="text" name="website" tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} />
+                    </div>
+
+                    <div className="form-error" id="form-error" ref={errBox} role="alert" aria-live="polite" style={{ display: error ? "block" : "none" }}>
+                      <p id="form-error-text">{error}</p>
+                    </div>
+
+                    <div className="form-submit">
+                      {note && <p className="form-note">{note}</p>}
+                      <button type="submit" className="btn btn-submit" id="btn-submit" aria-disabled={sending || undefined} aria-busy={sending || undefined}>
+                        <span className="btn-label" id="btn-label">{sending ? f.sending_label : f.submit_label}</span>
+                        <span className="btn-arrow" aria-hidden="true" />
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+
+              <div
+                className="form-success"
+                id="form-success"
+                ref={success}
+                role="status"
+                aria-live="polite"
+                aria-label={ok.title}
+                style={{ display: phase === "done" ? "flex" : "none" }}
+              >
+                <div className="form-success__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg></div>
+                <h2 className="form-success__title">{ok.title}</h2>
+                <p className="form-success__body">{ok.body}</p>
+                {ok.back_label && <Btn href="/" label={ok.back_label} className="btn--visible" />}
+              </div>
+            </div>
+          </div>
+        )}
       </section>
     </main>
   );
