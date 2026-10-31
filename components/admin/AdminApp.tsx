@@ -403,7 +403,7 @@ function Projects({ toast, ask }: PanelProps) {
           </div>
           <div className="form-group admin-form-full">
             <label htmlFor="pf-description">Description</label>
-            <textarea id="pf-description" placeholder="One-line project description…" aria-required="true" value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} />
+            <textarea id="pf-description" placeholder="Project description, about 120 to 180 characters…" aria-required="true" value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} />
           </div>
           <div className="form-group admin-form-full">
             <label htmlFor="pf-url">Project Link (optional)</label>
