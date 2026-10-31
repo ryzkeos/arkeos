@@ -7,8 +7,10 @@ export const services_schema: CopyField[] = [
   { path: "hero.ghost", label: "Hero background word", type: "text", max: 30 },
   { path: "capabilities.label", label: "Capabilities label", type: "text", max: 60 },
   { path: "capabilities.lines", label: "Capabilities title lines (one per line)", type: "lines", max: 200 },
+  { path: "capabilities.intro", label: "Capabilities intro text", type: "textarea", max: 500 },
   { path: "process.label", label: "Process label", type: "text", max: 60 },
   { path: "process.lines", label: "Process title lines (one per line)", type: "lines", max: 200 },
+  { path: "process.intro", label: "Process intro text", type: "textarea", max: 500 },
   {
     path: "process_steps",
     label: "Process steps",
