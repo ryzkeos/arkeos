@@ -2,7 +2,7 @@
 import "@/styles/home.css";
 import { useEffect, useRef, useState } from "react";
 import { gsap, prefersReducedMotion, safeUrl } from "@/lib/gsap";
-import { getIdentity, getStats } from "@/lib/content";
+import { getIdentity } from "@/lib/content";
 import { usePillars, useProjects } from "@/lib/useContent";
 import { useArkeosAnimations } from "@/hooks/useArkeosAnimations";
 import { usePreloadProgress } from "@/hooks/usePreloadProgress";
@@ -36,7 +36,6 @@ export default function HomeView() {
   const [introDone, setIntroDone] = useState(!showPreloader);
 
   const identity = getIdentity(settings);
-  const stats = getStats(settings);
   const projects = allProjects ? allProjects.slice(0, 3) : [];
   const pillars = allPillars ?? [];
   const contentReady = settingsLoaded && allProjects !== null && allPillars !== null;
@@ -128,8 +127,6 @@ export default function HomeView() {
       if (sub) tl.to(sub, { opacity: 1, y: 0, duration: 0.75, ease: "power2.out" }, "-=0.7");
       if (btn) tl.to(btn, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }, "-=0.5");
       tl.to(scroll, { opacity: 1, duration: 0.6, ease: "power2.out" }, "-=0.3");
-      const line = $(".hero-scroll__line");
-      if (line) gsap.to(line, { scaleX: 1.5, opacity: 0.4, duration: 1.1, ease: "power2.inOut", repeat: -1, yoyo: true, delay: 2.5 });
     };
 
     const ctx = gsap.context(runHero, root);
@@ -143,7 +140,7 @@ export default function HomeView() {
   const decoSplit = Math.ceil(decoChars.length / 2);
   const decoFirst = decoChars.slice(0, decoSplit).join("");
   const decoSecond = decoChars.slice(decoSplit).join("");
-  const eyebrow = identity.foundedYear ? `${identity.name} — Est.\u2009${identity.foundedYear}` : identity.name;
+  const eyebrow = identity.foundedYear ? `est. ${identity.foundedYear}` : "";
 
   return (
     <main className="pg-home" ref={root}>
@@ -173,7 +170,7 @@ export default function HomeView() {
         <div className="hero-ghost" aria-hidden="true">{identity.name}</div>
 
         <div className="hero-top-left">
-          <p className="hero-eyebrow">{eyebrow}</p>
+          {eyebrow && <p className="hero-eyebrow">{eyebrow}</p>}
           <h1 className="hero-h1" aria-label={heroLines.join(" ")}>
             {heroLines.map((line, i) => (
               <span key={`${i}-${line}`}><em>{line}</em></span>
@@ -192,11 +189,10 @@ export default function HomeView() {
           </div>
         )}
 
-        <div className="hero-bottom-left" aria-hidden="true">
-          <div className="hero-scroll" id="hero-scroll">
-            <span className="hero-scroll__line" />
-            Scroll
-          </div>
+        <div className="hero-chevrons" id="hero-scroll" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M5 8l7 7 7-7" /></svg>
+          <svg viewBox="0 0 24 24"><path d="M5 8l7 7 7-7" /></svg>
+          <svg viewBox="0 0 24 24"><path d="M5 8l7 7 7-7" /></svg>
         </div>
       </section>
 
@@ -252,22 +248,6 @@ export default function HomeView() {
           </div>
           <div className="proj-grid" role="list">
             {projects.map((p, i) => <ProjectCard key={p.id ?? p.title} project={p} index={i} variant="home" />)}
-          </div>
-        </section>
-      )}
-
-      {stats.length > 0 && (
-        <section id="why" className="section" aria-label={`Why ${identity.name}`}>
-          <span className="section-lbl">{`Why ${identity.name}`}</span>
-          <SectionH2 lines={["BUILT", "DIFFERENT."]} />
-          <div className="why-grid" role="list">
-            {stats.map((w) => (
-              <div key={w.label} className="why-item reveal" role="listitem">
-                <div className="why-num" data-counter={w.n} aria-label={String(w.n)}>0</div>
-                <h3 className="why-label">{w.label}</h3>
-                {w.desc && <p className="why-desc">{w.desc}</p>}
-              </div>
-            ))}
           </div>
         </section>
       )}

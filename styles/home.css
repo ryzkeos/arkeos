@@ -76,18 +76,25 @@
 .pg-home .hero-studio span { display:block; overflow:hidden; line-height:1; }
 .pg-home .hero-studio span em { display:block; font-style:normal; transform:translateY(105%); }
 
-.pg-home .hero-bottom-left {
-  position:absolute; bottom:0; left:0; z-index:3;
-  padding:0 3.5rem 3.2rem;
-  display:flex; flex-direction:column; gap:1.4rem;
+.pg-home .hero-chevrons {
+  position:absolute; left:50%; bottom:2.2rem; z-index:3;
+  transform:translateX(-50%);
+  display:flex; flex-direction:column; align-items:center;
+  opacity:0;
 }
-.pg-home .hero-scroll {
-  display:flex; align-items:center; gap:0.8rem;
-  font-family:var(--font-label); font-size:0.58rem;
-  letter-spacing:0.24em; text-transform:uppercase;
-  color:var(--color-muted); opacity:0;
+.pg-home .hero-chevrons svg {
+  width:22px; height:22px; margin-top:-9px;
+  fill:none; stroke:var(--color-text); stroke-width:1.5;
+  stroke-linecap:square; stroke-linejoin:miter;
+  opacity:0.15;
+  animation:chev-fall 1.8s ease-in-out infinite;
 }
-.pg-home .hero-scroll__line { width:28px; height:1px; background:var(--color-muted); }
+.pg-home .hero-chevrons svg:nth-child(2) { animation-delay:0.2s; }
+.pg-home .hero-chevrons svg:nth-child(3) { animation-delay:0.4s; }
+@keyframes chev-fall {
+  0%, 100% { opacity:0.15; transform:translateY(-3px); }
+  50% { opacity:1; transform:translateY(4px); }
+}
 
 .pg-home .btn {
   display:inline-flex; align-items:center; gap:0.85rem;
@@ -147,7 +154,7 @@
     font-size:clamp(1.8rem, 7vw, 3.5rem);
     color:rgba(245,245,245,0.1);
   }
-  .pg-home .hero-bottom-left { padding:0 1.5rem 5rem; }
+  .pg-home .hero-chevrons { bottom:1.4rem; }
 
   .pg-home .section { padding:5rem 1.5rem; }
   .pg-home .proj-grid{ grid-template-columns:1fr; }

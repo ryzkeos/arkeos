@@ -23,9 +23,7 @@ export default function ProjectsView() {
 
       <section id="work" aria-label="All projects">
         <div className="work-grid proj-grid" id="projects-grid" role="list" aria-busy={projects === null}>
-          {projects === null ? null : projects.length === 0 ? (
-            <p className="work-empty">No projects to show yet.</p>
-          ) : (
+          {projects === null ? null : (
             projects.map((p, i) => <ProjectCard key={p.id ?? p.title} project={p} index={i} variant="grid" />)
           )}
         </div>
