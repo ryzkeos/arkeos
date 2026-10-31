@@ -136,10 +136,6 @@ export default function HomeView() {
 
   const videoSrc = safeUrl(settings.hero_video);
   const heroLines = settingsLoaded ? (identity.heroHeadline.length ? identity.heroHeadline : [identity.name]) : [];
-  const decoChars = Array.from(identity.heroDeco);
-  const decoSplit = Math.ceil(decoChars.length / 2);
-  const decoFirst = decoChars.slice(0, decoSplit).join("");
-  const decoSecond = decoChars.slice(decoSplit).join("");
   const eyebrow = identity.foundedYear ? `est. ${identity.foundedYear}` : "";
 
   return (
@@ -173,7 +169,7 @@ export default function HomeView() {
           {eyebrow && <p className="hero-eyebrow">{eyebrow}</p>}
           <h1 className="hero-h1" aria-label={heroLines.join(" ")}>
             {heroLines.map((line, i) => (
-              <span key={`${i}-${line}`}><em>{line}</em></span>
+              <span key={`${i}-${line}`}><em><span className="hero-word">{line}</span></em></span>
             ))}
           </h1>
           {identity.tagline && <p className="hero-sub">{identity.tagline}</p>}
@@ -183,8 +179,7 @@ export default function HomeView() {
         {identity.heroDeco && (
           <div className="hero-bottom-right" aria-hidden="true">
             <div className="hero-studio">
-              <span><em>{decoFirst}</em></span>
-              {decoSecond && <span><em>{decoSecond}</em></span>}
+              <span><em><span className="hero-studio-word">{identity.heroDeco}</span></em></span>
             </div>
           </div>
         )}
