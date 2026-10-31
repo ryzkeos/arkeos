@@ -95,6 +95,14 @@
 
 .pg-services .svc-row:hover .svc-ico { border-color: var(--color-accent); }
 
+.pg-services .svc-ico { overflow: hidden; }
+
+.pg-services .svc-ico img {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
 .pg-services .svc-ico svg {
   width: 20px;
   height: 20px;
