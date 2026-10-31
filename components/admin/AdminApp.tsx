@@ -6,7 +6,7 @@ import type { CinemaType, Inquiry, Project, Service, SiteSettings } from "@/lib/
 import { applyAccent } from "@/components/SiteSettings";
 import IdentityPanel from "./IdentityPanel";
 import WebsiteInfoPanel from "./WebsiteInfoPanel";
-import { CINEMA_TYPES, MEDIA_BUCKET, MediaField, PanelHead, isHttpUrl, msg, type PanelProps } from "./shared";
+import { CINEMA_TYPES, Checkbox, FilePicker, IconBtn, MEDIA_BUCKET, MediaField, PanelHead, isHttpUrl, msg, type PanelProps } from "./shared";
 
 type Section = "inquiries" | "projects" | "services" | "availability" | "settings" | "website_info" | "identity" | "fonts" | "analytics";
 
@@ -294,17 +294,17 @@ function Inquiries({ toast, ask, onUnread }: PanelProps & { onUnread: (n: number
             ) : (
               items.map((i) => (
                 <tr key={i.id} className={i.status === "unread" ? "row-unread" : ""}>
-                  <td>{i.name || "—"}</td>
-                  <td>{i.email || "—"}</td>
-                  <td>{i.project_type || "—"}</td>
-                  <td>{i.budget || "—"}</td>
-                  <td>{i.timeline || "—"}</td>
+                  <td className="cell-trunc" title={i.name || undefined}>{i.name || "—"}</td>
+                  <td className="cell-trunc" title={i.email || undefined}>{i.email || "—"}</td>
+                  <td className="cell-trunc" title={i.project_type || undefined}>{i.project_type || "—"}</td>
+                  <td className="cell-trunc" title={i.budget || undefined}>{i.budget || "—"}</td>
+                  <td className="cell-trunc" title={i.timeline || undefined}>{i.timeline || "—"}</td>
                   <td>{i.created_at ? new Date(i.created_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "—"}</td>
                   <td><span className={`status-badge status-${i.status || "unread"}`}>{i.status || "unread"}</span></td>
                   <td className="admin-actions">
-                    <button className="admin-btn admin-btn--sm" onClick={() => setOpenId(i.id)} aria-label={`View inquiry from ${i.name || "unknown sender"}`}>View</button>
-                    <button className="admin-btn admin-btn--sm" onClick={() => mark(i.id)} aria-label="Mark as read">Read</button>
-                    <button className="admin-btn admin-btn--sm admin-btn--danger" onClick={() => del(i.id)} aria-label="Delete inquiry">Delete</button>
+                    <IconBtn icon="view" label={`View inquiry from ${i.name || "unknown sender"}`} onClick={() => setOpenId(i.id)} />
+                    <IconBtn icon="mail_open" label="Mark as read" onClick={() => mark(i.id)} />
+                    <IconBtn icon="trash" label="Delete inquiry" danger onClick={() => del(i.id)} />
                   </td>
                 </tr>
               ))
@@ -413,14 +413,13 @@ function Projects({ toast, ask }: PanelProps) {
             <label htmlFor="pf-color">Accent Color</label>
             <input type="color" id="pf-color" aria-label="Project card accent color" value={f.color} onChange={(e) => setF({ ...f, color: e.target.value })} />
           </div>
-          <div className="form-group checkbox-row">
-            <input type="checkbox" id="pf-visible" aria-label="Project visibility" checked={f.visible} onChange={(e) => setF({ ...f, visible: e.target.checked })} />
-            <label htmlFor="pf-visible">Visible on site</label>
+          <div className="form-group">
+            <Checkbox id="pf-visible" label="Visible on site" checked={f.visible} onChange={(v) => setF({ ...f, visible: v })} />
           </div>
           <div className="form-group admin-form-full">
-            <label htmlFor="pf-media-file">Media Upload (video, image or .html)</label>
+            <span className="admin-field-label">Media Upload (video, image or .html)</span>
             <div className="form-group-actions">
-              <input type="file" id="pf-media-file" ref={file} accept="video/*,image/*,.html,.htm" aria-label="Upload project media" />
+              <FilePicker id="pf-media-file" label="Choose project media file" accept="video/*,image/*,.html,.htm" inputRef={file} busy={mediaStatus === "Uploading…"} status={mediaStatus.toLowerCase().includes("fail") ? "error" : undefined} status_text={mediaStatus.toLowerCase().includes("fail") ? mediaStatus : undefined} />
               <button className="admin-btn admin-btn--accent" onClick={upload} aria-label="Upload media file">Upload</button>
               <span className="field-status status--off" aria-live="polite">{mediaStatus}</span>
             </div>
@@ -445,9 +444,9 @@ function Projects({ toast, ask }: PanelProps) {
               <span className={`media-badge media-badge--${b.cls}`}>{b.label}</span>
               <span className={`vis-badge ${vis ? "vis--on" : "vis--off"}`}>{vis ? "Visible" : "Hidden"}</span>
               <div className="admin-actions">
-                <button className="admin-btn admin-btn--sm" onClick={() => open(i)} aria-label="Edit">Edit</button>
-                <button className="admin-btn admin-btn--sm" onClick={() => toggle(p)} aria-label="Toggle visibility">{vis ? "Hide" : "Show"}</button>
-                <button className="admin-btn admin-btn--sm admin-btn--danger" onClick={() => del(p.id!)} aria-label="Delete">Delete</button>
+                <IconBtn icon="edit" label={`Edit ${p.title}`} onClick={() => open(i)} />
+                <IconBtn icon={vis ? "eye_off" : "eye"} label={vis ? `Hide ${p.title}` : `Show ${p.title}`} onClick={() => toggle(p)} />
+                <IconBtn icon="trash" label={`Delete ${p.title}`} danger onClick={() => del(p.id!)} />
               </div>
             </div>
           );
@@ -520,9 +519,8 @@ function Services({ toast, ask }: PanelProps) {
             <label htmlFor="sf-price">Price (optional)</label>
             <input type="text" id="sf-price" placeholder="Price text" value={f.price} onChange={(e) => setF({ ...f, price: e.target.value })} />
           </div>
-          <div className="form-group checkbox-row">
-            <input type="checkbox" id="sf-visible" aria-label="Service visibility" checked={f.visible} onChange={(e) => setF({ ...f, visible: e.target.checked })} />
-            <label htmlFor="sf-visible">Visible on site</label>
+          <div className="form-group">
+            <Checkbox id="sf-visible" label="Visible on site" checked={f.visible} onChange={(v) => setF({ ...f, visible: v })} />
           </div>
           <MediaField label="Icon Image" accept="image/*" folder="services" value={f.icon_url} onChange={(v) => setF((x) => ({ ...x, icon_url: v }))} toast={toast} placeholder="or paste icon URL" />
           <MediaField label="Cinema Preview" accept="video/*,image/*" folder="services" value={f.cinema_url} onChange={(v) => setF((x) => ({ ...x, cinema_url: v }))} toast={toast} placeholder="or paste cinema URL" />
@@ -549,9 +547,9 @@ function Services({ toast, ask }: PanelProps) {
               <div className="project-row__info"><strong>{s.title || "Untitled"}</strong><span className="project-row__tags">{s.description ? s.description.slice(0, 60) + "…" : ""}</span></div>
               <span className={`vis-badge ${vis ? "vis--on" : "vis--off"}`}>{vis ? "Visible" : "Hidden"}</span>
               <div className="admin-actions">
-                <button className="admin-btn admin-btn--sm" onClick={() => open(i)} aria-label="Edit">Edit</button>
-                <button className="admin-btn admin-btn--sm" onClick={() => toggle(s)} aria-label="Toggle visibility">{vis ? "Hide" : "Show"}</button>
-                <button className="admin-btn admin-btn--sm admin-btn--danger" onClick={() => del(s.id)} aria-label="Delete">Delete</button>
+                <IconBtn icon="edit" label={`Edit ${s.title}`} onClick={() => open(i)} />
+                <IconBtn icon={vis ? "eye_off" : "eye"} label={vis ? `Hide ${s.title}` : `Show ${s.title}`} onClick={() => toggle(s)} />
+                <IconBtn icon="trash" label={`Delete ${s.title}`} danger onClick={() => del(s.id)} />
               </div>
             </div>
           );
@@ -689,7 +687,7 @@ function Settings({ toast, ask }: PanelProps) {
       <div className="settings-section">
         <p className="settings-section-title">Hero Background Video</p>
         <div className="admin-actions" style={{ gap: "0.8rem", alignItems: "center", flexWrap: "wrap" }}>
-          <input type="file" id="set-video-file" ref={file} accept="video/mp4,video/webm" aria-label="Choose hero video file" />
+          <FilePicker id="set-video-file" label="Choose hero video file" accept="video/mp4,video/webm" inputRef={file} busy={videoStatus === "Uploading…"} status={videoStatus === "Upload failed." ? "error" : undefined} />
           <button className="admin-btn admin-btn--accent" onClick={upload} aria-label="Upload hero video">Upload</button>
           <button className="admin-btn admin-btn--danger" onClick={clear} aria-label="Remove hero video">Clear Video</button>
           <span className={`field-status ${on ? "status--on" : "status--off"}`} aria-live="polite">
@@ -780,7 +778,7 @@ function Fonts({ toast }: Pick<PanelProps, "toast">) {
             </div>
             <span className={`font-status ${isOn ? "font-status--on" : "font-status--off"}`}>{isOn ? "Active" : "bundled font"}</span>
             <div className="font-upload-wrap">
-              <input type="file" accept=".woff2" aria-label={`Upload ${slot.name} font`} ref={(el) => { files.current[slot.key] = el; }} />
+              <FilePicker id={`font-file-${slot.key}`} label={`Choose ${slot.name} font file`} accept=".woff2" inputRef={(el) => { files.current[slot.key] = el; }} busy={busy === slot.key} />
               <button className="admin-btn admin-btn--sm admin-btn--accent" onClick={() => upload(slot.key)} disabled={busy === slot.key} aria-label={`Upload ${slot.label} font`}>{busy === slot.key ? "Uploading…" : "Upload"}</button>
             </div>
           </div>
