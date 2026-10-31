@@ -1,12 +1,12 @@
 "use client";
 import { useEffect, useState } from "react";
 import { safeUrl } from "@/lib/gsap";
-import type { Pillar } from "@/lib/types";
+import type { Service } from "@/lib/types";
 import { CinemaBg } from "./CinemaMedia";
 
-type Props = { pillar: Pillar; icon: React.ReactNode };
+type Props = { service: Service; icon: React.ReactNode };
 
-export default function PillarCard({ pillar, icon }: Props) {
+export default function ServiceCard({ service, icon }: Props) {
   const [hover, setHover] = useState(false);
   const [touch, setTouch] = useState(false);
 
@@ -14,7 +14,7 @@ export default function PillarCard({ pillar, icon }: Props) {
     setTouch(window.matchMedia("(hover: none)").matches);
   }, []);
 
-  const iconSrc = pillar.icon_url ? safeUrl(pillar.icon_url) : null;
+  const iconSrc = service.icon_url ? safeUrl(service.icon_url) : null;
   const active = hover || touch;
 
   return (
@@ -25,11 +25,11 @@ export default function PillarCard({ pillar, icon }: Props) {
       onMouseLeave={() => setHover(false)}
       onFocus={() => setHover(true)}
       onBlur={() => setHover(false)}
-      tabIndex={pillar.cinema_url ? 0 : undefined}
+      tabIndex={service.cinema_url ? 0 : undefined}
     >
-      {pillar.cinema_url && (
+      {service.cinema_url && (
         <div className="pillar-cinema-bg" aria-hidden="true">
-          <CinemaBg url={pillar.cinema_url} type={pillar.cinema_type} active={active} />
+          <CinemaBg url={service.cinema_url} type={service.cinema_type ?? "video"} active={active} />
         </div>
       )}
       <div className="pillar-body">
@@ -41,8 +41,8 @@ export default function PillarCard({ pillar, icon }: Props) {
             <svg viewBox="0 0 24 24">{icon}</svg>
           )}
         </div>
-        <h3 className="pillar-title">{pillar.title}</h3>
-        {pillar.description && <p className="pillar-desc">{pillar.description}</p>}
+        <h3 className="pillar-title">{service.title}</h3>
+        {service.description && <p className="pillar-desc">{service.description}</p>}
       </div>
     </article>
   );
