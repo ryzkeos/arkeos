@@ -5,6 +5,7 @@ import { fill_vars, legacy_stats } from "@/lib/copy";
 import { useProjects, useServices } from "@/lib/useContent";
 import { useCopy, useCopyVars } from "@/lib/use_copy";
 import { useArkeosAnimations } from "@/hooks/useArkeosAnimations";
+import { use_stat_values } from "@/hooks/use_stat_values";
 import { useIntroDone } from "@/lib/preloader";
 import type { StatItem } from "@/lib/types";
 import { useSiteSettings, useSiteSettingsLoaded } from "./SiteSettings";
@@ -16,11 +17,6 @@ import SectionHeader from "./SectionHeader";
 
 const MAX_CARDS = 24;
 const clamp_count = (n: number) => Math.min(MAX_CARDS, Math.max(0, Math.floor(n)));
-
-const whole_number = (v?: string): number | null => {
-  const n = Number.parseInt((v ?? "").trim(), 10);
-  return Number.isFinite(n) && n >= 0 ? n : null;
-};
 
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 
@@ -57,8 +53,7 @@ export default function HomeView() {
     ghost: copy.hero.ghost || brand.name,
   };
 
-  const years = Math.max(1, new Date().getFullYear() - brand.founded_year + 1);
-  const auto_n = [whole_number(settings.projects_count) ?? allProjects?.length ?? 0, whole_number(settings.years_active) ?? years, whole_number(settings.clients_count) ?? 0];
+  const auto_n = use_stat_values();
   const own_stats = !same(copy.why_stats, DEFAULTS.home.why_stats);
   const legacy = legacy_stats(settings);
   const stats: StatItem[] =
