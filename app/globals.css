@@ -149,6 +149,8 @@ img, video {
   pointer-events: none;
 }
 
+html[data-intro-seen] #preloader { display: none !important; }
+
 #preloader {
   --pre-pad: clamp(1.5rem, 4vw, 3.5rem);
   position: fixed;
