@@ -21,6 +21,8 @@ export type SharedCopy = {
     deco_b_url: string;
     deco_c_type: string;
     deco_c_url: string;
+    deco_d_type: string;
+    deco_d_url: string;
   };
   buttons: {
     view_all_projects: string;
