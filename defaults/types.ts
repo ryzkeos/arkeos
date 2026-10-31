@@ -21,6 +21,7 @@ export type SharedCopy = {
   };
   preloader: { statuses: string[] };
   hero: { deco: string; hover_word: string; scroll_label: string };
+  section_media: { type: string; url: string };
 };
 
 export type HomeCopy = {
