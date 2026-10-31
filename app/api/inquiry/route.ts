@@ -33,7 +33,9 @@ function limited(ip: string): boolean {
 
 const fail = (error: string, status: number) => NextResponse.json({ error }, { status });
 
-const clean = (value: unknown) => (typeof value === "string" ? value.trim() : "");
+const CONTROL_CHARS = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g;
+
+const clean = (value: unknown) => (typeof value === "string" ? value.replace(CONTROL_CHARS, "").trim() : "");
 
 export async function POST(req: Request) {
   let raw = "";
