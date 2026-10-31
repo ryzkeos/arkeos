@@ -56,6 +56,10 @@ styles/          page styles, scoped per page
 public/assets/   images and fonts
 ```
 
+### Media
+
+Project cards play video and render `.html` media (sandboxed) automatically, and show images as is. Service cards show their image all the time and play video or render html on hover. Media is stored in the storage bucket, not in the repo. Static files that ship with the site (fonts, og image) live in `public/assets/`.
+
 ### Content
 
 The database is the source of truth. The `data/` folder is an optional static fallback and ships empty. When the database has content it wins, otherwise `data/` is used. If both are empty the section is hidden or shows a short empty state.

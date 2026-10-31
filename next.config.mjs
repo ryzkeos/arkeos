@@ -19,6 +19,7 @@ const csp = [
   "style-src 'self' 'unsafe-inline'",
   join("img-src 'self' data: blob:", storageOrigin),
   join("media-src 'self' blob:", storageOrigin),
+  join("frame-src 'self'", storageOrigin),
   join("font-src 'self' data:", storageOrigin),
   join("connect-src 'self'", apiOrigin, storageOrigin !== apiOrigin && storageOrigin),
   "object-src 'none'",

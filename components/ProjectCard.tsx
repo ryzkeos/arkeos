@@ -3,6 +3,7 @@ import type { Project } from "@/lib/types";
 import { safeUrl } from "@/lib/gsap";
 
 const VIDEO_EXT = ["mp4", "webm", "mov", "ogg"];
+const HTML_EXT = ["html", "htm"];
 const extOf = (m: string) => m.split("?")[0].split(".").pop()?.toLowerCase() ?? "";
 
 type Props = { project: Project; index: number; variant: "home" | "grid" };
@@ -23,10 +24,16 @@ export default function ProjectCard({ project, index, variant }: Props) {
       style={{ "--card-accent": project.color || "var(--color-accent)" } as CSSProperties}
     >
       <div className="p-card__bg" aria-hidden="true">
-        {media &&
-          (VIDEO_EXT.includes(extOf(media))
-            ? <video src={media} autoPlay muted loop playsInline aria-hidden="true" />
-            : <img src={media} alt="" aria-hidden="true" loading="lazy" />)}
+        {media && (
+          VIDEO_EXT.includes(extOf(media)) ? (
+            <video src={media} autoPlay muted loop playsInline aria-hidden="true" />
+          ) : HTML_EXT.includes(extOf(media)) ? (
+            <iframe src={media} title="" tabIndex={-1} sandbox="allow-scripts" loading="lazy" aria-hidden="true" />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={media} alt="" aria-hidden="true" loading="lazy" draggable={false} />
+          )
+        )}
       </div>
       <div className="p-card__veil" aria-hidden="true" />
       <div className="p-card__hover" aria-hidden="true" />
