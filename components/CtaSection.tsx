@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useRef } from "react";
 import { prefersReducedMotion } from "@/lib/gsap";
+import { useCopy } from "@/lib/use_copy";
 import Btn from "./Btn";
-import { useSiteSettings } from "./SiteSettings";
 
 const DECOS = [
   { id: "deco-a", cls: "cta-deco-a", fx: 0.045, fy: 0.04 },
@@ -11,8 +11,8 @@ const DECOS = [
 ];
 
 export default function CtaSection() {
-  const settings = useSiteSettings();
   const refs = useRef<(HTMLDivElement | null)[]>([]);
+  const { cta } = useCopy("shared");
 
   useEffect(() => {
     if (prefersReducedMotion()) return;
@@ -33,13 +33,14 @@ export default function CtaSection() {
   }, []);
 
   return (
-    <section id="cta" aria-label="Start a project">
+    <section id="cta" aria-label={cta.label}>
       {DECOS.map((d, i) => (
         <div key={d.id} id={d.id} ref={(el) => { refs.current[i] = el; }} className={`cta-deco ${d.cls}`} aria-hidden="true" />
       ))}
       <div className="cta-inner reveal">
-        <h2 className="cta-h2">START A PROJECT.</h2>
-        <Btn href="/contact" id="btn-cta" label={settings.cta_text?.trim() || "Get in Touch"} ariaLabel="Go to the contact page" />
+        <span className="cta-lbl">{cta.label}</span>
+        <h2 className="cta-h2">{cta.headline}</h2>
+        <Btn href="/contact" id="btn-cta" label={cta.button} />
       </div>
     </section>
   );
