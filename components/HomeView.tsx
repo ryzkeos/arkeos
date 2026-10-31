@@ -149,9 +149,16 @@ export default function HomeView() {
     <main className="pg-home" ref={root}>
       {showPreloader && (
         <div id="preloader" aria-hidden="true">
-          <div className="pre__brand">{identity.name}</div>
-          <div className="pre__track"><div className="pre__bar" id="pre-bar" /></div>
-          <div className="pre__meta">
+          <span className="pre__corner pre__corner--tl" />
+          <span className="pre__corner pre__corner--tr" />
+          <span className="pre__corner pre__corner--bl" />
+          <span className="pre__corner pre__corner--br" />
+          <div className="pre__glow" />
+          <div className="pre__center">
+            <div className="pre__brand">{identity.name}</div>
+            <div className="pre__track"><div className="pre__bar" id="pre-bar" /></div>
+          </div>
+          <div className="pre__foot">
             <span className="pre__status" id="pre-status">{STATUSES[0]}</span>
             <span className="pre__pct" id="pre-pct">0%</span>
           </div>
