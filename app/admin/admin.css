@@ -247,6 +247,8 @@ a { color: inherit; text-decoration: none; }
 .sidebar-footer button:hover { color: var(--color-text); }
 
 .admin-main {
+  flex: 1 1 auto;
+  min-width: 0;
   margin-left: 230px;
   height: 100vh;
   overflow-y: auto;
