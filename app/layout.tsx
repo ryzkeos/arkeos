@@ -1,12 +1,24 @@
 import type { Metadata, Viewport } from "next";
 
+const DEFAULT_SITE_URL = "http://localhost:3000";
+
+function siteUrl(): URL {
+  const raw = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  try {
+    return new URL(raw || DEFAULT_SITE_URL);
+  } catch {
+    return new URL(DEFAULT_SITE_URL);
+  }
+}
+
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
-  title: "ARKEOS — Premium Creative Web & Motion Studio",
-  description:
-    "Arkeos is a premium creative web and motion studio. We craft digital experiences that demand attention and refuse to be forgotten.",
+  metadataBase: siteUrl(),
+  title: "ARKEOS",
+  description: "ARKEOS official website.",
   openGraph: {
     type: "website",
+    siteName: "ARKEOS",
+    title: "ARKEOS",
     images: ["/assets/img/og.webp"],
   },
   twitter: { card: "summary_large_image" },
@@ -14,19 +26,21 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = { width: "device-width", initialScale: 1 };
 
+const NOSCRIPT_CSS =
+  "#preloader,#page-overlay{display:none!important}" +
+  ".reveal,.btn,.section-lbl,.cta-lbl,.page-hero__sub,#mobile-nav a{opacity:1!important;transform:none!important}" +
+  ".section-h2 span em{transform:none!important}" +
+  "*,*::before,*::after{cursor:auto!important}";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-        <link
-          href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap"
-          rel="stylesheet"
-        />
-      </head>
-      <body>{children}</body>
+      <body>
+        <noscript>
+          <style>{NOSCRIPT_CSS}</style>
+        </noscript>
+        {children}
+      </body>
     </html>
   );
 }

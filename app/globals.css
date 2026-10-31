@@ -1,12 +1,35 @@
-/* ============================================================
-   ARKEOS — SHARED STYLESHEET
-   All design tokens, resets, and shared components.
-   Page-specific rules live in their respective HTML <style> blocks.
-   ============================================================ */
+@font-face {
+  font-family: 'Zentry';
+  src: url('/assets/fonts/zentry-regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
 
-/* ============================================================
-   DESIGN TOKENS
-   ============================================================ */
+@font-face {
+  font-family: 'Robert';
+  src: url('/assets/fonts/robert-regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Robert';
+  src: url('/assets/fonts/robert-medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'General Sans';
+  src: url('/assets/fonts/general.woff2') format('woff2');
+  font-weight: 400 500;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --color-bg:      #000000;
   --color-text:    #F5F5F5;
@@ -15,9 +38,9 @@
   --color-border:  rgba(245,245,245,0.07);
   --color-surface: rgba(245,245,245,0.03);
 
-  --font-display: 'Bebas Neue', sans-serif;
-  --font-ui:      'DM Sans', sans-serif;
-  --font-label:   'DM Sans', sans-serif;
+  --font-display: 'Zentry', sans-serif;
+  --font-ui:      'Robert', sans-serif;
+  --font-label:   'General Sans', sans-serif;
 
   --ease-out:   cubic-bezier(0.16, 1, 0.3, 1);
   --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
@@ -26,9 +49,6 @@
   --dur-micro: 0.4s;
 }
 
-/* ============================================================
-   RESET + BASE
-   ============================================================ */
 *, *::before, *::after {
   margin: 0;
   padding: 0;
@@ -50,7 +70,6 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Noise grain — baked SVG, always present */
 body::after {
   content: '';
   position: fixed;
@@ -75,9 +94,6 @@ img, video {
   max-width: 100%;
 }
 
-/* ============================================================
-   CUSTOM CURSOR
-   ============================================================ */
 #c-dot {
   position: fixed;
   width: 7px;
@@ -113,9 +129,6 @@ img, video {
 #c-dot.big  { width: 38px; height: 38px; background: rgba(245,245,245,0.15); }
 #c-ring.big { width: 58px; height: 58px; border-color: var(--color-accent); }
 
-/* ============================================================
-   PAGE TRANSITION OVERLAY
-   ============================================================ */
 #page-overlay {
   position: fixed;
   inset: 0;
@@ -125,9 +138,6 @@ img, video {
   pointer-events: none;
 }
 
-/* ============================================================
-   PRELOADER
-   ============================================================ */
 #preloader {
   position: fixed;
   inset: 0;
@@ -186,9 +196,6 @@ img, video {
   color: var(--color-accent);
 }
 
-/* ============================================================
-   HEADER
-   ============================================================ */
 #header {
   position: fixed;
   inset-inline: 0;
@@ -284,9 +291,6 @@ img, video {
   50%       { opacity: 0.45; transform: scale(0.75); }
 }
 
-/* ============================================================
-   BUTTON
-   ============================================================ */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -343,15 +347,11 @@ img, video {
 
 .btn:hover .btn-arrow { width: 20px; color: #000; }
 
-/* Variant: no initial opacity:0 (used in static contexts like cards) */
 .btn--visible {
   opacity: 1;
   transform: none;
 }
 
-/* ============================================================
-   SECTIONS — SHARED
-   ============================================================ */
 .section {
   padding: 9rem 3.5rem;
 }
@@ -390,9 +390,6 @@ img, video {
   transform: translateY(28px);
 }
 
-/* ============================================================
-   TAGS
-   ============================================================ */
 .tag {
   font-family: var(--font-label);
   font-size: 0.58rem;
@@ -403,9 +400,6 @@ img, video {
   color: var(--color-muted);
 }
 
-/* ============================================================
-   PROJECT CARD (shared between index + projects page)
-   ============================================================ */
 .p-card {
   position: relative;
   aspect-ratio: 3/4;
@@ -435,7 +429,6 @@ img, video {
   opacity: 0.55;
 }
 
-/* Decorative geometry — pure CSS, pure black aesthetic */
 .p-card__bg::before,
 .p-card__bg::after {
   content: '';
@@ -532,7 +525,6 @@ img, video {
   transform: translateY(0);
 }
 
-/* Media status badge */
 .p-card__media-badge {
   position: absolute;
   top: 1.2rem;
@@ -553,9 +545,6 @@ img, video {
 .p-card__media-badge.badge--image  { color: #7df4ff; border-color: rgba(125,244,255,0.3); }
 .p-card__media-badge.badge--black  { color: var(--color-muted); }
 
-/* ============================================================
-   CTA BAND (shared)
-   ============================================================ */
 #cta {
   border-top: 1px solid var(--color-border);
   position: relative;
@@ -612,9 +601,6 @@ img, video {
   max-width: 960px;
 }
 
-/* ============================================================
-   FOOTER
-   ============================================================ */
 footer {
   border-top: 1px solid var(--color-border);
   padding: 2.4rem 3.5rem;
@@ -651,9 +637,6 @@ footer {
   color: var(--color-text);
 }
 
-/* ============================================================
-   RESPONSIVE — SHARED
-   ============================================================ */
 @media (max-width: 768px) {
   #header {
     padding: 1.2rem 1.5rem;
@@ -679,11 +662,6 @@ footer {
   #cta { padding: 6rem 1.5rem; }
 }
 
-/* ============================================================
-   MOBILE NAV — shared across all inner pages
-   ============================================================ */
-
-/* Hamburger button */
 .hdr-menu-btn {
   display: none;
   flex-direction: column;
@@ -705,9 +683,8 @@ footer {
 .hdr-menu-btn.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
 .hdr-menu-btn.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 
-/* Mobile nav drawer */
 #mobile-nav {
-  display: none; /* JS sets to flex on init */
+  display: none; 
   position: fixed;
   inset: 0;
   z-index: 550;
@@ -757,45 +734,36 @@ footer {
   animation: blink 2.2s ease-in-out infinite;
 }
 
-/* ============================================================
-   TOUCH DEVICE OVERRIDES
-   ============================================================ */
 @media (pointer: coarse) {
-  /* No custom cursor */
+  
   body { cursor: auto; }
   #c-dot, #c-ring { display: none; }
 
-  /* Buttons always visible — no hover-to-reveal */
+  
   .btn { opacity: 1; transform: none; cursor: pointer; }
 
-  /* Form inputs — cursor auto, no custom cursor */
+  
   .form-field input,
   .form-field select,
   .form-field textarea,
   .btn-submit { cursor: pointer; }
 
-  /* Team cards */
+  
   .team-card { cursor: auto; }
 
-  /* Pillar hover bg — show on touch tap */
+  
   .pillar { cursor: pointer; }
 }
 
-/* ============================================================
-   iOS SAFARI — prevent auto-zoom on input focus (needs ≥16px)
-   ============================================================ */
 @media (max-width: 768px) {
   .form-field input,
   .form-field select,
   .form-field textarea {
-    font-size: 16px; /* iOS Safari zooms if < 16px */
+    font-size: 16px; 
     cursor: auto;
   }
 }
 
-/* ============================================================
-   480px — small phones (iPhone SE, Galaxy A series etc.)
-   ============================================================ */
 @media (max-width: 480px) {
   #header { padding: 1rem 1.2rem; }
 
@@ -803,34 +771,43 @@ footer {
 
   .section { padding: 4rem 1.2rem; }
 
-  /* CTA band */
+  
   #cta { padding: 5rem 1.2rem; }
   .cta-h2 { font-size: clamp(2rem, 10vw, 3.5rem); }
 
-  /* Footer */
+  
   footer { padding: 2rem 1.2rem; }
 
-  /* Project cards — full width, less tall */
+  
   .p-card { aspect-ratio: 4/5; }
   .p-card__name { font-size: clamp(1.2rem, 5vw, 1.6rem); }
 
-  /* Section headings */
+  
   .section-h2 { font-size: clamp(2.5rem, 10vw, 5rem); }
 }
 
-/* ============================================================
-   SHOW HAMBURGER ON MOBILE
-   ============================================================ */
 @media (max-width: 768px) {
   .hdr-menu-btn { display: flex; }
 }
 
-/* ============================================================
-   REDUCED MOTION
-   ============================================================ */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+@media (scripting: none) {
+  #preloader,
+  #page-overlay { display: none !important; }
+  .reveal,
+  .btn,
+  .section-lbl,
+  .cta-lbl,
+  .page-hero__sub { opacity: 1 !important; transform: none !important; }
+  .section-h2 span em { transform: none !important; }
+  #mobile-nav a { opacity: 1 !important; transform: none !important; }
+  *,
+  *::before,
+  *::after { cursor: auto !important; }
 }
