@@ -13,6 +13,8 @@ import type {
 } from "./types";
 
 const DEFAULT_NAME = "ARKEOS";
+const DEFAULT_YEAR = 2026;
+const DEFAULT_HEADLINE = ["WE BUILD", "DIGITAL", "LEGENDS."];
 
 type Raw = Record<string, unknown>;
 
@@ -161,16 +163,19 @@ export function getIdentity(s: SiteSettings) {
     typeof staticYear === "number" && Number.isInteger(staticYear) && staticYear >= 1000 && staticYear <= 9999
       ? staticYear
       : null;
+  const name = str(s.studio_name) || str(STATIC_IDENTITY.name) || DEFAULT_NAME;
   return {
-    name: str(s.studio_name) || str(STATIC_IDENTITY.name) || DEFAULT_NAME,
+    name,
     tagline: str(s.tagline) || str(STATIC_IDENTITY.tagline),
     email: str(s.contact_email) || str(STATIC_IDENTITY.email),
     responseTime: str(s.response_time) || str(STATIC_IDENTITY.responseTime),
-    foundedYear: dbYear ?? fallbackYear,
+    foundedYear: dbYear ?? fallbackYear ?? DEFAULT_YEAR,
     heroHeadline: headlineLines(s.hero_headline).length
       ? headlineLines(s.hero_headline)
-      : headlineLines(STATIC_IDENTITY.heroHeadline),
-    heroDeco: (str(s.hero_deco) || str(STATIC_IDENTITY.heroDeco)).slice(0, HERO_DECO_MAX),
+      : headlineLines(STATIC_IDENTITY.heroHeadline).length
+        ? headlineLines(STATIC_IDENTITY.heroHeadline)
+        : DEFAULT_HEADLINE,
+    heroDeco: (str(s.hero_deco) || str(STATIC_IDENTITY.heroDeco) || `${name.toUpperCase()}.`).slice(0, HERO_DECO_MAX),
   };
 }
 
