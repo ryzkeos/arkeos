@@ -100,6 +100,7 @@ export type ContactCopy = {
     message_placeholder: string;
     submit_label: string;
     sending_label: string;
+    select_close_label: string;
     note: string;
   };
   success: { title: string; body: string; back_label: string };
