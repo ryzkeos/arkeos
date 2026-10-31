@@ -5,9 +5,10 @@ import { NAV } from "@/lib/data";
 import type { CinemaType, Inquiry, Pillar, Project, Service, SiteSettings } from "@/lib/types";
 import { applyAccent } from "@/components/SiteSettings";
 import IdentityPanel from "./IdentityPanel";
+import WebsiteInfoPanel from "./WebsiteInfoPanel";
 import { CINEMA_TYPES, MEDIA_BUCKET, MediaField, PanelHead, isHttpUrl, msg, type PanelProps } from "./shared";
 
-type Section = "inquiries" | "projects" | "services" | "pillars" | "availability" | "settings" | "identity" | "fonts" | "analytics";
+type Section = "inquiries" | "projects" | "services" | "pillars" | "availability" | "settings" | "website_info" | "identity" | "fonts" | "analytics";
 
 const VIDEO_EXT = ["mp4", "webm", "mov", "ogg"];
 function mediaBadge(media: string | null) {
@@ -19,7 +20,7 @@ const splitTags = (s: string) => s.split(",").map((t) => t.trim()).filter(Boolea
 
 const NAV_GROUPS: { label: string; items: [Section, string][] }[] = [
   { label: "Content", items: [["inquiries", "Inquiries"], ["projects", "Projects"], ["services", "Services"], ["pillars", "Pillars"]] },
-  { label: "Studio", items: [["availability", "Availability"], ["settings", "Site Settings"], ["identity", "Identity"], ["fonts", "Font Settings"], ["analytics", "Analytics"]] },
+  { label: "Studio", items: [["availability", "Availability"], ["settings", "Site Settings"], ["website_info", "Website Info"], ["identity", "Identity"], ["fonts", "Font Settings"], ["analytics", "Analytics"]] },
 ];
 
 export default function AdminApp() {
@@ -151,6 +152,7 @@ export default function AdminApp() {
             {section === "pillars" && <Pillars toast={showToast} ask={ask} />}
             {section === "availability" && <Availability toast={showToast} />}
             {section === "settings" && <Settings toast={showToast} ask={ask} />}
+            {section === "website_info" && <WebsiteInfoPanel toast={showToast} />}
             {section === "identity" && <IdentityPanel toast={showToast} />}
             {section === "fonts" && <Fonts toast={showToast} />}
             {section === "analytics" && <Analytics />}
