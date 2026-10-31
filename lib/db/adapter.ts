@@ -112,7 +112,7 @@ export async function dbUpload(_bucket: string, path: string, file: File) {
   const token = session?.access_token ?? API_KEY;
   const res = await fetch(`${STORAGE_URL}/storage/v1/object/${STORAGE_BUCKET}/${path}`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${token}`, apikey: API_KEY, "Content-Type": file.type, "x-upsert": "true" },
+    headers: { Authorization: `Bearer ${token}`, apikey: API_KEY, "Content-Type": file.type || "application/octet-stream", "x-upsert": "true" },
     body: file,
   });
   await check(res);
@@ -169,3 +169,4 @@ export const dbGetServices = () => dbGet<Service[]>("services", "select=*&order=
 export const dbSaveService = (id: string | null, payload: Partial<Service>) =>
   id ? dbUpdate("services", `id=eq.${id}`, payload) : dbInsert("services", payload);
 export const dbDeleteService = (id: string) => dbDelete("services", `id=eq.${id}`);
+

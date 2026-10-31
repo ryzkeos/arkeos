@@ -32,9 +32,15 @@ const NOSCRIPT_CSS =
   ".section-h2 span em{transform:none!important}" +
   "*,*::before,*::after{cursor:auto!important}";
 
+const SKIP_SCRIPT =
+  'try{if(sessionStorage.getItem("arkeos_intro_seen")==="1")document.documentElement.setAttribute("data-intro-seen","")}catch(e){}';
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: SKIP_SCRIPT }} />
+      </head>
       <body>
         <noscript>
           <style>{NOSCRIPT_CSS}</style>

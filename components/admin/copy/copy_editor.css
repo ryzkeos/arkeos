@@ -1,0 +1,12 @@
+.copy-editor { display:flex; flex-direction:column; gap:1.4rem; }
+.copy-field { display:flex; flex-direction:column; gap:0.5rem; }
+.copy-field__head { display:flex; align-items:center; justify-content:space-between; gap:0.8rem; }
+.copy-field__head label { margin:0; }
+.copy-list { border:1px solid var(--color-border); padding:1rem; margin:0; min-width:0; display:flex; flex-direction:column; gap:1rem; }
+.copy-list legend { padding:0 0.5rem; font-family:var(--font-label); font-size:0.58rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--color-accent); }
+.copy-row { display:flex; flex-direction:column; gap:0.8rem; padding:1rem; border:1px solid var(--color-border); background:var(--color-surface); }
+.copy-row--plain { flex-direction:row; align-items:center; flex-wrap:wrap; }
+.copy-row--plain input { flex:1; min-width:12rem; }
+.copy-pages { display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:1.6rem; }
+.copy-save { position:sticky; bottom:0; padding:1rem 0; background:var(--color-bg); display:flex; gap:0.7rem; align-items:center; }
+.copy-empty { color:var(--color-muted); font-size:0.78rem; }

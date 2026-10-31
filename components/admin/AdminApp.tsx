@@ -2,11 +2,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as db from "@/lib/db";
 import { NAV } from "@/lib/data";
-import type { Inquiry, Project, Service, SiteSettings } from "@/lib/types";
+import type { CinemaType, Inquiry, Project, Service, SiteSettings } from "@/lib/types";
+import { applyAccent } from "@/components/SiteSettings";
 import IdentityPanel from "./IdentityPanel";
-import { MEDIA_BUCKET, PanelHead, isHttpUrl, msg, type PanelProps } from "./shared";
+import WebsiteInfoPanel from "./WebsiteInfoPanel";
+import { CINEMA_TYPES, Checkbox, FilePicker, IconBtn, MEDIA_BUCKET, MediaField, PanelHead, isHttpUrl, msg, type PanelProps } from "./shared";
 
-type Section = "inquiries" | "projects" | "services" | "availability" | "settings" | "identity" | "fonts" | "analytics";
+type Section = "inquiries" | "projects" | "services" | "availability" | "settings" | "website_info" | "identity" | "fonts" | "analytics";
 
 const VIDEO_EXT = ["mp4", "webm", "mov", "ogg"];
 function mediaBadge(media: string | null) {
@@ -16,11 +18,17 @@ function mediaBadge(media: string | null) {
 }
 const splitTags = (s: string) => s.split(",").map((t) => t.trim()).filter(Boolean);
 
+const NAV_GROUPS: { label: string; items: [Section, string][] }[] = [
+  { label: "Content", items: [["inquiries", "Inquiries"], ["projects", "Projects"], ["services", "Services"]] },
+  { label: "Studio", items: [["availability", "Availability"], ["settings", "Site Settings"], ["website_info", "Website Info"], ["identity", "Identity"], ["fonts", "Font Settings"], ["analytics", "Analytics"]] },
+];
+
 export default function AdminApp() {
   const [authed, setAuthed] = useState(false);
   const [booted, setBooted] = useState(false);
   const [section, setSection] = useState<Section>("inquiries");
   const [unread, setUnread] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [toast, setToast] = useState<{ text: string; err: boolean } | null>(null);
   const [confirmState, setConfirmState] = useState<{ text: string; onYes: () => void } | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -42,6 +50,45 @@ export default function AdminApp() {
     await db.dbSignOut();
     setAuthed(false);
   };
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
+
+  const go = (id: Section, closeMenu: boolean) => {
+    setSection(id);
+    if (closeMenu) setMenuOpen(false);
+  };
+
+  const renderNav = (closeMenu: boolean) => (
+    <>
+      {NAV_GROUPS.map((group) => (
+        <div key={group.label}>
+          <div className="sidebar-label">{group.label}</div>
+          <nav className="sidebar-nav">
+            {group.items.map(([id, label]) => (
+              <button key={id} className={section === id ? "active" : ""} onClick={() => go(id, closeMenu)}>
+                {label}
+                {id === "inquiries" && (
+                  <span className="sidebar-badge" aria-label="Unread count" style={{ display: unread > 0 ? "inline-flex" : "none" }}>
+                    {unread > 0 ? unread : ""}
+                  </span>
+                )}
+              </button>
+            ))}
+          </nav>
+        </div>
+      ))}
+      <div className="sidebar-footer">
+        <button aria-label="Log out of admin panel" onClick={logout}>Log Out</button>
+      </div>
+    </>
+  );
 
   if (!booted) return null;
 
@@ -73,33 +120,29 @@ export default function AdminApp() {
         <Login onDone={() => { setAuthed(true); setSection("inquiries"); }} />
       ) : (
         <div id="app-shell" style={{ display: "flex" }}>
+          <header className="admin-topbar">
+            <span className="sidebar-logo">ARKEOS</span>
+            <button
+              className="admin-topbar__toggle"
+              aria-label={menuOpen ? "Close menu" : "Open menu"}
+              aria-expanded={menuOpen}
+              aria-controls="admin-menu"
+              onClick={() => setMenuOpen((o) => !o)}
+            >
+              <span aria-hidden="true">{menuOpen ? "Close" : "Menu"}</span>
+              {!menuOpen && unread > 0 && <span className="sidebar-badge" style={{ display: "inline-flex" }}>{unread}</span>}
+            </button>
+          </header>
+
+          {menuOpen && (
+            <div className="admin-menu" id="admin-menu" role="navigation" aria-label="Admin navigation">
+              {renderNav(true)}
+            </div>
+          )}
+
           <aside className="admin-sidebar" role="navigation" aria-label="Admin navigation">
             <div className="sidebar-logo">ARKEOS</div>
-
-            <div className="sidebar-label">Content</div>
-            <nav className="sidebar-nav">
-              <button className={section === "inquiries" ? "active" : ""} onClick={() => setSection("inquiries")}>
-                Inquiries
-                <span className="sidebar-badge" id="inquiries-badge" aria-label="Unread count" style={{ display: unread > 0 ? "inline-flex" : "none" }}>
-                  {unread > 0 ? unread : ""}
-                </span>
-              </button>
-              <button className={section === "projects" ? "active" : ""} onClick={() => setSection("projects")}>Projects</button>
-              <button className={section === "services" ? "active" : ""} onClick={() => setSection("services")}>Services</button>
-            </nav>
-
-            <div className="sidebar-label">Studio</div>
-            <nav className="sidebar-nav">
-              <button className={section === "availability" ? "active" : ""} onClick={() => setSection("availability")}>Availability</button>
-              <button className={section === "settings" ? "active" : ""} onClick={() => setSection("settings")}>Site Settings</button>
-              <button className={section === "identity" ? "active" : ""} onClick={() => setSection("identity")}>Identity</button>
-              <button className={section === "fonts" ? "active" : ""} onClick={() => setSection("fonts")}>Font Settings</button>
-              <button className={section === "analytics" ? "active" : ""} onClick={() => setSection("analytics")}>Analytics</button>
-            </nav>
-
-            <div className="sidebar-footer">
-              <button id="logout-btn" aria-label="Log out of admin panel" onClick={logout}>Log Out</button>
-            </div>
+            {renderNav(false)}
           </aside>
 
           <main className="admin-main" role="main">
@@ -108,7 +151,8 @@ export default function AdminApp() {
             {section === "services" && <Services toast={showToast} ask={ask} />}
             {section === "availability" && <Availability toast={showToast} />}
             {section === "settings" && <Settings toast={showToast} ask={ask} />}
-            {section === "identity" && <IdentityPanel toast={showToast} />}
+            {section === "website_info" && <WebsiteInfoPanel toast={showToast} />}
+            {section === "identity" && <IdentityPanel onOpenWebsiteInfo={() => setSection("website_info")} />}
             {section === "fonts" && <Fonts toast={showToast} />}
             {section === "analytics" && <Analytics />}
           </main>
@@ -250,17 +294,17 @@ function Inquiries({ toast, ask, onUnread }: PanelProps & { onUnread: (n: number
             ) : (
               items.map((i) => (
                 <tr key={i.id} className={i.status === "unread" ? "row-unread" : ""}>
-                  <td>{i.name || "—"}</td>
-                  <td>{i.email || "—"}</td>
-                  <td>{i.project_type || "—"}</td>
-                  <td>{i.budget || "—"}</td>
-                  <td>{i.timeline || "—"}</td>
+                  <td className="cell-trunc" title={i.name || undefined}>{i.name || "—"}</td>
+                  <td className="cell-trunc" title={i.email || undefined}>{i.email || "—"}</td>
+                  <td className="cell-trunc" title={i.project_type || undefined}>{i.project_type || "—"}</td>
+                  <td className="cell-trunc" title={i.budget || undefined}>{i.budget || "—"}</td>
+                  <td className="cell-trunc" title={i.timeline || undefined}>{i.timeline || "—"}</td>
                   <td>{i.created_at ? new Date(i.created_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "—"}</td>
                   <td><span className={`status-badge status-${i.status || "unread"}`}>{i.status || "unread"}</span></td>
                   <td className="admin-actions">
-                    <button className="admin-btn admin-btn--sm" onClick={() => setOpenId(i.id)} aria-label={`View inquiry from ${i.name || "unknown sender"}`}>View</button>
-                    <button className="admin-btn admin-btn--sm" onClick={() => mark(i.id)} aria-label="Mark as read">Read</button>
-                    <button className="admin-btn admin-btn--sm admin-btn--danger" onClick={() => del(i.id)} aria-label="Delete inquiry">Delete</button>
+                    <IconBtn icon="view" label={`View inquiry from ${i.name || "unknown sender"}`} onClick={() => setOpenId(i.id)} />
+                    <IconBtn icon="mail_open" label="Mark as read" onClick={() => mark(i.id)} />
+                    <IconBtn icon="trash" label="Delete inquiry" danger onClick={() => del(i.id)} />
                   </td>
                 </tr>
               ))
@@ -369,14 +413,13 @@ function Projects({ toast, ask }: PanelProps) {
             <label htmlFor="pf-color">Accent Color</label>
             <input type="color" id="pf-color" aria-label="Project card accent color" value={f.color} onChange={(e) => setF({ ...f, color: e.target.value })} />
           </div>
-          <div className="form-group checkbox-row">
-            <input type="checkbox" id="pf-visible" aria-label="Project visibility" checked={f.visible} onChange={(e) => setF({ ...f, visible: e.target.checked })} />
-            <label htmlFor="pf-visible">Visible on site</label>
+          <div className="form-group">
+            <Checkbox id="pf-visible" label="Visible on site" checked={f.visible} onChange={(v) => setF({ ...f, visible: v })} />
           </div>
           <div className="form-group admin-form-full">
-            <label htmlFor="pf-media-file">Media Upload (.mp4 or image)</label>
+            <span className="admin-field-label">Media Upload (video, image or .html)</span>
             <div className="form-group-actions">
-              <input type="file" id="pf-media-file" ref={file} accept="video/*,image/*" aria-label="Upload project media" />
+              <FilePicker id="pf-media-file" label="Choose project media file" accept="video/*,image/*,.html,.htm" inputRef={file} busy={mediaStatus === "Uploading…"} status={mediaStatus.toLowerCase().includes("fail") ? "error" : undefined} status_text={mediaStatus.toLowerCase().includes("fail") ? mediaStatus : undefined} />
               <button className="admin-btn admin-btn--accent" onClick={upload} aria-label="Upload media file">Upload</button>
               <span className="field-status status--off" aria-live="polite">{mediaStatus}</span>
             </div>
@@ -401,9 +444,9 @@ function Projects({ toast, ask }: PanelProps) {
               <span className={`media-badge media-badge--${b.cls}`}>{b.label}</span>
               <span className={`vis-badge ${vis ? "vis--on" : "vis--off"}`}>{vis ? "Visible" : "Hidden"}</span>
               <div className="admin-actions">
-                <button className="admin-btn admin-btn--sm" onClick={() => open(i)} aria-label="Edit">Edit</button>
-                <button className="admin-btn admin-btn--sm" onClick={() => toggle(p)} aria-label="Toggle visibility">{vis ? "Hide" : "Show"}</button>
-                <button className="admin-btn admin-btn--sm admin-btn--danger" onClick={() => del(p.id!)} aria-label="Delete">Delete</button>
+                <IconBtn icon="edit" label={`Edit ${p.title}`} onClick={() => open(i)} />
+                <IconBtn icon={vis ? "eye_off" : "eye"} label={vis ? `Hide ${p.title}` : `Show ${p.title}`} onClick={() => toggle(p)} />
+                <IconBtn icon="trash" label={`Delete ${p.title}`} danger onClick={() => del(p.id!)} />
               </div>
             </div>
           );
@@ -417,7 +460,7 @@ function Services({ toast, ask }: PanelProps) {
   const [list, setList] = useState<Service[] | null>(null);
   const [error, setError] = useState("");
   const [editing, setEditing] = useState<{ id: string | null; hadPrice: boolean } | null>(null);
-  const [f, setF] = useState({ title: "", description: "", tags: "", price: "", visible: true });
+  const [f, setF] = useState({ title: "", description: "", tags: "", price: "", visible: true, icon_url: "", cinema_url: "", cinema_type: "video" as CinemaType });
 
   const load = useCallback(() => {
     db.dbGetServices().then((d) => { setList(Array.isArray(d) ? d : []); setError(""); }).catch(() => setError("Failed to load services."));
@@ -427,13 +470,13 @@ function Services({ toast, ask }: PanelProps) {
   const open = (idx: number | null) => {
     const s = idx === null ? null : list![idx];
     setEditing({ id: s?.id ?? null, hadPrice: !!s?.price });
-    setF({ title: s?.title ?? "", description: s?.description ?? "", tags: (s?.tags ?? []).join(", "), price: s?.price ?? "", visible: s ? s.visible !== false : true });
+    setF({ title: s?.title ?? "", description: s?.description ?? "", tags: (s?.tags ?? []).join(", "), price: s?.price ?? "", visible: s ? s.visible !== false : true, icon_url: s?.icon_url ?? "", cinema_url: s?.cinema_url ?? "", cinema_type: s?.cinema_type ?? "video" });
   };
 
   const save = async () => {
     if (!f.title.trim()) return toast("Title is required.", true);
     const price = f.price.trim();
-    const payload: Partial<Service> = { title: f.title.trim(), description: f.description.trim(), tags: splitTags(f.tags), visible: f.visible };
+    const payload: Partial<Service> = { title: f.title.trim(), description: f.description.trim(), tags: splitTags(f.tags), visible: f.visible, icon_url: f.icon_url.trim() || null, cinema_url: f.cinema_url.trim() || null, cinema_type: f.cinema_type };
     if (price) payload.price = price;
     else if (editing?.hadPrice) payload.price = null;
     if (!editing?.id) payload.sort_order = list?.length ?? 0;
@@ -452,7 +495,7 @@ function Services({ toast, ask }: PanelProps) {
 
   return (
     <div className="admin-panel" id="panel-services" style={{ display: "block" }}>
-      <PanelHead title="SERVICES" sub="Manage studio services. Toggle visibility per service." error={error} />
+      <PanelHead title="SERVICES" sub="Manage studio services. Supports icon, cinema preview and pricing." error={error} />
       <div className="admin-actions" style={{ marginBottom: "1.2rem" }}>
         <button className="admin-btn admin-btn--accent" onClick={() => open(null)} aria-label="Add a new service">+ Add Service</button>
       </div>
@@ -476,9 +519,16 @@ function Services({ toast, ask }: PanelProps) {
             <label htmlFor="sf-price">Price (optional)</label>
             <input type="text" id="sf-price" placeholder="Price text" value={f.price} onChange={(e) => setF({ ...f, price: e.target.value })} />
           </div>
-          <div className="form-group checkbox-row">
-            <input type="checkbox" id="sf-visible" aria-label="Service visibility" checked={f.visible} onChange={(e) => setF({ ...f, visible: e.target.checked })} />
-            <label htmlFor="sf-visible">Visible on site</label>
+          <div className="form-group">
+            <Checkbox id="sf-visible" label="Visible on site" checked={f.visible} onChange={(v) => setF({ ...f, visible: v })} />
+          </div>
+          <MediaField label="Icon Image" accept="image/*" folder="services" value={f.icon_url} onChange={(v) => setF((x) => ({ ...x, icon_url: v }))} toast={toast} placeholder="or paste icon URL" />
+          <MediaField label="Cinema Preview" accept="video/*,image/*" folder="services" value={f.cinema_url} onChange={(v) => setF((x) => ({ ...x, cinema_url: v }))} toast={toast} placeholder="or paste cinema URL" />
+          <div className="form-group">
+            <label htmlFor="sf-cinema-type">Cinema type</label>
+            <select id="sf-cinema-type" value={f.cinema_type} onChange={(e) => setF({ ...f, cinema_type: e.target.value as CinemaType })}>
+              {CINEMA_TYPES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+            </select>
           </div>
         </div>
         <div className="admin-actions">
@@ -497,9 +547,9 @@ function Services({ toast, ask }: PanelProps) {
               <div className="project-row__info"><strong>{s.title || "Untitled"}</strong><span className="project-row__tags">{s.description ? s.description.slice(0, 60) + "…" : ""}</span></div>
               <span className={`vis-badge ${vis ? "vis--on" : "vis--off"}`}>{vis ? "Visible" : "Hidden"}</span>
               <div className="admin-actions">
-                <button className="admin-btn admin-btn--sm" onClick={() => open(i)} aria-label="Edit">Edit</button>
-                <button className="admin-btn admin-btn--sm" onClick={() => toggle(s)} aria-label="Toggle visibility">{vis ? "Hide" : "Show"}</button>
-                <button className="admin-btn admin-btn--sm admin-btn--danger" onClick={() => del(s.id)} aria-label="Delete">Delete</button>
+                <IconBtn icon="edit" label={`Edit ${s.title}`} onClick={() => open(i)} />
+                <IconBtn icon={vis ? "eye_off" : "eye"} label={vis ? `Hide ${s.title}` : `Show ${s.title}`} onClick={() => toggle(s)} />
+                <IconBtn icon="trash" label={`Delete ${s.title}`} danger onClick={() => del(s.id)} />
               </div>
             </div>
           );
@@ -554,7 +604,7 @@ function Availability({ toast }: Pick<PanelProps, "toast">) {
 }
 
 function Settings({ toast, ask }: PanelProps) {
-  const [s, setS] = useState({ tagline: "", cta_text: "", accent_color: "#C8FF00", social_github: "", social_instagram: "", social_facebook: "" });
+  const [s, setS] = useState({ projects_count: "", years_active: "", clients_count: "", accent_color: "#C8FF00", social_github: "", social_instagram: "", social_facebook: "" });
   const [video, setVideo] = useState("");
   const [videoStatus, setVideoStatus] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -564,7 +614,7 @@ function Settings({ toast, ask }: PanelProps) {
     db.dbLoadSiteSettings()
       .then((r: SiteSettings) => {
         setS({
-          tagline: r.tagline ?? "", cta_text: r.cta_text ?? "", accent_color: r.accent_color || "#C8FF00",
+          projects_count: r.projects_count ?? "", years_active: r.years_active ?? "", clients_count: r.clients_count ?? "", accent_color: r.accent_color || "#C8FF00",
           social_github: r.social_github ?? "", social_instagram: r.social_instagram ?? "", social_facebook: r.social_facebook ?? "",
         });
         setVideo(r.hero_video ?? "");
@@ -574,11 +624,12 @@ function Settings({ toast, ask }: PanelProps) {
 
   const save = async () => {
     const fields: Record<string, string> = {
-      tagline: s.tagline.trim(), cta_text: s.cta_text.trim(), accent_color: s.accent_color,
+      projects_count: s.projects_count.trim(), years_active: s.years_active.trim(), clients_count: s.clients_count.trim(), accent_color: s.accent_color,
       social_github: s.social_github.trim(), social_instagram: s.social_instagram.trim(), social_facebook: s.social_facebook.trim(),
     };
     try {
       await Promise.all(Object.entries(fields).map(([k, v]) => db.dbSaveSetting(k, v)));
+      applyAccent(s.accent_color);
       toast("Settings saved.");
     } catch { toast("Failed to save some settings.", true); }
   };
@@ -614,10 +665,12 @@ function Settings({ toast, ask }: PanelProps) {
       <PanelHead title="SITE SETTINGS" sub="Edit global site content. Changes reflect live." error={error} />
 
       <div className="settings-section">
-        <p className="settings-section-title">Hero &amp; Copy</p>
+        <p className="settings-section-title">Home Counters</p>
+        <p className="panel-sub">Leave empty to count automatically. Page text is edited in Website Info.</p>
         <div className="settings-grid">
-          {text("tagline", "Hero Tagline", "set-tagline", "Tagline")}
-          {text("cta_text", "Hero CTA Button Text", "set-cta-text", "Button text")}
+          {text("projects_count", "Projects Count", "set-projects-count", "Auto", "number")}
+          {text("years_active", "Years Active", "set-years-active", "Auto", "number")}
+          {text("clients_count", "Clients Count", "set-clients-count", "Auto", "number")}
         </div>
       </div>
 
@@ -634,7 +687,7 @@ function Settings({ toast, ask }: PanelProps) {
       <div className="settings-section">
         <p className="settings-section-title">Hero Background Video</p>
         <div className="admin-actions" style={{ gap: "0.8rem", alignItems: "center", flexWrap: "wrap" }}>
-          <input type="file" id="set-video-file" ref={file} accept="video/mp4,video/webm" aria-label="Choose hero video file" />
+          <FilePicker id="set-video-file" label="Choose hero video file" accept="video/mp4,video/webm" inputRef={file} busy={videoStatus === "Uploading…"} status={videoStatus === "Upload failed." ? "error" : undefined} />
           <button className="admin-btn admin-btn--accent" onClick={upload} aria-label="Upload hero video">Upload</button>
           <button className="admin-btn admin-btn--danger" onClick={clear} aria-label="Remove hero video">Clear Video</button>
           <span className={`field-status ${on ? "status--on" : "status--off"}`} aria-live="polite">
@@ -666,11 +719,11 @@ const FONT_SLOTS = [
   { key: "font_label", name: "General Sans", label: "Labels / Eyebrows / Tags" },
 ] as const;
 
-const FONT_MAX_BYTES = 500 * 1024;
+const FONT_MAX_BYTES = 2 * 1024 * 1024;
 const WOFF2_SIGNATURE = [0x77, 0x4f, 0x46, 0x32];
 
 async function checkFont(file: File): Promise<string | null> {
-  if (file.size > FONT_MAX_BYTES) return "Font file must be under 500 kb.";
+  if (file.size > FONT_MAX_BYTES) return "Font file must be under 2 MB.";
   const head = new Uint8Array(await file.slice(0, 4).arrayBuffer());
   if (head.length < 4 || WOFF2_SIGNATURE.some((b, i) => head[i] !== b)) return "Not a valid woff2 font file.";
   return null;
@@ -679,6 +732,7 @@ async function checkFont(file: File): Promise<string | null> {
 function Fonts({ toast }: Pick<PanelProps, "toast">) {
   const [active, setActive] = useState<Record<string, string>>({});
   const files = useRef<Record<string, HTMLInputElement | null>>({});
+  const [busy, setBusy] = useState("");
 
   const load = useCallback(() => {
     db.dbLoadSiteSettings().then((r) => setActive(r as Record<string, string>)).catch(() => {});
@@ -690,13 +744,25 @@ function Fonts({ toast }: Pick<PanelProps, "toast">) {
     if (!fl) return toast("Choose a .woff2 file.", true);
     const problem = await checkFont(fl);
     if (problem) return toast(problem, true);
-    const path = `fonts/${key}.woff2`;
+    const path = `fonts/${key}-${Date.now()}.woff2`;
+    setBusy(key);
     try {
-      await db.dbUpload(MEDIA_BUCKET, path, fl);
-      await db.dbSaveSetting(key, `${db.dbPublicUrl(MEDIA_BUCKET, path)}?v=${Date.now()}`);
+      await db.dbUpload(MEDIA_BUCKET, path, new File([fl], `${key}.woff2`, { type: "font/woff2" }));
+    } catch (e) {
+      setBusy("");
+      return toast(msg(e, "Font upload failed."), true);
+    }
+    try {
+      await db.dbSaveSetting(key, db.dbPublicUrl(MEDIA_BUCKET, path));
       load();
-      toast("font uploaded. reload the site to see it");
-    } catch { toast("Font upload failed.", true); }
+      const input = files.current[key];
+      if (input) input.value = "";
+      toast("Font uploaded. Reload the site to see it.");
+    } catch (e) {
+      toast(`Uploaded, but saving failed: ${msg(e, "unknown error")}`, true);
+    } finally {
+      setBusy("");
+    }
   };
 
   return (
@@ -712,8 +778,8 @@ function Fonts({ toast }: Pick<PanelProps, "toast">) {
             </div>
             <span className={`font-status ${isOn ? "font-status--on" : "font-status--off"}`}>{isOn ? "Active" : "bundled font"}</span>
             <div className="font-upload-wrap">
-              <input type="file" accept=".woff2" aria-label={`Upload ${slot.name} font`} ref={(el) => { files.current[slot.key] = el; }} />
-              <button className="admin-btn admin-btn--sm admin-btn--accent" onClick={() => upload(slot.key)} aria-label={`Upload ${slot.label} font`}>Upload</button>
+              <FilePicker id={`font-file-${slot.key}`} label={`Choose ${slot.name} font file`} accept=".woff2" inputRef={(el) => { files.current[slot.key] = el; }} busy={busy === slot.key} />
+              <button className="admin-btn admin-btn--sm admin-btn--accent" onClick={() => upload(slot.key)} disabled={busy === slot.key} aria-label={`Upload ${slot.label} font`}>{busy === slot.key ? "Uploading…" : "Upload"}</button>
             </div>
           </div>
         );
