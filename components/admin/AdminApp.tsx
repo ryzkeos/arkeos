@@ -417,9 +417,9 @@ function Projects({ toast, ask }: PanelProps) {
             <label htmlFor="pf-visible">Visible on site</label>
           </div>
           <div className="form-group admin-form-full">
-            <label htmlFor="pf-media-file">Media Upload (.mp4 or image)</label>
+            <label htmlFor="pf-media-file">Media Upload (video, image or .html)</label>
             <div className="form-group-actions">
-              <input type="file" id="pf-media-file" ref={file} accept="video/*,image/*" aria-label="Upload project media" />
+              <input type="file" id="pf-media-file" ref={file} accept="video/*,image/*,.html,.htm" aria-label="Upload project media" />
               <button className="admin-btn admin-btn--accent" onClick={upload} aria-label="Upload media file">Upload</button>
               <span className="field-status status--off" aria-live="polite">{mediaStatus}</span>
             </div>
