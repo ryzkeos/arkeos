@@ -1,11 +1,15 @@
 "use client";
 import "@/styles/e404.css";
 import { useEffect, useRef } from "react";
+import { fill_vars } from "@/lib/copy";
 import { gsap, prefersReducedMotion } from "@/lib/gsap";
+import { useCopy, useCopyVars } from "@/lib/use_copy";
 import Btn from "./Btn";
 
 export default function NotFoundView() {
   const root = useRef<HTMLElement>(null);
+  const copy = useCopy("not_found");
+  const vars = useCopyVars();
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -27,13 +31,13 @@ export default function NotFoundView() {
 
   return (
     <main className="pg-e404" ref={root}>
-      <section id="hero-404" aria-label="404 — Page not found">
-        <div className="e404-ghost" aria-hidden="true">404</div>
+      <section id="hero-404" aria-label={fill_vars(copy.aria_section, vars)}>
+        <div className="e404-ghost" aria-hidden="true">{copy.num}</div>
         <div className="e404-body">
-          <span className="e404-lbl">Error 404</span>
-          <div className="e404-num" aria-label="404"><em>404</em></div>
-          <div className="e404-tag" aria-label="Lost in the dark"><em>Lost in the dark.</em></div>
-          <Btn href="/" id="btn-404" label="Back to Home" ariaLabel="Return to Arkeos homepage" />
+          <span className="e404-lbl">{copy.label}</span>
+          <div className="e404-num" aria-label={fill_vars(copy.aria_num, vars)}><em>{copy.num}</em></div>
+          <div className="e404-tag" aria-label={fill_vars(copy.aria_tagline, vars)}><em>{copy.tagline}</em></div>
+          <Btn href="/" id="btn-404" label={copy.button_label} ariaLabel={fill_vars(copy.aria_button, vars)} />
         </div>
       </section>
     </main>
