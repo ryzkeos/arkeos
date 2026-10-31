@@ -62,7 +62,6 @@ export default function CtaSection() {
         <span className="cta-lbl">{cta.label}</span>
         <div className="cta-title">
           <h2 className="cta-h2">{cta.headline}</h2>
-          <h2 className="cta-h2 cta-h2--burn" aria-hidden="true">{cta.headline}</h2>
         </div>
         <Btn href="/contact" id="btn-cta" label={cta.button} />
       </div>
