@@ -7,9 +7,11 @@ export const about_schema: CopyField[] = [
   { path: "hero.ghost", label: "Hero background word", type: "text", max: 30 },
   { path: "story.label", label: "Story label", type: "text", max: 60 },
   { path: "story.lines", label: "Story title lines (one per line)", type: "lines", max: 200 },
+  { path: "story.intro", label: "Story intro text", type: "textarea", max: 500 },
   { path: "story_paragraphs", label: "Story paragraphs", type: "list", max: 1200 },
   { path: "stats.label", label: "Numbers label", type: "text", max: 60 },
   { path: "stats.lines", label: "Numbers title lines (one per line)", type: "lines", max: 200 },
+  { path: "stats.intro", label: "Numbers intro text", type: "textarea", max: 500 },
   {
     path: "stats_items",
     label: "Numbers",
@@ -22,6 +24,7 @@ export const about_schema: CopyField[] = [
   },
   { path: "values.label", label: "Values label", type: "text", max: 60 },
   { path: "values.lines", label: "Values title lines (one per line)", type: "lines", max: 200 },
+  { path: "values.intro", label: "Values intro text", type: "textarea", max: 500 },
   {
     path: "values_items",
     label: "Values",
@@ -33,6 +36,7 @@ export const about_schema: CopyField[] = [
   },
   { path: "team.label", label: "Team label", type: "text", max: 60 },
   { path: "team.lines", label: "Team title lines (one per line)", type: "lines", max: 200 },
+  { path: "team.intro", label: "Team intro text", type: "textarea", max: 500 },
   {
     path: "team_members",
     label: "Team members",
