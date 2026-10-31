@@ -744,56 +744,35 @@ html[data-intro-seen] #preloader { display: none !important; }
 
 .cta-tunnel {
   --s: clamp(0.5px, calc(100vw / 1440), 1.25px);
-  --persp: 900;
-  --half-w: 380;
-  --depth: 360;
-  --wall-h: 440;
   position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  perspective: calc(var(--persp) * var(--s));
+  perspective: calc(900 * var(--s));
   perspective-origin: calc(50% + var(--ox, 0px)) calc(50% + var(--oy, 0px));
 }
 
 .cta-deco {
   position: absolute;
-  top: 50%;
-  width: calc(var(--depth) * var(--s));
-  height: calc(var(--wall-h) * var(--s));
-  margin-top: calc(var(--wall-h) * var(--s) / -2);
+  width: calc(var(--w) * var(--s));
+  aspect-ratio: 3 / 4;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   pointer-events: none;
-  backface-visibility: hidden;
-  transform: translate3d(calc(var(--side) * var(--half-w) * var(--s)), 0, calc(var(--z) * var(--s))) rotateY(calc(var(--side) * -90deg));
+  transform: translate3d(0, 0, calc(var(--z) * var(--s))) rotateY(var(--ry));
 }
 
 .cta-deco::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(var(--fade-dir), transparent 0%, rgba(0, 0, 0, 0.6) 100%);
+  background: linear-gradient(var(--fade-dir), transparent 0%, rgba(0, 0, 0, 0.45) 100%);
 }
 
-.cta-deco-a,
-.cta-deco-c {
-  --side: -1;
-  --fade-dir: to right;
-  left: 50%;
-  transform-origin: 0 50%;
-}
-.cta-deco-b,
-.cta-deco-d {
-  --side: 1;
-  --fade-dir: to left;
-  right: 50%;
-  transform-origin: 100% 50%;
-}
-.cta-deco-a,
-.cta-deco-b { --z: 260; }
-.cta-deco-c,
-.cta-deco-d { --z: -110; }
+.cta-deco-a { --w: 250; --z: 60; --ry: 12deg; --fade-dir: to right; left: 4%; top: 7%; }
+.cta-deco-b { --w: 230; --z: 120; --ry: -10deg; --fade-dir: to left; right: 3%; top: 36%; }
+.cta-deco-c { --w: 170; --z: -60; --ry: 8deg; --fade-dir: to right; left: 17%; bottom: 5%; }
+.cta-deco-d { --w: 160; --z: -90; --ry: -8deg; --fade-dir: to left; right: 19%; top: 6%; }
 
 .cta-deco--media { border: 0; }
 
@@ -813,10 +792,11 @@ html[data-intro-seen] #preloader { display: none !important; }
 @media (max-width: 768px) {
   .cta-tunnel {
     --s: clamp(0.5px, calc(100vw / 700), 1px);
-    --half-w: 260;
-    --depth: 300;
-    --wall-h: 380;
   }
+  .cta-deco-a { --w: 230; left: -3%; top: 3%; }
+  .cta-deco-b { --w: 210; right: -4%; top: 40%; }
+  .cta-deco-c { --w: 160; left: 6%; bottom: 3%; }
+  .cta-deco-d { --w: 150; right: 8%; top: 2%; }
 }
 
 .cta-inner {
