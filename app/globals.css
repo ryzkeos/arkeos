@@ -759,6 +759,8 @@ html[data-intro-seen] #preloader { display: none !important; }
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   pointer-events: none;
+  opacity: var(--eo, 1);
+  translate: var(--ex, 0px) var(--ey, 0px);
   transform: translate3d(0, 0, calc(var(--z) * var(--s))) rotateY(var(--ry));
 }
 
