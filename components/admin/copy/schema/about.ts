@@ -55,7 +55,7 @@ export const about_schema: CopyField[] = [
       { path: "name", label: "Name", type: "text", max: 80 },
       { path: "role", label: "Role", type: "text", max: 80 },
       { path: "bio", label: "Short bio", type: "textarea", max: 400 },
-      { path: "photo", label: "Photo link", type: "text", max: 300 },
+      { path: "photo", label: "Show photo", type: "photo", max: 300 },
     ],
   },
   { path: "empty_text", label: "Text when the page has no content", type: "text", max: 120 },
