@@ -8,7 +8,7 @@ import { useArkeosAnimations } from "@/hooks/useArkeosAnimations";
 import { usePreloadProgress } from "@/hooks/usePreloadProgress";
 import { useSiteSettings, useSiteSettingsLoaded } from "./SiteSettings";
 import Btn from "./Btn";
-import { CinemaBg, CinemaOverlay, type CinemaItem } from "./CinemaMedia";
+import PillarCard from "./PillarCard";
 import CtaSection from "./CtaSection";
 import ProjectCard from "./ProjectCard";
 import SectionH2 from "./SectionH2";
@@ -32,7 +32,6 @@ export default function HomeView() {
   const settingsLoaded = useSiteSettingsLoaded();
   const allProjects = useProjects();
   const allPillars = usePillars();
-  const [cinema, setCinema] = useState<CinemaItem | null>(null);
   const [showPreloader] = useState(() => !preloaderPlayed);
   const [introDone, setIntroDone] = useState(!showPreloader);
 
@@ -201,57 +200,33 @@ export default function HomeView() {
 
       {pillars.length > 0 && (
         <section id="what" className="section" aria-label="What we do">
-          <div className="what-hdr">
+          <div className="sec-hdr">
             <div>
               <span className="section-lbl">What We Do</span>
               <SectionH2 lines={["CRAFT", "THAT CUTS."]} />
             </div>
-            {copy.what && <p className="what-intro reveal">{copy.what}</p>}
+            <div className="sec-side">
+              {copy.what && <p className="sec-intro reveal">{copy.what}</p>}
+              <Btn href="/services" id="btn-svc" label="View All Services" ariaLabel="View all services" />
+            </div>
           </div>
           <div className="pillars" role="list">
-            {pillars.map((p, i) => {
-              const preview = p.cinema_url ? { url: p.cinema_url, type: p.cinema_type, label: p.title } : null;
-              return (
-                <article
-                  key={p.id}
-                  className="pillar reveal"
-                  role="listitem"
-                  data-cinema={preview ? "true" : undefined}
-                  tabIndex={preview ? 0 : undefined}
-                  aria-label={preview ? `Preview ${p.title}` : undefined}
-                  onClick={preview ? () => setCinema(preview) : undefined}
-                  onKeyDown={preview ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setCinema(preview); } } : undefined}
-                >
-                  {preview && <div className="pillar-cinema-bg" aria-hidden="true"><CinemaBg url={preview.url} type={preview.type} /></div>}
-                  <div className="pillar-body">
-                    <div className="pillar-ico" aria-hidden="true">
-                      {p.icon_url && safeUrl(p.icon_url) ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={safeUrl(p.icon_url)!} alt="" />
-                      ) : (
-                        <svg viewBox="0 0 24 24">{ICONS[i % ICONS.length]}</svg>
-                      )}
-                    </div>
-                    <h3 className="pillar-title">{p.title}</h3>
-                    {p.description && <p className="pillar-desc">{p.description}</p>}
-                    {preview && <span className="pillar-hint">Tap to preview</span>}
-                  </div>
-                </article>
-              );
-            })}
+            {pillars.map((p, i) => <PillarCard key={p.id} pillar={p} icon={ICONS[i % ICONS.length]} />)}
           </div>
         </section>
       )}
 
       {projects.length > 0 && (
         <section id="projects" className="section" aria-label="Featured projects">
-          <div className="proj-hdr">
+          <div className="sec-hdr">
             <div>
               <span className="section-lbl">Selected Work</span>
               <SectionH2 lines={["THE", "WORK."]} />
-              {copy.work && <p className="sec-intro reveal">{copy.work}</p>}
             </div>
-            <Btn href="/projects" id="btn-all" label="All Projects" ariaLabel="View all projects" />
+            <div className="sec-side">
+              {copy.work && <p className="sec-intro reveal">{copy.work}</p>}
+              <Btn href="/projects" id="btn-all" label="View All Projects" ariaLabel="View all projects" />
+            </div>
           </div>
           <div className="proj-grid" role="list">
             {projects.map((p, i) => <ProjectCard key={p.id ?? p.title} project={p} index={i} variant="home" />)}
@@ -274,8 +249,6 @@ export default function HomeView() {
           </div>
         </section>
       )}
-
-      <CinemaOverlay item={cinema} onClose={() => setCinema(null)} />
 
       <CtaSection />
     </main>
