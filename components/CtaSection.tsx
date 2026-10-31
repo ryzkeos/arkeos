@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef } from "react";
 import { prefersReducedMotion } from "@/lib/gsap";
+import { useCopy } from "@/lib/use_copy";
 import Btn from "./Btn";
 
 const DECOS = [
@@ -11,6 +12,7 @@ const DECOS = [
 
 export default function CtaSection() {
   const refs = useRef<(HTMLDivElement | null)[]>([]);
+  const { cta } = useCopy("shared");
 
   useEffect(() => {
     if (prefersReducedMotion()) return;
@@ -31,14 +33,14 @@ export default function CtaSection() {
   }, []);
 
   return (
-    <section id="cta" aria-label="Start a project">
+    <section id="cta" aria-label={cta.label}>
       {DECOS.map((d, i) => (
         <div key={d.id} id={d.id} ref={(el) => { refs.current[i] = el; }} className={`cta-deco ${d.cls}`} aria-hidden="true" />
       ))}
       <div className="cta-inner reveal">
-        <span className="cta-lbl">Ready to Begin</span>
-        <h2 className="cta-h2">LET&apos;S BUILD SOMETHING EPIC TOGETHER.</h2>
-        <Btn href="/contact" id="btn-cta" label="Contact Us" ariaLabel="Contact us" />
+        <span className="cta-lbl">{cta.label}</span>
+        <h2 className="cta-h2">{cta.headline}</h2>
+        <Btn href="/contact" id="btn-cta" label={cta.button} />
       </div>
     </section>
   );
