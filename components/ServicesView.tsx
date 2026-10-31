@@ -35,9 +35,7 @@ export default function ServicesView() {
           <SectionH2 lines={["WHAT", "WE DO."]} />
         </div>
         <div className="svc-grid" role="list" aria-busy={services === null}>
-          {services === null ? null : services.length === 0 ? (
-            <p className="svc-empty">No services to display.</p>
-          ) : (
+          {services === null ? null : (
             services.map((s, i) => (
               <article
                 key={s.id}
