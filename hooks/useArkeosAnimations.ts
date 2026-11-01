@@ -42,7 +42,7 @@ export function useArkeosAnimations({ pageHero = false, ready: readyProp = true 
       });
       q(".reveal").forEach((el, i) => {
         if (reduced) return void gsap.set(el, { opacity: 1, y: 0 });
-        const inGroup = el.closest(".pillars, .proj-grid, .why-grid, .svc-grid, .val-grid, .team-grid");
+        const inGroup = el.closest(".svc-cards, .proj-grid, .why-grid, .svc-grid, .val-grid, .team-grid");
         gsap.to(el, {
           opacity: 1, y: 0, duration: 0.9, ease: "power2.out", delay: inGroup ? i * 0.07 : 0,
           scrollTrigger: { trigger: el, start: "top 84%", once: true },

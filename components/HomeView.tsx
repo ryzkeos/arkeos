@@ -69,8 +69,8 @@ export default function HomeView() {
       {services.length > 0 && (
         <section id="what" className="section" aria-label={copy.what.label}>
           <SectionHeader cta_id="btn-svc" copy={section(copy.what)} />
-          <div className="pillars" role="list">
-            {services.map((s, i) => <ServiceCard key={s.id} service={s} icon={ICONS[i % ICONS.length]} />)}
+          <div className="svc-cards" role="list">
+            {services.map((s, i) => <ServiceCard key={s.id} service={s} icon={ICONS[i % ICONS.length]} index={i} />)}
           </div>
         </section>
       )}
