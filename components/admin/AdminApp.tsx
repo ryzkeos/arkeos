@@ -6,6 +6,7 @@ import { DEFAULTS } from "@/defaults";
 import type { Inquiry, Project, Service, SiteSettings } from "@/lib/types";
 import { applyAccent } from "@/components/SiteSettings";
 import { SOCIAL_LINKS } from "@/components/SocialIcons";
+import { media_commit, media_discard } from "./media_tx";
 import IdentityPanel from "./IdentityPanel";
 import WebsiteInfoPanel from "./WebsiteInfoPanel";
 import CopyEditor from "./copy/CopyEditor";
@@ -352,6 +353,7 @@ function Projects({ toast, ask }: PanelProps) {
   const [editing, setEditing] = useState<{ id: string | null; hadUrl: boolean } | null>(null);
   const [f, setF] = useState({ title: "", description: "", tags: "", url: "", color: "#C8FF00", visible: true, featured: false, media: "" });
   const dragSrc = useRef<number | null>(null);
+  useEffect(() => () => media_discard("project"), []);
 
   const load = useCallback(() => {
     db.dbGetProjects().then((d) => { setList(Array.isArray(d) ? d : []); setError(""); }).catch(() => setError("Failed to load projects."));
@@ -359,6 +361,7 @@ function Projects({ toast, ask }: PanelProps) {
   useEffect(load, [load]);
 
   const open = (idx: number | null) => {
+    media_discard("project");
     const p = idx === null ? null : list![idx];
     setEditing({ id: p?.id ?? null, hadUrl: !!p?.url });
     setF({ title: p?.title ?? "", description: p?.description ?? "", tags: (p?.tags ?? []).join(", "), url: p?.url ?? "", color: p?.color || "#C8FF00", visible: p ? p.visible !== false : true, featured: p?.featured === true, media: p?.media ?? "" });
@@ -375,13 +378,14 @@ function Projects({ toast, ask }: PanelProps) {
     if (!editing?.id) payload.sort_order = list?.length ?? 0;
     try {
       await db.dbSaveProject(editing?.id ?? null, payload);
+      media_commit("project", [f.media]);
       setEditing(null); load(); toast("Project saved.");
     } catch (e) { toast(msg(e, "Failed to save project."), true); }
   };
 
   const del = (id: string) =>
     ask("Delete this project? This cannot be undone.", () =>
-      db.dbDeleteProject(id).then(() => { load(); toast("Project deleted."); }).catch(() => toast("Failed to delete.", true)));
+      db.dbDeleteProject(id).then(() => { const gone = list?.find((p) => p.id === id)?.media; if (gone) db.dbDeleteFile(gone); load(); toast("Project deleted."); }).catch(() => toast("Failed to delete.", true)));
 
   const toggle = (p: Project) =>
     db.dbSaveProject(p.id!, { visible: !(p.visible !== false) }).then(load).catch(() => toast("Failed to update.", true));
@@ -432,10 +436,10 @@ function Projects({ toast, ask }: PanelProps) {
           </div>
           <ColorField id="pf-color" label="Accent Color" value={f.color} onChange={(v) => setF((x) => ({ ...x, color: v }))} />
           <ToggleField id="pf-featured" label="Featured" checked={f.featured} onChange={(v) => { if (v && featured_taken >= FEATURED_LIMIT) return toast(limit_msg, true); setF((x) => ({ ...x, featured: v })); }} />
-          <MediaField label="Media (video, image or .html)" accept="video/*,image/*,.html,.htm" folder="projects" file_name={`project-${slug(f.title) || "untitled"}`} value={f.media} onChange={(v) => setF((x) => ({ ...x, media: v }))} toast={toast} placeholder="or paste media URL" />
+          <MediaField label="Media (video, image or .html)" accept="video/*,image/*,.html,.htm" folder="projects" scope="project" file_name={`project-${slug(f.title) || "untitled"}`} value={f.media} onChange={(v) => setF((x) => ({ ...x, media: v }))} toast={toast} placeholder="or paste media URL" />
         </div>
         <div className="admin-actions admin-actions--end">
-          <button className="admin-btn" onClick={() => setEditing(null)} aria-label="Cancel editing">Cancel</button>
+          <button className="admin-btn" onClick={() => { media_discard("project"); setEditing(null); }} aria-label="Cancel editing">Cancel</button>
           <button className="admin-btn admin-btn--accent" onClick={save} aria-label="Save project">Save Project</button>
         </div>
       </div>
@@ -469,6 +473,7 @@ function Services({ toast, ask }: PanelProps) {
   const [editing, setEditing] = useState<{ id: string | null; hadPrice: boolean } | null>(null);
   const [f, setF] = useState({ title: "", description: "", tags: "", price: "", visible: true, icon_url: "", cinema_url: "" });
   const dragSrc = useRef<number | null>(null);
+  useEffect(() => () => media_discard("service"), []);
 
   const load = useCallback(() => {
     db.dbGetServices().then((d) => { setList(Array.isArray(d) ? d : []); setError(""); }).catch(() => setError("Failed to load services."));
@@ -476,6 +481,7 @@ function Services({ toast, ask }: PanelProps) {
   useEffect(load, [load]);
 
   const open = (idx: number | null) => {
+    media_discard("service");
     const s = idx === null ? null : list![idx];
     setEditing({ id: s?.id ?? null, hadPrice: !!s?.price });
     setF({ title: s?.title ?? "", description: s?.description ?? "", tags: (s?.tags ?? []).join(", "), price: s?.price ?? "", visible: s ? s.visible !== false : true, icon_url: s?.icon_url ?? "", cinema_url: s?.cinema_url ?? "" });
@@ -490,13 +496,14 @@ function Services({ toast, ask }: PanelProps) {
     if (!editing?.id) payload.sort_order = list?.length ?? 0;
     try {
       await db.dbSaveService(editing?.id ?? null, payload);
+      media_commit("service", [f.icon_url, f.cinema_url]);
       setEditing(null); load(); toast("Service saved.");
     } catch (e) { toast(msg(e, "Failed to save service."), true); }
   };
 
   const del = (id: string) =>
     ask("Delete this service? This cannot be undone.", () =>
-      db.dbDeleteService(id).then(() => { load(); toast("Service deleted."); }).catch(() => toast("Failed to delete.", true)));
+      db.dbDeleteService(id).then(() => { const gone = list?.find((x) => x.id === id); [gone?.icon_url, gone?.cinema_url].forEach((u) => u && db.dbDeleteFile(u)); load(); toast("Service deleted."); }).catch(() => toast("Failed to delete.", true)));
 
   const toggle = (s: Service) =>
     db.dbSaveService(s.id, { visible: !(s.visible !== false) }).then(load).catch(() => toast("Failed to update.", true));
@@ -538,12 +545,12 @@ function Services({ toast, ask }: PanelProps) {
             <input type="text" id="sf-price" placeholder="Price text" value={f.price} onChange={(e) => setF({ ...f, price: e.target.value })} />
           </div>
           <ToggleField id="sf-visible" label="Visible on site" checked={f.visible} onChange={(v) => setF((x) => ({ ...x, visible: v }))} />
-          <MediaField label="Icon Image" accept="image/*" folder="services" file_name={`service-${slug(f.title) || "untitled"}-icon`} value={f.icon_url} onChange={(v) => setF((x) => ({ ...x, icon_url: v }))} toast={toast} placeholder="or paste icon URL" />
-          <MediaField label="Cinema Preview" accept="video/*,image/*" folder="services" file_name={`service-${slug(f.title) || "untitled"}-cinema`} value={f.cinema_url} onChange={(v) => setF((x) => ({ ...x, cinema_url: v }))} toast={toast} placeholder="or paste cinema URL" />
+          <MediaField label="Icon Image" accept="image/*" folder="services" scope="service" file_name={`service-${slug(f.title) || "untitled"}-icon`} value={f.icon_url} onChange={(v) => setF((x) => ({ ...x, icon_url: v }))} toast={toast} placeholder="or paste icon URL" />
+          <MediaField label="Cinema Preview" accept="video/*,image/*" folder="services" scope="service" file_name={`service-${slug(f.title) || "untitled"}-cinema`} value={f.cinema_url} onChange={(v) => setF((x) => ({ ...x, cinema_url: v }))} toast={toast} placeholder="or paste cinema URL" />
         </div>
         <div className="admin-actions">
           <button className="admin-btn admin-btn--accent" onClick={save} aria-label="Save service">Save Service</button>
-          <button className="admin-btn" onClick={() => setEditing(null)} aria-label="Cancel editing">Cancel</button>
+          <button className="admin-btn" onClick={() => { media_discard("service"); setEditing(null); }} aria-label="Cancel editing">Cancel</button>
         </div>
       </div>
 
@@ -648,6 +655,7 @@ function Settings({ toast }: Pick<PanelProps, "toast">) {
   const [socials, setSocials] = useState(blank_socials);
   const [video, setVideo] = useState("");
   const [error, setError] = useState("");
+  useEffect(() => () => media_discard("settings"), []);
 
   useEffect(() => {
     db.dbLoadSiteSettings()
@@ -668,6 +676,7 @@ function Settings({ toast }: Pick<PanelProps, "toast">) {
     try {
       await Promise.all(Object.entries(fields).map(([k, v]) => db.dbSaveSetting(k, v)));
       applyAccent(accent);
+      media_commit("settings", [video]);
       toast("Settings saved.");
     } catch { toast("Failed to save some settings.", true); }
   };
@@ -682,7 +691,7 @@ function Settings({ toast }: Pick<PanelProps, "toast">) {
           <ColorField id="set-accent" label="Global Accent Color" value={accent} onChange={setAccent} wide />
         </div>
         <div className="admin-form-grid">
-          <MediaField label="Hero Background Video" accept="video/mp4,video/webm" folder="hero" file_name="hero-background" value={video} onChange={setVideo} toast={toast} placeholder="or paste video URL" />
+          <MediaField label="Hero Background Video" accept="video/mp4,video/webm" folder="hero" scope="settings" file_name="hero-background" value={video} onChange={setVideo} toast={toast} placeholder="or paste video URL" />
         </div>
         <p className="panel-sub">Empty video shows pure black.</p>
       </div>
@@ -744,6 +753,7 @@ function Fonts({ toast }: Pick<PanelProps, "toast">) {
   const save_font = async (key: string, url: string) => {
     try {
       await db.dbSaveSetting(key, url);
+      media_commit("fonts", [url]);
       load();
       toast(url ? "Font saved. Reload the site to see it." : "Font removed.");
     } catch (e) {
@@ -768,7 +778,7 @@ function Fonts({ toast }: Pick<PanelProps, "toast">) {
                 label={`${slot.label} font`}
                 accept=".woff2"
                 folder="fonts"
-                file_name={slot.key.replace(/_/g, "-")}
+                scope="fonts" file_name={slot.key.replace(/_/g, "-")}
                 value={active[slot.key] ?? ""}
                 onChange={(v) => save_font(slot.key, v)}
                 toast={toast}

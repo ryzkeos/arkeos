@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
 import * as db from "@/lib/db";
+import { media_released, media_uploaded } from "./media_tx";
 
 export const MEDIA_BUCKET = "media";
 
@@ -113,6 +114,7 @@ export function MediaField({
   accept,
   folder,
   file_name: base_name,
+  scope,
   value,
   onChange,
   toast,
@@ -127,6 +129,7 @@ export function MediaField({
   accept: string;
   folder: string;
   file_name?: string;
+  scope: string;
   value: string;
   onChange: (v: string) => void;
   toast: PanelProps["toast"];
@@ -161,9 +164,8 @@ export function MediaField({
     try {
       await db.dbUpload(MEDIA_BUCKET, path, prepare ? prepare(picked) : picked);
       const next = `${db.dbPublicUrl(MEDIA_BUCKET, path)}?v=${Date.now()}`;
-      const old = value;
+      media_uploaded(scope, next, value);
       onChange(next);
-      if (old && old.split("?")[0] !== next.split("?")[0]) db.dbDeleteFile(old);
       setPicked(null);
       reset_input();
       toast("File uploaded.");
@@ -180,7 +182,10 @@ export function MediaField({
       setPicked(null);
       setFailed(false);
       reset_input();
-    } else onChange("");
+    } else {
+      media_released(scope, value);
+      onChange("");
+    }
   };
 
   const name = picked ? picked.name : value ? file_name(value) : "";
