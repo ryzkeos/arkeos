@@ -18,5 +18,5 @@ export const SETTINGS_COPY_ITEMS: CopyItem[] = [
   { page: "about", section: "Media", field: { path: "about_image", label: "About story image", type: "image" } },
   { page: "about", section: "Media", field: { path: "about_image_wide", label: "About wide image", type: "image" } },
   { page: "shared", section: "Navigation links", field: { path: "nav", label: "Navigation links", type: "links" } },
-  { page: "shared", section: "Preloader statuses", field: { path: "preloader.statuses", label: "Preloader statuses (4 steps, in order)", type: "list", max: 40 } },
+  { page: "shared", section: "Preloader statuses", field: { path: "preloader.statuses", label: "Four steps, in order", type: "list", max: 40 } },
 ];
