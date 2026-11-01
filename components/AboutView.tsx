@@ -83,7 +83,7 @@ export default function AboutView() {
           <SectionHeader copy={section(copy.values)} />
           <div className="val-grid" role="list">
             {values.map((v, i) => (
-              <div key={v.title} className="val-item reveal" role="listitem">
+              <div key={v.title} className="val-item reveal" role="listitem" data-num={String(i + 1).padStart(2, "0")}>
                 <span className="val-num">{String(i + 1).padStart(2, "0")}</span>
                 <h3 className="val-title">{v.title}</h3>
                 {v.desc && <p className="val-desc">{t(v.desc)}</p>}
