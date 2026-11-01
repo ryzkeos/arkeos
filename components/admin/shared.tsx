@@ -117,6 +117,7 @@ export function MediaField({
   hide_url,
   validate,
   prepare,
+  trailing,
   wide = true,
 }: {
   label: string;
@@ -129,6 +130,7 @@ export function MediaField({
   hide_url?: boolean;
   validate?: (file: File) => Promise<string | null> | string | null;
   prepare?: (file: File) => File;
+  trailing?: React.ReactNode;
   wide?: boolean;
 }) {
   const input = useRef<HTMLInputElement>(null);
@@ -200,7 +202,12 @@ export function MediaField({
           {(value || picked) && <IconBtn icon="x" label={picked ? `Discard chosen ${label} file` : `Remove ${label}`} onClick={remove} danger disabled={busy} />}
         </div>
       </div>
-      {!hide_url && <input type="text" value={value} placeholder={placeholder} aria-label={`${label} URL`} onChange={(e) => onChange(e.target.value)} />}
+      {!hide_url && (
+        <div className="admin-field-row">
+          <input type="text" value={value} placeholder={placeholder} aria-label={`${label} URL`} onChange={(e) => onChange(e.target.value)} />
+          {trailing}
+        </div>
+      )}
     </div>
   );
 }
@@ -399,4 +406,3 @@ export function ToggleField({
   );
 }
 
-export const CINEMA_TYPES: [string, string][] = [["video", "Video"], ["image", "Image"], ["html", "HTML/iframe"]];

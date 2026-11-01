@@ -6,7 +6,9 @@
 .copy-list legend { padding:0 0.5rem; font-family:var(--font-label); font-size:0.58rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--color-accent); }
 .copy-row { display:flex; flex-direction:column; gap:0.8rem; padding:1rem; border:1px solid var(--color-border); background:var(--color-surface); }
 .copy-row--plain { flex-direction:row; align-items:center; flex-wrap:wrap; }
-.copy-row--plain input { flex:1; min-width:12rem; }
+
 .copy-pages { display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:1.6rem; }
 .copy-save { position:sticky; bottom:0; padding:1rem 0; background:var(--color-bg); display:flex; gap:0.7rem; align-items:center; }
 .copy-empty { color:var(--color-muted); font-size:0.78rem; }
+.copy-row--plain > input { flex: 1 1 12rem; min-width: 0; height: var(--control-h); padding: 0 0.85rem; background: rgba(245,245,245,0.04); border: 1px solid var(--color-border); border-radius: 0; color: var(--color-text); font-family: var(--font-ui); font-size: 0.82rem; outline: none; white-space: nowrap; text-overflow: ellipsis; }
+.copy-row--plain > input:focus { border-color: var(--color-accent); text-overflow: clip; }
