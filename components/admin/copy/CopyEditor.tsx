@@ -1,11 +1,12 @@
 "use client";
 import "./copy_editor.css";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { DEFAULTS, type PageKey } from "@/defaults";
 import * as db from "@/lib/db";
 import { COPY_SETTING_KEY } from "@/lib/copy";
 import SelectModal from "@/components/SelectModal";
 import { Checkbox, IconBtn, MediaField, PanelHead, msg, slug, type PanelProps } from "../shared";
+import { media_commit, media_discard, media_released } from "../media_tx";
 import { LINK_FIELDS, type CopyField, type CopyItem } from "./copy_schema";
 
 type Row = Record<string, string>;
@@ -186,6 +187,8 @@ export default function CopyEditor({ items, toast, title, sub, saved_label, save
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  const scope = `copy-${useId()}`;
+  useEffect(() => () => media_discard(scope), [scope]);
 
   useEffect(() => {
     let live = true;
@@ -239,6 +242,12 @@ export default function CopyEditor({ items, toast, title, sub, saved_label, save
         }
         await db.dbSaveSetting(COPY_SETTING_KEY[page], Object.keys(out).length ? JSON.stringify(out) : "");
       }
+      const kept: string[] = [];
+      Object.values(vals).forEach((v) => {
+        if (typeof v === "string") kept.push(v);
+        else if (Array.isArray(v)) v.forEach((r) => (typeof r === "string" ? kept.push(r) : Object.values(r).forEach((x) => kept.push(x))));
+      });
+      media_commit(scope, kept);
       toast(`${saved_label} saved.`);
     } catch (e) {
       toast(msg(e, "Save failed."), true);
@@ -318,6 +327,7 @@ export default function CopyEditor({ items, toast, title, sub, saved_label, save
                 </div>
                 {row[sf.path + ON_SUFFIX] && (
                   <MediaField
+                    scope={scope}
                     label={`Photo (${i + 1}). Required while the photo is on`}
                     accept="image/*"
                     folder={`copy/${it.page}/team`}
@@ -355,7 +365,7 @@ export default function CopyEditor({ items, toast, title, sub, saved_label, save
     if (f.type === "list" || f.type === "links") return render_list(it, v);
     const text = v as string;
     const reset = (
-      <button type="button" className="admin-btn admin-btn--danger" aria-label={`Reset ${f.label} to default`} disabled={!text} onClick={() => set(it, "")}>
+      <button type="button" className="admin-btn admin-btn--danger" aria-label={`Reset ${f.label} to default`} disabled={!text} onClick={() => { if (f.type === "image" || f.type === "media") media_released(scope, text); set(it, ""); }}>
         Reset
       </button>
     );
@@ -382,6 +392,7 @@ export default function CopyEditor({ items, toast, title, sub, saved_label, save
       return (
         <div className="copy-field" key={key_of(it)}>
           <MediaField
+            scope={scope}
             label={f.label}
             accept={f.type === "media" ? "video/*,image/*,.html,.htm" : "image/*"}
             folder={`copy/${it.page}`}
