@@ -4,13 +4,13 @@ Company website and project portfolio of Arkeos.
 
 ## About
 
-This is the website for Arkeos, my small studio that builds websites, apps and motion work. It does two jobs. It is the company site where people can see what we offer and get in touch, and it is my portfolio, a place to show my projects and what I can do when building a website.
+This is the website for Arkeos, my small studio that builds websites, apps and motion work. It is our company site and my portfolio in one place. Visitors can look through our projects and services, read about the studio, and get in touch to start a project.
 
-The site uses real content only, with no placeholders. Projects, services and page text come from a database, so I can update them without changing code, and any section with nothing in it stays hidden. It also shows whether I am taking new projects.
+It also shows what I can do as a web developer. Every page is custom built, with its own layouts, animations and media, from the Home page to the Contact form.
+
+Projects, services and page text are stored in a database, so updates don't need a code change, and a section with nothing to show stays hidden. The site also shows whether we are taking new projects.
 
 Pages: Home, Projects, Services, About, Contact and Privacy.
-
-It is still a work in progress, so some things will change.
 
 ## Credits
 
