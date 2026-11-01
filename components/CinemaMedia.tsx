@@ -1,12 +1,11 @@
 "use client";
 import { useEffect, useRef } from "react";
 import { safeUrl } from "@/lib/gsap";
+import { resolve_media_type } from "@/lib/media_type";
 import type { CinemaType } from "@/lib/types";
-import { media_kind } from "./ProjectMedia";
 
-export function CinemaBg({ url, type, active = false }: { url: string; type?: CinemaType; active?: boolean }) {
+export function CinemaBg({ url, type, active = false }: { url: string; type?: CinemaType | null; active?: boolean }) {
   const src = safeUrl(url);
-  const kind = type ?? media_kind(url);
   const video = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -21,7 +20,8 @@ export function CinemaBg({ url, type, active = false }: { url: string; type?: Ci
   }, [active]);
 
   if (!src) return null;
-  if (kind === "video") return <video ref={video} src={src} muted loop playsInline preload="metadata" aria-hidden="true" />;
+  const kind = resolve_media_type(src, type);
+  if (kind === "video") return <video ref={video} src={src.includes("#") ? src : `${src}#t=0.001`} muted loop playsInline preload="metadata" aria-hidden="true" />;
   if (kind === "html") return active ? <iframe src={src} tabIndex={-1} title="" sandbox="allow-scripts" aria-hidden="true" /> : null;
   // eslint-disable-next-line @next/next/no-img-element
   return <img src={src} alt="" aria-hidden="true" draggable={false} />;

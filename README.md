@@ -64,6 +64,8 @@ Project cards play video and render `.html` media (sandboxed) automatically, and
 
 The database is the source of truth for projects, services and settings. The `defaults/` folder holds the default text and fallback lists. When the database has content it wins, otherwise `defaults/` is used. If both are empty the section is hidden or shows a short empty state.
 
+Content cache: settings, projects and services are stored in `localStorage` (keys `arkeos_cache_v1:*`) after every successful fetch. On the next visit the cached data renders before the first paint, then the database is fetched in the background and the page updates only if the data changed. Fetches start when the app loads, are shared between components, and are skipped for 15 seconds after a success. If the database cannot be reached, cached data stays and, with no cache, the defaults are shown. Admin edits show on the next load after the background refresh.
+
 ### Copy system
 
 Every text on the site comes from `defaults/` (one file per page, plus `shared.ts`) and can be overridden in the admin under Website Info.
@@ -89,7 +91,11 @@ Check this list before creating a new helper or component.
 - `components/PageHero.tsx`: thin wrapper over `HeroLayout` for older call sites.
 - `components/SectionHeader.tsx`: section label, title lines, intro and right aligned button.
 - `styles/section_header.css`: css for `SectionHeader`.
-- `components/ServiceCard.tsx`: the home "What We Do" card, built from a service (image always visible, video or html plays on hover).
+- `components/ServiceCard.tsx` and `styles/service_card.css`: the home "What We Do" card, built from a service (number, icon, title, text, tags, price, image always visible, video or html plays on hover).
+- `components/ServiceRow.tsx`: the row used on the services page, same look as the card.
+- `lib/cache.ts`: versioned localStorage helpers (`cache_read`, `cache_write`, `cache_clear`).
+- `lib/content_store.ts`: stale-while-revalidate stores for `settings_store`, `projects_store`, `services_store` and `warm_content`.
+- `lib/use_store.ts`: `use_store(store)` hook and `use_isomorphic_layout_effect`.
 - `components/Btn.tsx`, `SectionH2.tsx`, `SocialIcons.tsx`, `CinemaMedia.tsx`, `SiteSettings.tsx` (`useSiteSettings`): kept as is.
 - `components/admin/copy/copy_schema.ts`: `CopyField`, `COPY_SCHEMA`, `PAGE_LABELS`.
 - `components/admin/copy/schema/<page>.ts`: editable fields for each page.
