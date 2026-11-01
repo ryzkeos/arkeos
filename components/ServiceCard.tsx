@@ -16,7 +16,7 @@ export default function ServiceCard({ service, icon, index }: Props) {
 
   return (
     <article
-      className="svc-card reveal"
+      className="svc-card sweep-line sweep-line--bottom reveal"
       role="listitem"
       {...handlers}
       tabIndex={service.cinema_url ? 0 : undefined}
