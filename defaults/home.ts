@@ -23,5 +23,5 @@ export const home: HomeCopy = {
     cta: { label: "View All Projects", href: "/projects" },
   },
   work_count: 5,
-  why: { label: "Why {name}", lines: ["BUILT", "DIFFERENT."], intro: "Our studio is small by choice. You work with the people who build your project, and every detail gets the same care from the first call to launch.", cta: { label: "Our Story", href: "/about" } },
+  why: { label: "Why {name}", lines: ["BUILT", "DIFFERENT."], intro: "Our studio is small by choice. You work with the people who build your project, and every detail gets the same care from the first call to launch.", cta: null },
 };

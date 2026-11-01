@@ -42,7 +42,7 @@ export function useArkeosAnimations({ pageHero = false, ready: readyProp = true 
       });
       q(".reveal").forEach((el, i) => {
         if (reduced) return void gsap.set(el, { opacity: 1, y: 0 });
-        const inGroup = el.closest(".pillars, .proj-grid, .why-grid, .svc-grid, .val-grid, .team-grid");
+        const inGroup = el.closest(".svc-cards, .proj-grid, .why-grid, .svc-grid, .val-grid, .team-grid");
         gsap.to(el, {
           opacity: 1, y: 0, duration: 0.9, ease: "power2.out", delay: inGroup ? i * 0.07 : 0,
           scrollTrigger: { trigger: el, start: "top 84%", once: true },
@@ -63,9 +63,7 @@ export function useArkeosAnimations({ pageHero = false, ready: readyProp = true 
             scrollTrigger: { trigger: ".svc-grid", start: "top 82%", once: true },
           });
       }
-      ["#btn-all", "#btn-svc", "#btn-cta"].forEach((sel) => {
-        const el = document.querySelector(sel);
-        if (!el) return;
+      q("#btn-all, #btn-svc, #btn-cta, .sec-hdr .btn").forEach((el) => {
         if (reduced) return void gsap.set(el, { opacity: 1, y: 0 });
         gsap.to(el, { opacity: 1, y: 0, duration: 0.65, ease: "power2.out", scrollTrigger: { trigger: el, start: "top 88%", once: true } });
       });
@@ -84,7 +82,7 @@ export function useArkeosAnimations({ pageHero = false, ready: readyProp = true 
       q(".section-lbl, .cta-lbl").forEach((el) => {
         if (el.closest(".page-hero")) return;
         if (reduced) return void gsap.set(el, { opacity: 1, y: 0 });
-        gsap.from(el, { opacity: 0, y: 8, duration: 0.6, ease: "power2.out", scrollTrigger: { trigger: el, start: "top 88%", once: true } });
+        gsap.fromTo(el, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out", scrollTrigger: { trigger: el, start: "top 88%", once: true } });
       });
       q(".about-img-wrap").forEach((el) => {
         const full = el.classList.contains("about-img-full");

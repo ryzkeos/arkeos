@@ -82,22 +82,57 @@ function collect<T>(rows: unknown, convert: (v: unknown) => T | null): T[] {
   return out;
 }
 
+export const fallback_projects = (): Project[] =>
+  bySortOrder(collect(DEFAULTS.projects.projects, toProject).filter((p) => p.visible));
+
+export const fallback_services = (): Service[] =>
+  bySortOrder(collect(DEFAULTS.services.services, toService).filter((s) => s.visible));
+
+export function parse_projects(raw: unknown): Project[] | null {
+  return Array.isArray(raw) ? collect(raw, toProject).filter((p) => p.visible) : null;
+}
+
+export function parse_services(raw: unknown): Service[] | null {
+  return Array.isArray(raw) ? collect(raw, toService).filter((s) => s.visible) : null;
+}
+
+export function parse_settings(raw: unknown): SiteSettings | null {
+  if (!isObj(raw)) return null;
+  const out: Record<string, string> = {};
+  for (const k of Object.keys(raw)) {
+    if (k === "__proto__" || k === "constructor" || k === "prototype") continue;
+    const v = raw[k];
+    if (typeof v === "string") out[k] = v;
+  }
+  return out as SiteSettings;
+}
+
+export async function fetch_projects(): Promise<Project[]> {
+  const rows = await dbGet<unknown>("projects", "select=*&visible=eq.true&order=sort_order.asc");
+  const items = parse_projects(rows) ?? [];
+  return items.length > 0 ? items : fallback_projects();
+}
+
+export async function fetch_services(): Promise<Service[]> {
+  const rows = await dbGet<unknown>("services", "select=*&visible=eq.true&order=sort_order.asc");
+  const items = parse_services(rows) ?? [];
+  return items.length > 0 ? items : fallback_services();
+}
+
 export async function loadProjects(): Promise<Project[]> {
   try {
-    const rows = await dbGet<unknown>("projects", "select=*&visible=eq.true&order=sort_order.asc");
-    const items = collect(rows, toProject).filter((p) => p.visible);
-    if (items.length > 0) return items;
-  } catch {}
-  return bySortOrder(collect(DEFAULTS.projects.projects, toProject).filter((p) => p.visible));
+    return await fetch_projects();
+  } catch {
+    return fallback_projects();
+  }
 }
 
 export async function loadServices(): Promise<Service[]> {
   try {
-    const rows = await dbGet<unknown>("services", "select=*&visible=eq.true&order=sort_order.asc");
-    const items = collect(rows, toService).filter((s) => s.visible);
-    if (items.length > 0) return items;
-  } catch {}
-  return bySortOrder(collect(DEFAULTS.services.services, toService).filter((s) => s.visible));
+    return await fetch_services();
+  } catch {
+    return fallback_services();
+  }
 }
 
 export function getIdentity(s: SiteSettings) {
