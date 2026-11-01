@@ -29,7 +29,6 @@ export default function ServiceCard({ service, icon, index }: Props) {
       <div className="svc-card__top">
         <div className="svc-card__id">
           <span className="svc-card__num" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
-          {service.price && <span className="svc-card__price">{service.price}</span>}
         </div>
         <div className="svc-card__ico" aria-hidden="true">
           {icon_src ? (
