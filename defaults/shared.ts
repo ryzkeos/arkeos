@@ -18,7 +18,7 @@ export const shared: SharedCopy = {
   availability: { available_text: "Now Taking Projects", booked_text: "Currently Booked" },
   menu: { open_label: "Menu", close_label: "Close" },
   footer: { rights_text: "© {year} {name}. All rights reserved.", privacy_label: "Privacy Policy" },
-  cta: { label: "Ready to Begin", headline: "LET'S BUILD SOMETHING EPIC TOGETHER.", button: "Contact Us", deco_a_type: "image", deco_a_url: "", deco_b_type: "image", deco_b_url: "", deco_c_type: "image", deco_c_url: "", deco_d_type: "image", deco_d_url: "" },
+  cta: { label: "Ready to Begin", headline: "LET'S BUILD SOMETHING EPIC TOGETHER.", button: "Contact Us", deco_a_url: "", deco_b_url: "", deco_c_url: "", deco_d_url: "" },
   buttons: {
     view_all_projects: "View All Projects",
     view_all_services: "View All Services",
@@ -28,5 +28,5 @@ export const shared: SharedCopy = {
   },
   preloader: { statuses: ["Loading", "Preparing", "Almost Ready", "Welcome"] },
   hero: { deco: "ARKEOS", hover_word: "LEGACY", scroll_label: "Scroll down" },
-  section_media: { type: "image", url: "" },
+  section_media: { url: "" },
 };

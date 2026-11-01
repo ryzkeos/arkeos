@@ -15,13 +15,9 @@ export type SharedCopy = {
     label: string;
     headline: string;
     button: string;
-    deco_a_type: string;
     deco_a_url: string;
-    deco_b_type: string;
     deco_b_url: string;
-    deco_c_type: string;
     deco_c_url: string;
-    deco_d_type: string;
     deco_d_url: string;
   };
   buttons: {
@@ -33,7 +29,7 @@ export type SharedCopy = {
   };
   preloader: { statuses: string[] };
   hero: { deco: string; hover_word: string; scroll_label: string };
-  section_media: { type: string; url: string };
+  section_media: { url: string };
 };
 
 export type HomeCopy = {

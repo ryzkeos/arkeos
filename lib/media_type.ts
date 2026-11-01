@@ -1,17 +1,21 @@
 import type { CinemaType } from "./types";
 
-const VIDEO_EXT = new Set(["mp4", "webm", "mov", "m4v", "ogv"]);
-const IMAGE_EXT = new Set(["jpg", "jpeg", "png", "webp", "gif", "avif", "svg"]);
+const VIDEO_EXT = new Set(["mp4", "webm", "mov", "m4v", "ogv", "ogg"]);
 const HTML_EXT = new Set(["html", "htm"]);
 
-export function resolve_media_type(url: string, declared?: CinemaType | null): CinemaType {
+export function media_ext(url: string): string {
   let path = url;
   try {
     path = new URL(url, "https://placeholder.invalid").pathname;
-  } catch {}
-  const ext = path.split(".").pop()?.toLowerCase() ?? "";
+  } catch {
+    path = url.split(/[?#]/)[0];
+  }
+  return path.split(".").pop()?.toLowerCase() ?? "";
+}
+
+export function media_kind(url: string): CinemaType {
+  const ext = media_ext(url);
   if (VIDEO_EXT.has(ext)) return "video";
-  if (IMAGE_EXT.has(ext)) return "image";
   if (HTML_EXT.has(ext)) return "html";
-  return declared ?? "image";
+  return "image";
 }
