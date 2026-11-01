@@ -2,11 +2,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as db from "@/lib/db";
 import { NAV } from "@/lib/data";
-import type { CinemaType, Inquiry, Project, Service, SiteSettings } from "@/lib/types";
+import { DEFAULTS } from "@/defaults";
+import type { Inquiry, Project, Service, SiteSettings } from "@/lib/types";
 import { applyAccent } from "@/components/SiteSettings";
 import IdentityPanel from "./IdentityPanel";
 import WebsiteInfoPanel from "./WebsiteInfoPanel";
-import { CINEMA_TYPES, ColorField, IconBtn, MediaField, PanelHead, ToggleField, isHttpUrl, msg, type PanelProps } from "./shared";
+import CopyEditor from "./copy/CopyEditor";
+import { SETTINGS_COPY_ITEMS } from "./copy/schema/settings";
+import { ColorField, IconBtn, MediaField, PanelHead, ToggleField, isHttpUrl, msg, type PanelProps } from "./shared";
 
 type Section = "inquiries" | "projects" | "services" | "availability" | "settings" | "website_info" | "identity" | "fonts" | "analytics";
 
@@ -28,16 +31,39 @@ export default function AdminApp() {
   const [confirmState, setConfirmState] = useState<{ text: string; onYes: () => void } | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  useEffect(() => {
-    setAuthed(!!db.dbRestoreSession()?.access_token);
-    setBooted(true);
-  }, []);
-
   const showToast = useCallback((text: string, err = false) => {
     setToast({ text, err });
     clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setToast(null), 3000);
   }, []);
+
+  useEffect(() => {
+    let live = true;
+    if (!db.dbRestoreSession()?.access_token) {
+      setBooted(true);
+      return;
+    }
+    db.dbValidateSession().then((ok) => {
+      if (!live) return;
+      setAuthed(ok);
+      setBooted(true);
+      if (!ok) showToast("Session expired. Please log in again.", true);
+    });
+    return () => {
+      live = false;
+    };
+  }, [showToast]);
+
+  useEffect(() => {
+    const on_unauthorized = () => {
+      setAuthed(false);
+      setMenuOpen(false);
+      setConfirmState(null);
+      showToast("Session expired. Please log in again.", true);
+    };
+    window.addEventListener(db.UNAUTHORIZED_EVENT, on_unauthorized);
+    return () => window.removeEventListener(db.UNAUTHORIZED_EVENT, on_unauthorized);
+  }, [showToast]);
 
   const ask = useCallback((text: string, onYes: () => void) => setConfirmState({ text, onYes }), []);
 
@@ -441,7 +467,7 @@ function Services({ toast, ask }: PanelProps) {
   const [list, setList] = useState<Service[] | null>(null);
   const [error, setError] = useState("");
   const [editing, setEditing] = useState<{ id: string | null; hadPrice: boolean } | null>(null);
-  const [f, setF] = useState({ title: "", description: "", tags: "", price: "", visible: true, icon_url: "", cinema_url: "", cinema_type: "video" as CinemaType });
+  const [f, setF] = useState({ title: "", description: "", tags: "", price: "", visible: true, icon_url: "", cinema_url: "" });
 
   const load = useCallback(() => {
     db.dbGetServices().then((d) => { setList(Array.isArray(d) ? d : []); setError(""); }).catch(() => setError("Failed to load services."));
@@ -451,13 +477,13 @@ function Services({ toast, ask }: PanelProps) {
   const open = (idx: number | null) => {
     const s = idx === null ? null : list![idx];
     setEditing({ id: s?.id ?? null, hadPrice: !!s?.price });
-    setF({ title: s?.title ?? "", description: s?.description ?? "", tags: (s?.tags ?? []).join(", "), price: s?.price ?? "", visible: s ? s.visible !== false : true, icon_url: s?.icon_url ?? "", cinema_url: s?.cinema_url ?? "", cinema_type: s?.cinema_type ?? "video" });
+    setF({ title: s?.title ?? "", description: s?.description ?? "", tags: (s?.tags ?? []).join(", "), price: s?.price ?? "", visible: s ? s.visible !== false : true, icon_url: s?.icon_url ?? "", cinema_url: s?.cinema_url ?? "" });
   };
 
   const save = async () => {
     if (!f.title.trim()) return toast("Title is required.", true);
     const price = f.price.trim();
-    const payload: Partial<Service> = { title: f.title.trim(), description: f.description.trim(), tags: splitTags(f.tags), visible: f.visible, icon_url: f.icon_url.trim() || null, cinema_url: f.cinema_url.trim() || null, cinema_type: f.cinema_type };
+    const payload: Partial<Service> = { title: f.title.trim(), description: f.description.trim(), tags: splitTags(f.tags), visible: f.visible, icon_url: f.icon_url.trim() || null, cinema_url: f.cinema_url.trim() || null };
     if (price) payload.price = price;
     else if (editing?.hadPrice) payload.price = null;
     if (!editing?.id) payload.sort_order = list?.length ?? 0;
@@ -503,12 +529,6 @@ function Services({ toast, ask }: PanelProps) {
           <ToggleField id="sf-visible" label="Visible on site" checked={f.visible} onChange={(v) => setF((x) => ({ ...x, visible: v }))} />
           <MediaField label="Icon Image" accept="image/*" folder="services" value={f.icon_url} onChange={(v) => setF((x) => ({ ...x, icon_url: v }))} toast={toast} placeholder="or paste icon URL" />
           <MediaField label="Cinema Preview" accept="video/*,image/*" folder="services" value={f.cinema_url} onChange={(v) => setF((x) => ({ ...x, cinema_url: v }))} toast={toast} placeholder="or paste cinema URL" />
-          <div className="form-group">
-            <label htmlFor="sf-cinema-type">Cinema type</label>
-            <select id="sf-cinema-type" value={f.cinema_type} onChange={(e) => setF({ ...f, cinema_type: e.target.value as CinemaType })}>
-              {CINEMA_TYPES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-            </select>
-          </div>
         </div>
         <div className="admin-actions">
           <button className="admin-btn admin-btn--accent" onClick={save} aria-label="Save service">Save Service</button>
@@ -524,7 +544,6 @@ function Services({ toast, ask }: PanelProps) {
           return (
             <div key={s.id} className="project-row" aria-label={`Service: ${s.title}`}>
               <div className="project-row__info"><strong>{s.title || "Untitled"}</strong><span className="project-row__tags">{s.description ? s.description.slice(0, 60) + "…" : ""}</span></div>
-              <span className={`vis-badge ${vis ? "vis--on" : "vis--off"}`}>{vis ? "Visible" : "Hidden"}</span>
               <div className="admin-actions">
                 <IconBtn icon="edit" label={`Edit ${s.title}`} onClick={() => open(i)} />
                 <IconBtn icon={vis ? "eye_off" : "eye"} label={vis ? `Hide ${s.title}` : `Show ${s.title}`} onClick={() => toggle(s)} />
@@ -539,44 +558,97 @@ function Services({ toast, ask }: PanelProps) {
 }
 
 function Availability({ toast }: Pick<PanelProps, "toast">) {
-  const [available, setAvailable] = useState(true);
+  const [available, setAvailable] = useState<boolean | null>(null);
+  const [texts, setTexts] = useState({ open: DEFAULTS.shared.availability.available_text, booked: DEFAULTS.shared.availability.booked_text });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [attempt, setAttempt] = useState(0);
+  const seg = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    db.dbGet<{ value: string }[]>("site_settings", "key=eq.availability&select=value")
-      .then((d) => setAvailable((d?.[0]?.value ?? "available") !== "booked"))
-      .catch(() => {});
-  }, []);
+    let live = true;
+    setError("");
+    db.dbLoadSiteSettings()
+      .then((r: SiteSettings) => {
+        if (!live) return;
+        let copy: { availability?: { available_text?: unknown; booked_text?: unknown } } = {};
+        try { copy = r.copy_shared ? JSON.parse(r.copy_shared) : {}; } catch {}
+        const pick = (v: unknown, fallback: string) => (typeof v === "string" && v.trim() ? v.trim() : fallback);
+        setTexts({
+          open: pick(copy?.availability?.available_text, DEFAULTS.shared.availability.available_text),
+          booked: pick(copy?.availability?.booked_text, DEFAULTS.shared.availability.booked_text),
+        });
+        setAvailable((r.availability ?? "available") !== "booked");
+      })
+      .catch(() => { if (live) setError("Failed to load availability."); });
+    return () => { live = false; };
+  }, [attempt]);
 
   const change = async (next: boolean) => {
+    if (saving || available === null || next === available) return;
+    const prev = available;
     setAvailable(next);
+    setSaving(true);
     try {
       await db.dbSaveSetting("availability", next ? "available" : "booked");
       toast("Availability updated.");
     } catch {
-      setAvailable(!next);
-      toast("Failed to update.", true);
+      setAvailable(prev);
+      toast("Failed to update. Your change was reverted.", true);
+    } finally {
+      setSaving(false);
     }
   };
 
+  const on_key = (e: React.KeyboardEvent) => {
+    const forward = e.key === "ArrowRight" || e.key === "ArrowDown";
+    const back = e.key === "ArrowLeft" || e.key === "ArrowUp";
+    if (!forward && !back) return;
+    e.preventDefault();
+    change(back);
+    seg.current?.querySelectorAll<HTMLButtonElement>("button")[back ? 0 : 1]?.focus();
+  };
+
+  const loading = available === null && !error;
+  const text = available ? texts.open : texts.booked;
+  const options: [boolean, string][] = [[true, "Taking projects"], [false, "Currently booked"]];
+
   return (
     <div className="admin-panel" id="panel-availability" style={{ display: "block" }}>
-      <PanelHead title="AVAILABILITY" sub="Toggle studio status. Reflects live in the site header badge instantly." />
-      <div className="avail-card">
-        <div className="avail-status">
-          <div className={`avail-dot ${available ? "avail-dot--green" : "avail-dot--red"}`} aria-hidden="true" />
-          <span className="avail-label-text">{available ? "Now Taking Projects" : "Currently Booked"}</span>
+      <PanelHead title="AVAILABILITY" sub="Choose the studio status. The site header badge follows it within seconds." error={error} />
+      {error && (
+        <div className="admin-actions" style={{ marginBottom: "1.2rem" }}>
+          <button type="button" className="admin-btn" onClick={() => setAttempt((n) => n + 1)}>Retry</button>
         </div>
-        <div className="avail-toggle-wrap">
-          <span className="avail-toggle-label">Available</span>
-          <label className="toggle-switch" aria-label="Toggle studio availability">
-            <input type="checkbox" checked={available} onChange={(e) => change(e.target.checked)} />
-            <span className="toggle-slider" />
-          </label>
-          <span className="avail-toggle-label">Taking clients</span>
+      )}
+      <div className="avail-panel">
+        <div className={`avail-status${available === null ? "" : available ? " avail-status--open" : " avail-status--booked"}`} aria-busy={loading || saving} role="status">
+          <span className="avail-status__eyebrow">Current status</span>
+          <span className="avail-status__text">{loading ? "Loading…" : available === null ? "Unavailable" : text}</span>
         </div>
-        <p style={{ fontSize: "0.75rem", color: "var(--color-muted)", lineHeight: 1.7, maxWidth: 320 }}>
-          Switching to &quot;Currently Booked&quot; updates the header badge sitewide within seconds. No code change required.
-        </p>
+        <div ref={seg} className="avail-seg" role="radiogroup" aria-label="Studio availability" onKeyDown={on_key}>
+          {options.map(([value, label]) => (
+            <button
+              key={label}
+              type="button"
+              role="radio"
+              aria-checked={available === value}
+              tabIndex={available === value || (available === null && value) ? 0 : -1}
+              className="avail-seg__btn"
+              disabled={available === null || saving}
+              aria-busy={saving && available === value}
+              onClick={() => change(value)}
+            >
+              {saving && available === value ? "Saving…" : label}
+            </button>
+          ))}
+        </div>
+        {available !== null && (
+          <div className="avail-preview">
+            <span className="avail-status__eyebrow">Header badge preview</span>
+            <span className="avail-preview__badge" title={text}>{text}</span>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -656,9 +728,16 @@ function Settings({ toast }: Pick<PanelProps, "toast">) {
         </div>
       </div>
 
-      <div className="admin-actions">
+      <div className="admin-actions" style={{ marginBottom: "2.4rem" }}>
         <button className="admin-btn admin-btn--accent" onClick={save} aria-label="Save all site settings">Save Settings</button>
       </div>
+
+      <CopyEditor
+        items={SETTINGS_COPY_ITEMS}
+        toast={toast}
+        saved_label="Media, links and preloader"
+        save_label="Save media and links"
+      />
     </div>
   );
 }

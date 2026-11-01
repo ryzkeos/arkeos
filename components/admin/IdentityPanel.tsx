@@ -5,7 +5,7 @@ const MOVED_ITEMS = [
   ["Studio name, tagline, email, response time, founded year", "Shared"],
   ["Hero headline and hero background word", "Home and Shared"],
   ["Call to action text", "Shared"],
-  ["About story, numbers, values, team and about images", "About"],
+  ["About story, numbers, values and team", "About"],
   ["Process steps", "Services"],
 ];
 

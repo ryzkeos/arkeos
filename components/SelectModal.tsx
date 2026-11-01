@@ -3,6 +3,7 @@ import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { lenisRef } from "@/lib/lenis";
 import { prefersReducedMotion } from "@/lib/gsap";
+import "@/styles/select_modal.css";
 
 type Props = {
   id: string;
@@ -13,6 +14,9 @@ type Props = {
   options: string[];
   value: string;
   full?: boolean;
+  variant?: "site" | "admin";
+  trailing?: React.ReactNode;
+  disabled?: boolean;
   on_change: (value: string) => void;
 };
 
@@ -26,7 +30,8 @@ function ChevronDown() {
   );
 }
 
-export default function SelectModal({ id, name, label, placeholder, close_label, options, value, full, on_change }: Props) {
+export default function SelectModal({ id, name, label, placeholder, close_label, options, value, full, variant = "site", trailing, disabled, on_change }: Props) {
+  const admin = variant === "admin";
   const uid = useId();
   const title_id = `${uid}-title`;
   const [open, set_open] = useState(false);
@@ -110,7 +115,7 @@ export default function SelectModal({ id, name, label, placeholder, close_label,
   };
 
   const modal = open && (
-    <div className={closing ? "select-modal is-closing" : "select-modal"} onKeyDown={on_key}>
+    <div className={`select-modal${closing ? " is-closing" : ""}${admin ? " select-modal--admin" : ""}`} onKeyDown={on_key}>
       <div className="select-modal__backdrop" onClick={() => close_modal()} aria-hidden="true" />
       <div ref={panel} className="select-modal__panel" role="dialog" aria-modal="true" aria-labelledby={title_id}>
         <div className="select-modal__head">
@@ -151,26 +156,46 @@ export default function SelectModal({ id, name, label, placeholder, close_label,
     </div>
   );
 
+  const trigger_btn = (
+    <button
+      ref={trigger}
+      type="button"
+      id={id}
+      className={admin ? "select-trigger select-trigger--admin" : "select-trigger"}
+      aria-haspopup="dialog"
+      aria-expanded={open}
+      aria-labelledby={`${id}-label ${id}-value`}
+      disabled={disabled}
+      onClick={open_modal}
+    >
+      <span id={`${id}-value`} className={value ? "select-value" : "select-value is-placeholder"}>{value || placeholder}</span>
+      <ChevronDown />
+    </button>
+  );
+  const portal = typeof document !== "undefined" && modal ? createPortal(modal, document.body) : null;
+
+  if (admin) {
+    return (
+      <div className={`form-group admin-select${full ? " admin-form-full" : ""}`}>
+        <label id={`${id}-label`} htmlFor={id}>{label}</label>
+        <div className="admin-field-row">
+          {trigger_btn}
+          {trailing}
+        </div>
+        <input type="hidden" name={name} value={value} />
+        {portal}
+      </div>
+    );
+  }
+
   return (
     <div className={`form-field${full ? " form-full" : ""}`}>
       <label id={`${id}-label`} htmlFor={id}>{label}</label>
       <div className="input-wrap">
-        <button
-          ref={trigger}
-          type="button"
-          id={id}
-          className="select-trigger"
-          aria-haspopup="dialog"
-          aria-expanded={open}
-          aria-labelledby={`${id}-label ${id}-value`}
-          onClick={open_modal}
-        >
-          <span id={`${id}-value`} className={value ? "select-value" : "select-value is-placeholder"}>{value || placeholder}</span>
-          <ChevronDown />
-        </button>
+        {trigger_btn}
         <input type="hidden" name={name} value={value} />
       </div>
-      {typeof document !== "undefined" && modal ? createPortal(modal, document.body) : null}
+      {portal}
     </div>
   );
 }

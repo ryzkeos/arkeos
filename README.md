@@ -94,17 +94,20 @@ Check this list before creating a new helper or component.
 - `components/admin/copy/copy_schema.ts`: `CopyField`, `COPY_SCHEMA`, `PAGE_LABELS`.
 - `components/admin/copy/schema/<page>.ts`: editable fields for each page.
 - `components/admin/copy/CopyEditor.tsx`: generic admin form built from the schema.
+- `components/admin/copy/schema/settings.ts`: copy fields edited in Site Settings. Both screens merge into the stored copy JSON and only change their own paths.
 - `components/admin/WebsiteInfoPanel.tsx`: the Website Info tab.
 
 ### Admin configuration map
 
 | key or page | admin location |
 | --- | --- |
-| copy_shared (brand, nav, availability texts, menu, footer, cta and its four corridor wall media, buttons, preloader, hero deco) | Website Info, Shared |
+| copy_shared: brand, availability texts, cta text, buttons, hero labels | Website Info, Shared |
+| copy_shared: nav links, preloader statuses, cta four corridor wall media, section header media | Site Settings |
 | copy_home (hero, what, work, why, what_count, work_count, why_stats) | Website Info, Home |
 | copy_projects (hero, featured, more, controls, empty_text) | Website Info, Projects |
 | copy_services (hero, sections, process_steps) | Website Info, Services |
-| copy_about (hero, story, stats, values, team, about_image, about_image_wide) | Website Info, About |
+| copy_about (hero, story, stats, values, team) | Website Info, About |
+| copy_about: about_image, about_image_wide | Site Settings, Media |
 | copy_contact (labels, placeholders, option lists, success, errors) | Website Info, Contact |
 | copy_privacy | Website Info, Privacy |
 | copy_not_found | Website Info, Not Found |
