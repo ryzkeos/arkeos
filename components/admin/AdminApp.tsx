@@ -353,6 +353,7 @@ function Projects({ toast, ask }: PanelProps) {
   const [editing, setEditing] = useState<{ id: string | null; hadUrl: boolean } | null>(null);
   const [f, setF] = useState({ title: "", description: "", tags: "", url: "", color: "#C8FF00", visible: true, featured: false, media: "" });
   const [staged, setStaged] = useState<File | null>(null);
+  const [saving, setSaving] = useState(false);
   const dragSrc = useRef<number | null>(null);
   useEffect(() => () => media_discard("project"), []);
 
@@ -370,6 +371,7 @@ function Projects({ toast, ask }: PanelProps) {
   };
 
   const save = async () => {
+    if (saving) return;
     if (!f.title.trim()) return toast("Title is required.", true);
     const url = f.url.trim();
     if (url && !isHttpUrl(url)) return toast("Project link must start with http:// or https://.", true);
@@ -381,6 +383,7 @@ function Projects({ toast, ask }: PanelProps) {
     let id = editing?.id ?? null;
     let media = f.media.trim();
     let saved = false;
+    setSaving(true);
     try {
       id = await db.dbSaveProject(id, payload);
       saved = true;
@@ -394,7 +397,7 @@ function Projects({ toast, ask }: PanelProps) {
       if (id && id !== editing?.id) { setEditing({ id, hadUrl: !!url }); load(); }
       if (media !== f.media.trim()) { setF((x) => ({ ...x, media })); setStaged(null); }
       toast(saved ? `Project saved, but the file step failed: ${msg(e, "Upload failed.")}` : msg(e, "Failed to save project."), true);
-    }
+    } finally { setSaving(false); }
   };
 
   const del = (id: string) =>
@@ -453,8 +456,8 @@ function Projects({ toast, ask }: PanelProps) {
           <MediaField label="Media (video, image or .html)" accept="video/*,image/*,.html,.htm" folder="projects" scope="project" file_name={`project-${slug(f.title) || "untitled"}`} value={f.media} onChange={(v) => setF((x) => ({ ...x, media: v }))} staged={staged} on_stage={setStaged} toast={toast} placeholder="or paste media URL" />
         </div>
         <div className="admin-actions admin-actions--end">
-          <button className="admin-btn" onClick={() => { media_discard("project"); setStaged(null); setEditing(null); }} aria-label="Cancel editing">Cancel</button>
-          <button className="admin-btn admin-btn--accent" onClick={save} aria-label="Save project">Save Project</button>
+          <button className="admin-btn" onClick={() => { media_discard("project"); setStaged(null); setEditing(null); }} disabled={saving} aria-label="Cancel editing">Cancel</button>
+          <button className="admin-btn admin-btn--accent" onClick={save} disabled={saving} aria-busy={saving} aria-label="Save project">{saving ? "Saving…" : "Save Project"}</button>
         </div>
       </div>
 
@@ -487,6 +490,7 @@ function Services({ toast, ask }: PanelProps) {
   const [editing, setEditing] = useState<{ id: string | null; hadPrice: boolean } | null>(null);
   const [f, setF] = useState({ title: "", description: "", tags: "", price: "", visible: true, icon_url: "", cinema_url: "" });
   const [staged, setStaged] = useState<Partial<Record<"icon_url" | "cinema_url", File | null>>>({});
+  const [saving, setSaving] = useState(false);
   const dragSrc = useRef<number | null>(null);
   useEffect(() => () => media_discard("service"), []);
 
@@ -504,6 +508,7 @@ function Services({ toast, ask }: PanelProps) {
   };
 
   const save = async () => {
+    if (saving) return;
     if (!f.title.trim()) return toast("Title is required.", true);
     const price = f.price.trim();
     const payload: Partial<Service> = { title: f.title.trim(), description: f.description.trim(), tags: splitTags(f.tags), visible: f.visible, icon_url: f.icon_url.trim() || null, cinema_url: f.cinema_url.trim() || null };
@@ -513,6 +518,7 @@ function Services({ toast, ask }: PanelProps) {
     let id = editing?.id ?? null;
     let saved = false;
     const uploaded: Partial<Record<"icon_url" | "cinema_url", string>> = {};
+    setSaving(true);
     try {
       id = await db.dbSaveService(id, payload);
       saved = true;
@@ -530,7 +536,7 @@ function Services({ toast, ask }: PanelProps) {
         setStaged((x) => ({ ...x, ...(uploaded.icon_url ? { icon_url: null } : {}), ...(uploaded.cinema_url ? { cinema_url: null } : {}) }));
       }
       toast(saved ? `Service saved, but the file step failed: ${msg(e, "Upload failed.")}` : msg(e, "Failed to save service."), true);
-    }
+    } finally { setSaving(false); }
   };
 
   const del = (id: string) =>
@@ -580,9 +586,9 @@ function Services({ toast, ask }: PanelProps) {
           <MediaField label="Icon Image" accept="image/*" folder="services" scope="service" file_name={`service-${slug(f.title) || "untitled"}-icon`} value={f.icon_url} onChange={(v) => setF((x) => ({ ...x, icon_url: v }))} staged={staged.icon_url ?? null} on_stage={(file) => setStaged((x) => ({ ...x, icon_url: file }))} toast={toast} placeholder="or paste icon URL" />
           <MediaField label="Cinema Preview" accept="video/*,image/*" folder="services" scope="service" file_name={`service-${slug(f.title) || "untitled"}-cinema`} value={f.cinema_url} onChange={(v) => setF((x) => ({ ...x, cinema_url: v }))} staged={staged.cinema_url ?? null} on_stage={(file) => setStaged((x) => ({ ...x, cinema_url: file }))} toast={toast} placeholder="or paste cinema URL" />
         </div>
-        <div className="admin-actions">
-          <button className="admin-btn admin-btn--accent" onClick={save} aria-label="Save service">Save Service</button>
-          <button className="admin-btn" onClick={() => { media_discard("service"); setStaged({}); setEditing(null); }} aria-label="Cancel editing">Cancel</button>
+        <div className="admin-actions admin-actions--end">
+          <button className="admin-btn" onClick={() => { media_discard("service"); setStaged({}); setEditing(null); }} disabled={saving} aria-label="Cancel editing">Cancel</button>
+          <button className="admin-btn admin-btn--accent" onClick={save} disabled={saving} aria-busy={saving} aria-label="Save service">{saving ? "Saving…" : "Save Service"}</button>
         </div>
       </div>
 
