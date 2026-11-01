@@ -38,6 +38,8 @@
   padding: 7rem 3.5rem 9rem;
 }
 
+.pg-services .hero--page { --hero-h: 100svh; }
+
 .pg-services .sec-hdr { margin-bottom: 0; }
 
 .pg-services .svc-empty {
@@ -438,6 +440,7 @@
 }
 
 @media (max-width: 768px) {
+  .pg-services #services .sec-side .btn { display: none; }
   .pg-services .page-hero { padding: 7rem 1.5rem 4rem; }
   .pg-services #services { padding: 4rem 1.5rem 6rem; }
   .pg-services #process { padding: 4rem 1.5rem; }
