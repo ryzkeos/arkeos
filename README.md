@@ -87,3 +87,9 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 
 - Moved the contact form rate limit to Upstash Redis so it works across serverless instances on Vercel.
 - Added a fallback limiter for local development when Upstash is not set up.
+
+### v1.2 (2026-11-01)
+
+- Page titles now follow the Arkeos | Page format.
+- Added the Arkeos logo as the browser tab icon and the phone home screen icon.
+- Added the animated logo SVG.
