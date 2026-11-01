@@ -6,6 +6,7 @@ import { DEFAULTS } from "@/defaults";
 import type { Inquiry, Project, Service, SiteSettings } from "@/lib/types";
 import { applyAccent } from "@/components/SiteSettings";
 import { SOCIAL_LINKS } from "@/components/SocialIcons";
+import LogoMark from "@/components/LogoMark";
 import { use_touch_reorder } from "./use_touch_reorder";
 import { media_commit, media_discard } from "./media_tx";
 import WebsiteInfoPanel from "./WebsiteInfoPanel";
@@ -144,14 +145,15 @@ export default function AdminApp() {
       ) : (
         <div id="app-shell" style={{ display: "flex" }}>
           <header className="admin-topbar">
-            <span className="sidebar-logo">ARKEOS</span>
+            <span className="sidebar-logo admin-topbar__brand"><LogoMark className="admin-topbar__mark" /><span>ARKEOS</span></span>
             <button
-              className="admin-topbar__toggle"
+              className={`admin-topbar__toggle${menuOpen ? " open" : ""}`}
               aria-label={menuOpen ? "Close menu" : "Open menu"}
               aria-expanded={menuOpen}
               aria-controls="admin-menu"
               onClick={() => setMenuOpen((o) => !o)}
             >
+              <span className="admin-lines" aria-hidden="true"><span /><span /><span /></span>
               <span aria-hidden="true">{menuOpen ? "Close" : "Menu"}</span>
               {!menuOpen && unread > 0 && <span className="sidebar-badge" style={{ display: "inline-flex" }}>{unread}</span>}
             </button>
