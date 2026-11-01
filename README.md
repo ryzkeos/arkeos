@@ -1,33 +1,20 @@
-# ARKEOS Web
+# Arkeos Web
 
-Crafting web experiences and motion work that demand attention and refuse to be forgotten.
+Portfolio site for my studio, with an admin panel to run it.
 
 ## About
 
-ARKEOS Web is the official website of ARKEOS, a small independent studio that designs and builds websites, apps and motion work with privacy as the starting point.
+This is the website for Arkeos, a small studio that builds websites, apps and motion work. I made it to show what we do, list our projects and services, and give people an easy way to reach out when they want to start something.
 
-The site shows who the studio is, what it offers and what it has made, and gives visitors a simple way to start a project. The owner runs everything from a built in admin panel, with no code changes needed.
+Everything on the site is managed from an admin page: projects, services, page text, colors, fonts and social links. That way I don't have to touch the code every time something changes. It also shows if I'm taking new projects or fully booked, and if a section has no content yet, it just stays hidden.
 
-**For visitors**
+Pages: home, projects, services, about, contact and privacy.
 
-- A showcase of finished projects with images, video and live previews
-- A clear list of services and a step by step view of how the studio works
-- The studio story, values, team and numbers
-- A contact form, with the current availability shown on every page
-- A privacy page that states exactly what data is collected
-
-**For the owner**
-
-- Add and edit projects and services, with media uploads
-- Edit page text, brand details, social links, colors and fonts
-- Read inquiries and see basic visit stats
-- Switch availability between taking projects and booked
-
-Only real content is shown. Sections with nothing to show stay hidden.
+It's still a work in progress, so some things will change.
 
 ## Installation
 
-Requirements: Node.js 20 or newer, and a database with a REST api (Supabase works).
+You need Node.js 20 or newer and a database with a REST api. I use Supabase.
 
 ```bash
 git clone https://github.com/ryzkeos/arkeos-web.git
@@ -36,8 +23,9 @@ npm install
 cp .env.example .env.local
 ```
 
-1. Fill in `.env.local` with the database url, the public key and the site url. Use the public key only, never a secret key.
-2. Run `db/schema.sql` in the database sql editor. It is safe to run again after updates.
+Fill in `.env.local` with your database url, the public key and your site url. Public key only, never the secret one.
+
+Then run `db/schema.sql` in your database's sql editor. You can run it again after updates, it won't break anything.
 
 ## Usage
 
@@ -45,22 +33,22 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Open `http://localhost:3000` for the site and `/admin` for the admin panel.
+The site runs on `http://localhost:3000` and the admin is at `/admin`.
 
-For production, run `npm run build` then `npm run start`. Deploy to Vercel or any Node host with the same environment variables.
+For production, run `npm run build` then `npm run start`. It works on Vercel or any Node host, just add the same environment variables there.
 
 ## Credits
 
 - Author: Arkeos (arkeos-kzenon)
 - Published: October 31, 2026
-- Visual inspiration: Pinterest, and the creators who share their work there. All rights to the original works stay with their owners.
+- Design inspiration: Pinterest. Credits to the original creators of the pins.
 - Fonts: Zentry, Robert, General Sans
 - Built with: Next.js, React, GSAP, Lenis
 
 ## Version history
 
 - v0.1 (2026-10-31): first version with all pages and the admin panel.
-- v0.2 (2026-10-31): content loaded from the database, no placeholder content, privacy page.
-- v0.3 (2026-11-01): projects page with featured carousel and card or list view, services media rows and animated process flow, full width section header media.
-- v0.3.1 (2026-11-01): files upload only after a project or service is saved, smoother loading of cards and media, safer html media, admin form fixes.
-- v0.3.2 (2026-11-01): README rewritten around the project purpose, Pinterest credit added.
+- v0.2 (2026-10-31): content now comes from the database, removed the placeholder content, added the privacy page.
+- v0.3 (2026-11-01): new projects page with a featured carousel and card or list view, services page with media rows and process flow, full width section header media.
+- v0.3.1 (2026-11-01): files upload only after saving, smoother loading for cards and media, safer html media, a few admin form fixes.
+- v0.3.2 (2026-11-01): rewrote the README and added the Pinterest credit.
