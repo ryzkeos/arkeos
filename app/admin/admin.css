@@ -881,18 +881,70 @@ a { color: inherit; text-decoration: none; }
 
 .form-group-actions { flex-wrap: wrap; }
 
+.inquiry-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.2rem;
+}
+
 .inquiry-detail {
+  width: 100%;
   border: 1px solid var(--color-border);
   background: var(--color-surface);
-  padding: 1.8rem;
-  max-width: 760px;
 }
+
+.inquiry-detail__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1.6rem 1.8rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.inquiry-detail__who { display: flex; flex-direction: column; gap: 0.3rem; min-width: 0; }
+
+.inquiry-detail__name {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  letter-spacing: 0.04em;
+  line-height: 1;
+  overflow-wrap: anywhere;
+}
+
+.inquiry-detail__email {
+  font-size: 0.82rem;
+  color: var(--color-muted);
+  overflow-wrap: anywhere;
+}
+
+a.inquiry-detail__email:hover { color: var(--color-text); }
+
+.inquiry-detail__date {
+  font-family: var(--font-label);
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.inquiry-detail__body { padding: 1.6rem 1.8rem 1.8rem; }
 
 .inquiry-detail__meta {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 1.2rem;
-  margin-bottom: 1.8rem;
+  gap: 1px;
+  background: var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.inquiry-detail__cell {
+  background: var(--color-bg);
+  padding: 1.2rem 1.8rem;
 }
 
 .inquiry-detail__meta dt,
@@ -922,6 +974,11 @@ a { color: inherit; text-decoration: none; }
 .admin-table td.cell-trunc { max-width: 14rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .admin-table td.num, .admin-table th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .admin-table td.admin-actions { flex-wrap: nowrap; }
+.admin-table th.cell-center,
+.admin-table td.cell-center { text-align: center; }
+.admin-actions--center { justify-content: center; flex-wrap: nowrap; }
+.admin-icon-btn--active { color: var(--color-accent); border-color: color-mix(in srgb, var(--color-accent) 40%, transparent); }
+.admin-icon-btn--active svg { fill: currentColor; }
 
 .admin-icon { display: block; flex: none; }
 .admin-icon-btn {
@@ -1077,3 +1134,6 @@ a { color: inherit; text-decoration: none; }
   .admin-actions--end { justify-content: stretch; }
   .admin-actions--end .admin-btn { flex: 1; }
 }
+
+.font-slot .font-upload-wrap { flex: 1 1 24rem; min-width: 0; }
+.font-slot .font-upload-wrap .form-group { width: 100%; }

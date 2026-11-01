@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type KeyboardEvent, type MutableRefObject, type PointerEvent, type ReactNode, type Ref } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
 import * as db from "@/lib/db";
 
 export const MEDIA_BUCKET = "media";
@@ -44,6 +44,7 @@ const ICON_PATHS: Record<string, ReactNode> = {
   image: <><rect x="3" y="4" width="18" height="16" /><circle cx="9" cy="10" r="2" /><path d="M21 16l-5-5-9 9" /></>,
   film: <><rect x="3" y="5" width="18" height="14" /><path d="M10 9l5 3-5 3z" /></>,
   code: <path d="M8 8l-5 4 5 4M16 8l5 4-5 4M14 5l-4 14" />,
+  star: <path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z" />,
 };
 
 export function Icon({ name }: { name: keyof typeof ICON_PATHS }) {
@@ -55,12 +56,12 @@ export function Icon({ name }: { name: keyof typeof ICON_PATHS }) {
 }
 
 export function IconBtn({
-  icon, label, onClick, danger, disabled,
+  icon, label, onClick, danger, disabled, active,
 }: {
-  icon: keyof typeof ICON_PATHS; label: string; onClick: () => void; danger?: boolean; disabled?: boolean;
+  icon: keyof typeof ICON_PATHS; label: string; onClick: () => void; danger?: boolean; disabled?: boolean; active?: boolean;
 }) {
   return (
-    <button type="button" className={`admin-icon-btn${danger ? " admin-icon-btn--danger" : ""}`} aria-label={label} title={label} onClick={onClick} disabled={disabled}>
+    <button type="button" className={`admin-icon-btn${danger ? " admin-icon-btn--danger" : ""}${active ? " admin-icon-btn--active" : ""}`} aria-label={label} aria-pressed={active} title={label} onClick={onClick} disabled={disabled}>
       <Icon name={icon} />
     </button>
   );
@@ -80,41 +81,17 @@ export function Checkbox({
   );
 }
 
-export function FilePicker({
-  id, label, accept, inputRef, busy, status, status_text,
-}: {
-  id: string; label: string; accept: string; inputRef?: Ref<HTMLInputElement>; busy?: boolean; status?: "success" | "error"; status_text?: string;
-}) {
-  const own = useRef<HTMLInputElement | null>(null);
-  const [, bump] = useState(0);
-  const set_ref = (el: HTMLInputElement | null) => {
-    own.current = el;
-    if (typeof inputRef === "function") inputRef(el);
-    else if (inputRef) (inputRef as MutableRefObject<HTMLInputElement | null>).current = el;
-  };
-  const name = own.current?.files?.[0]?.name ?? "";
-  return (
-    <div className="admin-file">
-      <input id={id} ref={set_ref} type="file" className="admin-file__input" accept={accept} disabled={busy} onChange={() => bump((n) => n + 1)} />
-      <label htmlFor={id} className={`admin-btn admin-btn--sm admin-file__btn${busy ? " admin-file__btn--busy" : ""}`} aria-label={label}>
-        {busy ? "Uploading…" : "Choose file"}
-      </label>
-      <span className="admin-file__name" title={name || undefined}>{name || "No file selected"}</span>
-      {status && <span className={`admin-file__state admin-file__state--${status}`} role="status">{status_text ?? (status === "success" ? "Uploaded" : "Upload failed")}</span>}
-    </div>
-  );
-}
-
 const VIDEO_EXTS = ["mp4", "webm", "mov", "m4v", "ogv", "ogg"];
 
-function media_kind(name: string): "video" | "html" | "image" {
+function media_kind(name: string): "video" | "html" | "image" | "font" {
   const ext = name.split("?")[0].split(".").pop()?.toLowerCase() ?? "";
+  if (ext === "woff2" || ext === "woff") return "font";
   if (VIDEO_EXTS.includes(ext)) return "video";
   if (ext === "html" || ext === "htm") return "html";
   return "image";
 }
 
-const KIND_ICON = { video: "film", html: "code", image: "image" } as const;
+const KIND_ICON = { video: "film", html: "code", image: "image", font: "code" } as const;
 
 function file_name(url: string) {
   const last = url.split("?")[0].split("/").pop() ?? "";
@@ -137,6 +114,10 @@ export function MediaField({
   onChange,
   toast,
   placeholder,
+  hide_url,
+  validate,
+  prepare,
+  wide = true,
 }: {
   label: string;
   accept: string;
@@ -144,7 +125,11 @@ export function MediaField({
   value: string;
   onChange: (v: string) => void;
   toast: PanelProps["toast"];
-  placeholder: string;
+  placeholder?: string;
+  hide_url?: boolean;
+  validate?: (file: File) => Promise<string | null> | string | null;
+  prepare?: (file: File) => File;
+  wide?: boolean;
 }) {
   const input = useRef<HTMLInputElement>(null);
   const [picked, setPicked] = useState<File | null>(null);
@@ -158,12 +143,17 @@ export function MediaField({
 
   const upload = async () => {
     if (!picked) return toast("Choose a file first.", true);
+    const problem = validate ? await validate(picked) : null;
+    if (problem) {
+      setFailed(true);
+      return toast(problem, true);
+    }
     const ext = picked.name.split(".").pop() ?? "bin";
     const path = `${folder}/${Date.now()}.${ext}`;
     setBusy(true);
     setFailed(false);
     try {
-      await db.dbUpload(MEDIA_BUCKET, path, picked);
+      await db.dbUpload(MEDIA_BUCKET, path, prepare ? prepare(picked) : picked);
       onChange(db.dbPublicUrl(MEDIA_BUCKET, path));
       setPicked(null);
       reset_input();
@@ -186,11 +176,11 @@ export function MediaField({
 
   const name = picked ? picked.name : value ? file_name(value) : "";
   const kind = name ? media_kind(name) : null;
-  const meta = busy ? "Uploading…" : failed ? "Upload failed" : picked ? `${file_size(picked.size)} · ready to upload` : value ? "Uploaded" : "Choose a file or paste a link below";
+  const meta = busy ? "Uploading…" : failed ? "Upload failed" : picked ? `${file_size(picked.size)} · ready to upload` : value ? "Uploaded" : hide_url ? "Choose a file to upload" : "Choose a file or paste a link below";
   const state = failed ? "error" : busy ? "busy" : picked ? "ready" : value ? "done" : "empty";
 
   return (
-    <div className="form-group admin-form-full">
+    <div className={`form-group${wide ? " admin-form-full" : ""}`}>
       <span className="admin-field-label">{label}</span>
       <div className={`admin-media admin-media--${state}`}>
         <input id={id} ref={input} type="file" className="admin-media__input" accept={accept} disabled={busy} onChange={(e) => { setPicked(e.target.files?.[0] ?? null); setFailed(false); }} />
@@ -210,7 +200,7 @@ export function MediaField({
           {(value || picked) && <IconBtn icon="x" label={picked ? `Discard chosen ${label} file` : `Remove ${label}`} onClick={remove} danger disabled={busy} />}
         </div>
       </div>
-      <input type="text" value={value} placeholder={placeholder} aria-label={`${label} URL`} onChange={(e) => onChange(e.target.value)} />
+      {!hide_url && <input type="text" value={value} placeholder={placeholder} aria-label={`${label} URL`} onChange={(e) => onChange(e.target.value)} />}
     </div>
   );
 }

@@ -6,16 +6,11 @@ import type { CinemaType, Inquiry, Project, Service, SiteSettings } from "@/lib/
 import { applyAccent } from "@/components/SiteSettings";
 import IdentityPanel from "./IdentityPanel";
 import WebsiteInfoPanel from "./WebsiteInfoPanel";
-import { CINEMA_TYPES, Checkbox, ColorField, FilePicker, IconBtn, MEDIA_BUCKET, MediaField, PanelHead, ToggleField, isHttpUrl, msg, type PanelProps } from "./shared";
+import { CINEMA_TYPES, ColorField, IconBtn, MediaField, PanelHead, ToggleField, isHttpUrl, msg, type PanelProps } from "./shared";
 
 type Section = "inquiries" | "projects" | "services" | "availability" | "settings" | "website_info" | "identity" | "fonts" | "analytics";
 
-const VIDEO_EXT = ["mp4", "webm", "mov", "ogg"];
-function mediaBadge(media: string | null) {
-  if (!media) return { label: "Black", cls: "black" };
-  const ext = media.split("?")[0].split(".").pop()?.toLowerCase() ?? "";
-  return VIDEO_EXT.includes(ext) ? { label: "Video", cls: "video" } : { label: "Image", cls: "image" };
-}
+const FEATURED_LIMIT = 5;
 const splitTags = (s: string) => s.split(",").map((t) => t.trim()).filter(Boolean);
 
 const NAV_GROUPS: { label: string; items: [Section, string][] }[] = [
@@ -150,7 +145,7 @@ export default function AdminApp() {
             {section === "projects" && <Projects toast={showToast} ask={ask} />}
             {section === "services" && <Services toast={showToast} ask={ask} />}
             {section === "availability" && <Availability toast={showToast} />}
-            {section === "settings" && <Settings toast={showToast} ask={ask} />}
+            {section === "settings" && <Settings toast={showToast} />}
             {section === "website_info" && <WebsiteInfoPanel toast={showToast} />}
             {section === "identity" && <IdentityPanel onOpenWebsiteInfo={() => setSection("website_info")} />}
             {section === "fonts" && <Fonts toast={showToast} />}
@@ -237,36 +232,43 @@ function Inquiries({ toast, ask, onUnread }: PanelProps & { onUnread: (n: number
 
   if (selected) {
     const rows: [string, string][] = [
-      ["Name", selected.name || "—"],
-      ["Email", selected.email || "—"],
       ["Type", selected.project_type || "—"],
       ["Budget", selected.budget || "—"],
       ["Timeline", selected.timeline || "—"],
-      ["Received", fmtDate(selected.created_at)],
     ];
     return (
       <div className="admin-panel" id="panel-inquiry-detail" style={{ display: "block" }}>
         <PanelHead title="INQUIRY" sub="Full details of the selected inquiry." error={error} />
-        <div className="admin-actions" style={{ marginBottom: "1.2rem" }}>
+        <div className="inquiry-bar">
           <button className="admin-btn" onClick={() => setOpenId(null)} aria-label="Back to inquiries">Back</button>
-          {selected.status === "unread" && (
-            <button className="admin-btn admin-btn--accent" onClick={() => mark(selected.id)} aria-label="Mark as read">Mark Read</button>
-          )}
-          <button className="admin-btn admin-btn--danger" onClick={() => del(selected.id)} aria-label="Delete inquiry">Delete</button>
-          <span className={`status-badge status-${selected.status || "unread"}`}>{selected.status || "unread"}</span>
+          <div className="admin-actions">
+            {selected.status === "unread" && (
+              <button className="admin-btn admin-btn--accent" onClick={() => mark(selected.id)} aria-label="Mark as read">Mark Read</button>
+            )}
+            <button className="admin-btn admin-btn--danger" onClick={() => del(selected.id)} aria-label="Delete inquiry">Delete</button>
+          </div>
         </div>
-        <div className="inquiry-detail">
+        <article className="inquiry-detail" aria-label={`Inquiry from ${selected.name || "unknown sender"}`}>
+          <header className="inquiry-detail__head">
+            <div className="inquiry-detail__who">
+              <h2 className="inquiry-detail__name">{selected.name || "Unknown sender"}</h2>
+              {selected.email ? <a className="inquiry-detail__email" href={`mailto:${selected.email}`}>{selected.email}</a> : <span className="inquiry-detail__email">—</span>}
+            </div>
+            <time className="inquiry-detail__date" dateTime={selected.created_at ?? undefined}>{fmtDate(selected.created_at)}</time>
+          </header>
           <dl className="inquiry-detail__meta">
             {rows.map(([label, value]) => (
-              <div key={label}>
+              <div key={label} className="inquiry-detail__cell">
                 <dt>{label}</dt>
                 <dd>{value}</dd>
               </div>
             ))}
           </dl>
-          <p className="inquiry-detail__label">Message</p>
-          <div className="inquiry-detail__message">{selected.message?.trim() || "No message provided."}</div>
-        </div>
+          <section className="inquiry-detail__body">
+            <p className="inquiry-detail__label">Message</p>
+            <div className="inquiry-detail__message">{selected.message?.trim() || "No message provided."}</div>
+          </section>
+        </article>
       </div>
     );
   }
@@ -284,7 +286,7 @@ function Inquiries({ toast, ask, onUnread }: PanelProps & { onUnread: (n: number
       <div className="admin-table-wrap">
         <table className="admin-table" aria-label="Inquiries table">
           <thead>
-            <tr>{["Name", "Email", "Type", "Budget", "Timeline", "Date", "Status", "Actions"].map((h) => <th key={h} scope="col">{h}</th>)}</tr>
+            <tr>{["Name", "Email", "Type", "Budget", "Timeline", "Date", "Status", "Actions"].map((h) => <th key={h} scope="col" className={h === "Status" || h === "Actions" ? "cell-center" : undefined}>{h}</th>)}</tr>
           </thead>
           <tbody>
             {items === null ? (
@@ -300,11 +302,13 @@ function Inquiries({ toast, ask, onUnread }: PanelProps & { onUnread: (n: number
                   <td className="cell-trunc" title={i.budget || undefined}>{i.budget || "—"}</td>
                   <td className="cell-trunc" title={i.timeline || undefined}>{i.timeline || "—"}</td>
                   <td>{i.created_at ? new Date(i.created_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "—"}</td>
-                  <td><span className={`status-badge status-${i.status || "unread"}`}>{i.status || "unread"}</span></td>
-                  <td className="admin-actions">
-                    <IconBtn icon="view" label={`View inquiry from ${i.name || "unknown sender"}`} onClick={() => setOpenId(i.id)} />
-                    <IconBtn icon="mail_open" label="Mark as read" onClick={() => mark(i.id)} />
-                    <IconBtn icon="trash" label="Delete inquiry" danger onClick={() => del(i.id)} />
+                  <td className="cell-center"><span className={`status-badge status-${i.status || "unread"}`}>{i.status || "unread"}</span></td>
+                  <td className="cell-center">
+                    <div className="admin-actions admin-actions--center">
+                      <IconBtn icon="view" label={`View inquiry from ${i.name || "unknown sender"}`} onClick={() => setOpenId(i.id)} />
+                      <IconBtn icon="mail_open" label="Mark as read" onClick={() => mark(i.id)} />
+                      <IconBtn icon="trash" label="Delete inquiry" danger onClick={() => del(i.id)} />
+                    </div>
                   </td>
                 </tr>
               ))
@@ -338,6 +342,7 @@ function Projects({ toast, ask }: PanelProps) {
     if (!f.title.trim()) return toast("Title is required.", true);
     const url = f.url.trim();
     if (url && !isHttpUrl(url)) return toast("Project link must start with http:// or https://.", true);
+    if (f.featured && featured_taken >= FEATURED_LIMIT) return toast(limit_msg, true);
     const payload: Partial<Project> = { title: f.title.trim(), description: f.description.trim(), tags: splitTags(f.tags), color: f.color, visible: f.visible, featured: f.featured, media: f.media.trim() || null };
     if (url) payload.url = url;
     else if (editing?.hadUrl) payload.url = null;
@@ -354,6 +359,14 @@ function Projects({ toast, ask }: PanelProps) {
 
   const toggle = (p: Project) =>
     db.dbSaveProject(p.id!, { visible: !(p.visible !== false) }).then(load).catch(() => toast("Failed to update.", true));
+
+  const featured_taken = (list ?? []).filter((p) => p.featured && p.id !== editing?.id).length;
+  const limit_msg = `Only ${FEATURED_LIMIT} projects can be featured. Unfeature one first.`;
+
+  const feature = (p: Project) => {
+    if (!p.featured && (list ?? []).filter((x) => x.featured).length >= FEATURED_LIMIT) return toast(limit_msg, true);
+    db.dbSaveProject(p.id!, { featured: !p.featured }).then(load).catch(() => toast("Failed to update.", true));
+  };
 
   const drop = (target: number) => {
     const src = dragSrc.current;
@@ -392,7 +405,7 @@ function Projects({ toast, ask }: PanelProps) {
             <input type="url" id="pf-url" placeholder="https://" value={f.url} onChange={(e) => setF({ ...f, url: e.target.value })} />
           </div>
           <ColorField id="pf-color" label="Accent Color" value={f.color} onChange={(v) => setF((x) => ({ ...x, color: v }))} />
-          <ToggleField id="pf-featured" label="Featured" checked={f.featured} onChange={(v) => setF((x) => ({ ...x, featured: v }))} />
+          <ToggleField id="pf-featured" label="Featured" checked={f.featured} onChange={(v) => { if (v && featured_taken >= FEATURED_LIMIT) return toast(limit_msg, true); setF((x) => ({ ...x, featured: v })); }} />
           <MediaField label="Media (video, image or .html)" accept="video/*,image/*,.html,.htm" folder="projects" value={f.media} onChange={(v) => setF((x) => ({ ...x, media: v }))} toast={toast} placeholder="or paste media URL" />
         </div>
         <div className="admin-actions admin-actions--end">
@@ -405,16 +418,13 @@ function Projects({ toast, ask }: PanelProps) {
         {list === null ? <p className="admin-empty">Loading…</p> : list.length === 0 ? (
           <p className="admin-empty">No projects yet. Add one below.</p>
         ) : list.map((p, i) => {
-          const b = mediaBadge(p.media);
           const vis = p.visible !== false;
           return (
             <div key={p.id} className="project-row" draggable onDragStart={() => { dragSrc.current = i; }} onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); drop(i); }} aria-label={`Project: ${p.title}`}>
               <div className="project-row__drag" aria-hidden="true">⠿</div>
               <div className="project-row__info"><strong>{p.title || "Untitled"}</strong><span className="project-row__tags">{(p.tags ?? []).join(", ")}</span></div>
-              <span className={`media-badge media-badge--${b.cls}`}>{b.label}</span>
-              {p.featured && <span className="vis-badge vis--on">Featured</span>}
-              <span className={`vis-badge ${vis ? "vis--on" : "vis--off"}`}>{vis ? "Visible" : "Hidden"}</span>
               <div className="admin-actions">
+                <IconBtn icon="star" active={!!p.featured} label={p.featured ? `Unfeature ${p.title}` : `Feature ${p.title}`} onClick={() => feature(p)} />
                 <IconBtn icon="edit" label={`Edit ${p.title}`} onClick={() => open(i)} />
                 <IconBtn icon={vis ? "eye_off" : "eye"} label={vis ? `Hide ${p.title}` : `Show ${p.title}`} onClick={() => toggle(p)} />
                 <IconBtn icon="trash" label={`Delete ${p.title}`} danger onClick={() => del(p.id!)} />
@@ -490,9 +500,7 @@ function Services({ toast, ask }: PanelProps) {
             <label htmlFor="sf-price">Price (optional)</label>
             <input type="text" id="sf-price" placeholder="Price text" value={f.price} onChange={(e) => setF({ ...f, price: e.target.value })} />
           </div>
-          <div className="form-group">
-            <Checkbox id="sf-visible" label="Visible on site" checked={f.visible} onChange={(v) => setF({ ...f, visible: v })} />
-          </div>
+          <ToggleField id="sf-visible" label="Visible on site" checked={f.visible} onChange={(v) => setF((x) => ({ ...x, visible: v }))} />
           <MediaField label="Icon Image" accept="image/*" folder="services" value={f.icon_url} onChange={(v) => setF((x) => ({ ...x, icon_url: v }))} toast={toast} placeholder="or paste icon URL" />
           <MediaField label="Cinema Preview" accept="video/*,image/*" folder="services" value={f.cinema_url} onChange={(v) => setF((x) => ({ ...x, cinema_url: v }))} toast={toast} placeholder="or paste cinema URL" />
           <div className="form-group">
@@ -574,12 +582,10 @@ function Availability({ toast }: Pick<PanelProps, "toast">) {
   );
 }
 
-function Settings({ toast, ask }: PanelProps) {
+function Settings({ toast }: Pick<PanelProps, "toast">) {
   const [s, setS] = useState({ projects_count: "", years_active: "", clients_count: "", accent_color: "#C8FF00", social_github: "", social_instagram: "", social_facebook: "" });
   const [video, setVideo] = useState("");
-  const [videoStatus, setVideoStatus] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const file = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     db.dbLoadSiteSettings()
@@ -596,7 +602,7 @@ function Settings({ toast, ask }: PanelProps) {
   const save = async () => {
     const fields: Record<string, string> = {
       projects_count: s.projects_count.trim(), years_active: s.years_active.trim(), clients_count: s.clients_count.trim(), accent_color: s.accent_color,
-      social_github: s.social_github.trim(), social_instagram: s.social_instagram.trim(), social_facebook: s.social_facebook.trim(),
+      social_github: s.social_github.trim(), social_instagram: s.social_instagram.trim(), social_facebook: s.social_facebook.trim(), hero_video: video.trim(),
     };
     try {
       await Promise.all(Object.entries(fields).map(([k, v]) => db.dbSaveSetting(k, v)));
@@ -605,25 +611,6 @@ function Settings({ toast, ask }: PanelProps) {
     } catch { toast("Failed to save some settings.", true); }
   };
 
-  const upload = async () => {
-    const fl = file.current?.files?.[0];
-    if (!fl) return toast("Choose a video file first.", true);
-    const path = `hero/hero-video.${fl.name.split(".").pop()}`;
-    setVideoStatus("Uploading…");
-    try {
-      await db.dbUpload(MEDIA_BUCKET, path, fl);
-      const url = db.dbPublicUrl(MEDIA_BUCKET, path);
-      await db.dbSaveSetting("hero_video", url);
-      setVideo(url); setVideoStatus(null);
-      toast("Hero video updated.");
-    } catch { setVideoStatus("Upload failed."); toast("Upload failed.", true); }
-  };
-
-  const clear = () =>
-    ask("Remove hero video? Site will display pure black.", () =>
-      db.dbSaveSetting("hero_video", "").then(() => { setVideo(""); setVideoStatus(null); toast("Hero video removed."); }).catch(() => toast("Failed to update.", true)));
-
-  const on = !!video && videoStatus === null;
   const text = (k: keyof typeof s, label: string, id: string, ph: string, type = "text") => (
     <div className="form-group">
       <label htmlFor={id}>{label}</label>
@@ -654,14 +641,10 @@ function Settings({ toast, ask }: PanelProps) {
 
       <div className="settings-section">
         <p className="settings-section-title">Hero Background Video</p>
-        <div className="admin-actions" style={{ gap: "0.8rem", alignItems: "center", flexWrap: "wrap" }}>
-          <FilePicker id="set-video-file" label="Choose hero video file" accept="video/mp4,video/webm" inputRef={file} busy={videoStatus === "Uploading…"} status={videoStatus === "Upload failed." ? "error" : undefined} />
-          <button className="admin-btn admin-btn--accent" onClick={upload} aria-label="Upload hero video">Upload</button>
-          <button className="admin-btn admin-btn--danger" onClick={clear} aria-label="Remove hero video">Clear Video</button>
-          <span className={`field-status ${on ? "status--on" : "status--off"}`} aria-live="polite">
-            {videoStatus ?? (video ? `Video Active — ${video}` : "Displaying Pure Black")}
-          </span>
+        <div className="admin-form-grid">
+          <MediaField label="Hero Video" accept="video/mp4,video/webm" folder="hero" value={video} onChange={setVideo} toast={toast} placeholder="or paste video URL" />
         </div>
+        <p className="panel-sub">Empty shows pure black. Click Save Settings to apply.</p>
       </div>
 
       <div className="settings-section">
@@ -699,37 +682,19 @@ async function checkFont(file: File): Promise<string | null> {
 
 function Fonts({ toast }: Pick<PanelProps, "toast">) {
   const [active, setActive] = useState<Record<string, string>>({});
-  const files = useRef<Record<string, HTMLInputElement | null>>({});
-  const [busy, setBusy] = useState("");
 
   const load = useCallback(() => {
     db.dbLoadSiteSettings().then((r) => setActive(r as Record<string, string>)).catch(() => {});
   }, []);
   useEffect(load, [load]);
 
-  const upload = async (key: string) => {
-    const fl = files.current[key]?.files?.[0];
-    if (!fl) return toast("Choose a .woff2 file.", true);
-    const problem = await checkFont(fl);
-    if (problem) return toast(problem, true);
-    const path = `fonts/${key}-${Date.now()}.woff2`;
-    setBusy(key);
+  const save_font = async (key: string, url: string) => {
     try {
-      await db.dbUpload(MEDIA_BUCKET, path, new File([fl], `${key}.woff2`, { type: "font/woff2" }));
-    } catch (e) {
-      setBusy("");
-      return toast(msg(e, "Font upload failed."), true);
-    }
-    try {
-      await db.dbSaveSetting(key, db.dbPublicUrl(MEDIA_BUCKET, path));
+      await db.dbSaveSetting(key, url);
       load();
-      const input = files.current[key];
-      if (input) input.value = "";
-      toast("Font uploaded. Reload the site to see it.");
+      toast(url ? "Font saved. Reload the site to see it." : "Font removed.");
     } catch (e) {
-      toast(`Uploaded, but saving failed: ${msg(e, "unknown error")}`, true);
-    } finally {
-      setBusy("");
+      toast(`Saving failed: ${msg(e, "unknown error")}`, true);
     }
   };
 
@@ -746,8 +711,18 @@ function Fonts({ toast }: Pick<PanelProps, "toast">) {
             </div>
             <span className={`font-status ${isOn ? "font-status--on" : "font-status--off"}`}>{isOn ? "Active" : "bundled font"}</span>
             <div className="font-upload-wrap">
-              <FilePicker id={`font-file-${slot.key}`} label={`Choose ${slot.name} font file`} accept=".woff2" inputRef={(el) => { files.current[slot.key] = el; }} busy={busy === slot.key} />
-              <button className="admin-btn admin-btn--sm admin-btn--accent" onClick={() => upload(slot.key)} disabled={busy === slot.key} aria-label={`Upload ${slot.label} font`}>{busy === slot.key ? "Uploading…" : "Upload"}</button>
+              <MediaField
+                label={`${slot.name} font`}
+                accept=".woff2"
+                folder="fonts"
+                value={active[slot.key] ?? ""}
+                onChange={(v) => save_font(slot.key, v)}
+                toast={toast}
+                hide_url
+                wide={false}
+                validate={checkFont}
+                prepare={(fl) => new File([fl], `${slot.key}.woff2`, { type: "font/woff2" })}
+              />
             </div>
           </div>
         );
