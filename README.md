@@ -18,7 +18,7 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 - Published: October 31, 2026
 - Design inspiration: Pinterest. Credits to the original creators of the pins.
 - Fonts: Zentry, Robert, General Sans
-- Built with: Next.js, React, GSAP, Lenis
+- Built with: Next.js, React, GSAP, Lenis, Upstash Redis
 
 ## Version history
 
@@ -82,3 +82,8 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 - First stable release.
 - Rewrote the README and added the Pinterest credit.
 - Removed the dependency update config.
+
+### v1.1 (2026-11-01)
+
+- Moved the contact form rate limit to Upstash Redis so it works across serverless instances on Vercel.
+- Added a fallback limiter for local development when Upstash is not set up.
