@@ -29,7 +29,7 @@ export default function ProjectRow({ project, index }: Props) {
       </div>
       <div className="p-row__main">
         <h3 className="p-row__name">{project.title.toUpperCase()}</h3>
-        {project.description && <p className="p-row__desc" title={project.description}>{project.description}</p>}
+        {project.description && <p className="p-row__desc" data-lenis-prevent title={project.description}>{project.description}</p>}
         {((project.tags ?? []).length > 0 || link) && (
           <div className="p-row__foot">
             <div className="p-row__tags">

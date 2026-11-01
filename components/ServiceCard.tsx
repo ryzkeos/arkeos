@@ -41,7 +41,7 @@ export default function ServiceCard({ service, icon, index }: Props) {
       </div>
       <div className="svc-card__body">
         <h3 className="svc-card__title">{service.title}</h3>
-        {service.description && <p className="svc-card__desc" title={service.description}>{service.description}</p>}
+        {service.description && <p className="svc-card__desc" data-lenis-prevent title={service.description}>{service.description}</p>}
       </div>
       <div className="svc-card__foot">
         {tags.length > 0 && (
