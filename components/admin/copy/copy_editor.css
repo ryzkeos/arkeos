@@ -6,14 +6,15 @@
 .copy-list legend { padding:0 0.5rem; font-family:var(--font-label); font-size:0.58rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--color-accent); }
 
 .copy-pages { display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:1.6rem; }
-.copy-save { position:sticky; bottom:0; padding:1rem 0; background:var(--color-bg); display:flex; gap:0.7rem; align-items:center; }
+.copy-save { padding:1rem 0; display:flex; gap:0.7rem; align-items:center; }
 .copy-empty { color:var(--color-muted); font-size:0.78rem; }
 
-.copy-list__actions { padding-top: 0.2rem; }
+.copy-list__actions { padding-top: 0.2rem; justify-content: flex-end; width: 100%; }
 .copy-row { display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:start; gap:1rem; padding:1rem; border:1px solid var(--color-border); background:var(--color-surface); }
 .copy-row--plain { align-items:center; }
 .copy-row__index { display:inline-flex; align-items:center; justify-content:center; min-width:2rem; height:var(--control-h); font-family:var(--font-label); font-size:0.6rem; letter-spacing:0.16em; color:var(--color-muted); }
 .copy-row__fields { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,14rem),1fr)); gap:0.8rem 1rem; min-width:0; }
+.copy-row:not(.copy-row--plain) > .copy-row__actions { align-self:end; }
 .copy-row__actions { display:flex; align-items:center; justify-content:flex-end; gap:0.4rem; height:var(--control-h); }
 .copy-row--plain > input { width:100%; min-width:0; height:var(--control-h); padding:0 0.85rem; background:rgba(245,245,245,0.04); border:1px solid var(--color-border); border-radius:0; color:var(--color-text); font-family:var(--font-ui); font-size:0.82rem; outline:none; white-space:nowrap; text-overflow:ellipsis; }
 .copy-row--plain > input:focus { border-color:var(--color-accent); text-overflow:clip; }
@@ -23,3 +24,8 @@
   .copy-row { grid-template-columns:auto minmax(0,1fr); }
   .copy-row__actions { grid-column:1 / -1; }
 }
+.copy-sr { position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }
+.copy-row__fields + .copy-row__actions,
+.copy-row__index { align-self:end; }
+.copy-row--plain .copy-row__index,
+.copy-row--plain .copy-row__actions { align-self:center; }

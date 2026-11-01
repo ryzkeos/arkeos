@@ -243,6 +243,9 @@ export default function CopyEditor({ items, toast, title, sub, saved_label, save
     const fields_of = row_fields(f);
     const default_arr = (get_path(DEFAULTS[it.page], f.path) as unknown[] | undefined) ?? [];
     const label = f.label;
+    const list_title = it.section
+      ? <legend className="copy-sr">{`${it.section}: ${label}`}</legend>
+      : <legend>{label}</legend>;
     const reset_btn = (
       <button type="button" className="admin-btn admin-btn--sm admin-btn--danger" aria-label={`Reset ${label} to default`} onClick={() => set(it, [])}>
         Reset
@@ -259,7 +262,7 @@ export default function CopyEditor({ items, toast, title, sub, saved_label, save
       const list = rows as string[];
       return (
         <fieldset className="copy-list" key={key_of(it)}>
-          <legend>{label}</legend>
+          {list_title}
           {list.length === 0 && <p className="copy-empty">Using default list.</p>}
           {list.map((item, i) => (
             <div className="copy-row copy-row--plain" key={i}>
@@ -282,7 +285,7 @@ export default function CopyEditor({ items, toast, title, sub, saved_label, save
     const list = rows as Row[];
     return (
       <fieldset className="copy-list" key={key_of(it)}>
-        <legend>{label}</legend>
+        {list_title}
         {list.length === 0 && <p className="copy-empty">Using default list.</p>}
         {list.map((row, i) => (
           <div className="copy-row" key={i}>
@@ -411,7 +414,7 @@ export default function CopyEditor({ items, toast, title, sub, saved_label, save
       {vals && items.length === 0 && <p className="copy-empty">No editable text on this page yet.</p>}
       {vals && groups.map((g, i) => (
         <section className="copy-section" key={g.title ?? i} aria-label={g.title}>
-          {g.title && <h3 className="copy-section__title">{g.title}</h3>}
+          {g.title && !(g.items.length === 1 && (g.items[0].field.type === "list" || g.items[0].field.type === "links")) && <h3 className="copy-section__title">{g.title}</h3>}
           {g.items.map(render_item)}
         </section>
       ))}
