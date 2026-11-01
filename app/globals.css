@@ -853,6 +853,7 @@ footer {
 
 .ft-socials {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
   gap: 0.9rem;
@@ -1018,7 +1019,7 @@ footer {
 }
 .nav-ov__avail .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--color-accent); animation: blink 2.2s ease-in-out infinite; }
 .nav-ov__avail .dot.booked { background: #ff6b6b; }
-.nav-ov__socials { display: flex; gap: 0.7rem; justify-content: flex-end; align-items: center; }
+.nav-ov__socials { display: flex; flex-wrap: wrap; gap: 0.7rem; justify-content: flex-end; align-items: center; }
 .nav-ov__socials a {
   display: inline-flex;
   align-items: center;

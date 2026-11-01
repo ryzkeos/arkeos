@@ -136,6 +136,16 @@ function photo_missing(items: CopyItem[], vals: Record<string, Val>): string {
   return "";
 }
 
+function RowActions({ label, index, count, onUp, onDown, onRemove }: { label: string; index: number; count: number; onUp: () => void; onDown: () => void; onRemove: () => void }) {
+  return (
+    <div className="copy-row__actions" role="group" aria-label={`${label} ${index + 1} actions`}>
+      <IconBtn icon="up" label={`Move ${label} ${index + 1} up`} disabled={index === 0} onClick={onUp} />
+      <IconBtn icon="down" label={`Move ${label} ${index + 1} down`} disabled={index === count - 1} onClick={onDown} />
+      <IconBtn icon="trash" danger label={`Remove ${label} ${index + 1}`} onClick={onRemove} />
+    </div>
+  );
+}
+
 const swap = <T,>(arr: T[], i: number, j: number): T[] => {
   if (j < 0 || j >= arr.length) return arr;
   const next = arr.slice();
@@ -239,7 +249,7 @@ export default function CopyEditor({ items, toast, title, sub, saved_label, save
       </button>
     );
     const list_actions = (blank: Val[number], load: Val) => (
-      <div className="admin-actions">
+      <div className="admin-actions copy-list__actions">
         <button type="button" className="admin-btn admin-btn--sm" onClick={() => set(it, [...(rows as Val[number][]), blank] as Val)}>Add row</button>
         {default_arr.length > 0 && <button type="button" className="admin-btn admin-btn--sm" onClick={() => set(it, load)}>Load defaults</button>}
         {reset_btn}
@@ -253,6 +263,7 @@ export default function CopyEditor({ items, toast, title, sub, saved_label, save
           {list.length === 0 && <p className="copy-empty">Using default list.</p>}
           {list.map((item, i) => (
             <div className="copy-row copy-row--plain" key={i}>
+              <span className="copy-row__index" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
               <input
                 type="text"
                 aria-label={`${label} ${i + 1}`}
@@ -261,11 +272,7 @@ export default function CopyEditor({ items, toast, title, sub, saved_label, save
                 placeholder={as_text(default_arr[i])}
                 onChange={(e) => set(it, list.map((x, j) => (j === i ? e.target.value : x)))}
               />
-              <div className="admin-actions">
-                <IconBtn icon="up" label={`Move ${label} ${i + 1} up`} onClick={() => set(it, swap(list, i, i - 1))} />
-                <IconBtn icon="down" label={`Move ${label} ${i + 1} down`} onClick={() => set(it, swap(list, i, i + 1))} />
-                <IconBtn icon="trash" danger label={`Remove ${label} ${i + 1}`} onClick={() => set(it, list.filter((_, j) => j !== i))} />
-              </div>
+              <RowActions label={label} index={i} count={list.length} onUp={() => set(it, swap(list, i, i - 1))} onDown={() => set(it, swap(list, i, i + 1))} onRemove={() => set(it, list.filter((_, j) => j !== i))} />
             </div>
           ))}
           {list_actions("", default_arr.map(as_text))}
@@ -279,6 +286,8 @@ export default function CopyEditor({ items, toast, title, sub, saved_label, save
         {list.length === 0 && <p className="copy-empty">Using default list.</p>}
         {list.map((row, i) => (
           <div className="copy-row" key={i}>
+            <span className="copy-row__index" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+            <div className="copy-row__fields">
             {fields_of.map((sf) => sf.type === "photo" ? (
               <div className="copy-photo" key={sf.path}>
                 <div className="form-group">
@@ -312,11 +321,8 @@ export default function CopyEditor({ items, toast, title, sub, saved_label, save
                 onChange={(v) => set(it, list.map((r, j) => (j === i ? { ...r, [sf.path]: v } : r)))}
               />
             ))}
-            <div className="admin-actions">
-              <IconBtn icon="up" label={`Move ${label} row ${i + 1} up`} onClick={() => set(it, swap(list, i, i - 1))} />
-              <IconBtn icon="down" label={`Move ${label} row ${i + 1} down`} onClick={() => set(it, swap(list, i, i + 1))} />
-              <IconBtn icon="trash" danger label={`Remove ${label} row ${i + 1}`} onClick={() => set(it, list.filter((_, j) => j !== i))} />
             </div>
+            <RowActions label={`${label} row`} index={i} count={list.length} onUp={() => set(it, swap(list, i, i - 1))} onDown={() => set(it, swap(list, i, i + 1))} onRemove={() => set(it, list.filter((_, j) => j !== i))} />
           </div>
         ))}
         {list_actions(to_row(fields_of, {}), default_arr.map((x) => to_row(fields_of, x)))}

@@ -138,11 +138,6 @@ export function getStory(s: SiteSettings): string[] {
 const DEFAULT_WHAT_INTRO =
   "We are not a production house. We are your unfair advantage. Every project we touch becomes a benchmark in its category, not by accident, by obsession.";
 const DEFAULT_WORK_INTRO = "A selection of recent projects from the studio.";
-const DEFAULT_STAT_COPY = [
-  { label: "PROJECTS SHIPPED", desc: "Every single one delivered on time, on spec, and above expectation." },
-  { label: "YEARS ACTIVE", desc: "Refusing to ship anything that would not carry the name. That standard does not drop." },
-  { label: "CLIENTS SERVED", desc: "From solo founders to funded startups. Every client gets the same obsessive attention." },
-];
 
 export function getSectionCopy(s: SiteSettings) {
   const home = getCopy("home", s);
@@ -150,18 +145,4 @@ export function getSectionCopy(s: SiteSettings) {
     what: home.what.intro || DEFAULT_WHAT_INTRO,
     work: home.work.intro || DEFAULT_WORK_INTRO,
   };
-}
-
-function wholeNumber(v: unknown): number | null {
-  const n = Number.parseInt(str(v), 10);
-  return Number.isFinite(n) && n >= 0 ? n : null;
-}
-
-export function getHomeStats(s: SiteSettings, projectCount: number): StatItem[] {
-  const own = legacy_stats(s);
-  if (own.length > 0) return own;
-  const founded = getIdentity(s).foundedYear;
-  const years = founded ? Math.max(1, new Date().getFullYear() - founded + 1) : 1;
-  const values = [wholeNumber(s.projects_count) ?? projectCount, wholeNumber(s.years_active) ?? years, wholeNumber(s.clients_count) ?? 0];
-  return DEFAULT_STAT_COPY.map((c, i) => ({ n: values[i], label: c.label, desc: c.desc }));
 }
