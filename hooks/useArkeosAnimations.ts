@@ -63,9 +63,7 @@ export function useArkeosAnimations({ pageHero = false, ready: readyProp = true 
             scrollTrigger: { trigger: ".svc-grid", start: "top 82%", once: true },
           });
       }
-      ["#btn-all", "#btn-svc", "#btn-cta"].forEach((sel) => {
-        const el = document.querySelector(sel);
-        if (!el) return;
+      q("#btn-all, #btn-svc, #btn-cta, .sec-hdr .btn").forEach((el) => {
         if (reduced) return void gsap.set(el, { opacity: 1, y: 0 });
         gsap.to(el, { opacity: 1, y: 0, duration: 0.65, ease: "power2.out", scrollTrigger: { trigger: el, start: "top 88%", once: true } });
       });
