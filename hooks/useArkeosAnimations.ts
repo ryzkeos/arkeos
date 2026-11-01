@@ -82,7 +82,7 @@ export function useArkeosAnimations({ pageHero = false, ready: readyProp = true 
       q(".section-lbl, .cta-lbl").forEach((el) => {
         if (el.closest(".page-hero")) return;
         if (reduced) return void gsap.set(el, { opacity: 1, y: 0 });
-        gsap.from(el, { opacity: 0, y: 8, duration: 0.6, ease: "power2.out", scrollTrigger: { trigger: el, start: "top 88%", once: true } });
+        gsap.fromTo(el, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out", scrollTrigger: { trigger: el, start: "top 88%", once: true } });
       });
       q(".about-img-wrap").forEach((el) => {
         const full = el.classList.contains("about-img-full");
