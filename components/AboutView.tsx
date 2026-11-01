@@ -4,7 +4,7 @@ import { dbPublicUrl } from "@/lib/db";
 import { fill_vars } from "@/lib/copy";
 import { useCopy, useCopyVars } from "@/lib/use_copy";
 import { useArkeosAnimations } from "@/hooks/useArkeosAnimations";
-import { use_stat_values } from "@/hooks/use_stat_values";
+import { use_stats } from "@/hooks/use_stats";
 import { useProjects } from "@/lib/useContent";
 import { useSiteSettingsLoaded } from "./SiteSettings";
 import HeroLayout from "./hero/HeroLayout";
@@ -23,13 +23,12 @@ export default function AboutView() {
   const vars = useCopyVars();
   const t = (text: string) => fill_vars(text, vars);
   const projects = useProjects();
-  const auto_n = use_stat_values();
+  const stats = use_stats();
   const ready = loaded && projects !== null;
   useArkeosAnimations({ pageHero: true, ready });
 
   const name = String(vars.name);
   const story = copy.story_paragraphs;
-  const stats = copy.stats_items.map((s, i) => ({ ...s, n: s.n > 0 ? s.n : auto_n[i] ?? 0 }));
   const values = copy.values_items;
   const team = copy.team_members;
   const storyImage = pickImage(copy.about_image);
@@ -83,7 +82,7 @@ export default function AboutView() {
           <SectionHeader copy={section(copy.values)} />
           <div className="val-grid" role="list">
             {values.map((v, i) => (
-              <div key={v.title} className="val-item reveal" role="listitem">
+              <div key={v.title} className="val-item sweep-line sweep-line--bottom reveal" role="listitem" data-num={String(i + 1).padStart(2, "0")}>
                 <span className="val-num">{String(i + 1).padStart(2, "0")}</span>
                 <h3 className="val-title">{v.title}</h3>
                 {v.desc && <p className="val-desc">{t(v.desc)}</p>}

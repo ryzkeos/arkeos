@@ -2,25 +2,25 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as db from "@/lib/db";
 import { NAV } from "@/lib/data";
-import type { CinemaType, Inquiry, Project, Service, SiteSettings } from "@/lib/types";
+import { DEFAULTS } from "@/defaults";
+import type { Inquiry, Project, Service, SiteSettings } from "@/lib/types";
 import { applyAccent } from "@/components/SiteSettings";
+import { SOCIAL_LINKS } from "@/components/SocialIcons";
+import { media_commit, media_discard } from "./media_tx";
 import IdentityPanel from "./IdentityPanel";
 import WebsiteInfoPanel from "./WebsiteInfoPanel";
-import { CINEMA_TYPES, Checkbox, FilePicker, IconBtn, MEDIA_BUCKET, MediaField, PanelHead, isHttpUrl, msg, type PanelProps } from "./shared";
+import CopyEditor from "./copy/CopyEditor";
+import { SETTINGS_COPY_ITEMS } from "./copy/schema/settings";
+import { ColorField, IconBtn, MediaField, PanelHead, ToggleField, isHttpUrl, msg, slug, type PanelProps } from "./shared";
 
-type Section = "inquiries" | "projects" | "services" | "availability" | "settings" | "website_info" | "identity" | "fonts" | "analytics";
+type Section = "inquiries" | "projects" | "services" | "settings" | "website_info" | "identity" | "fonts" | "analytics";
 
-const VIDEO_EXT = ["mp4", "webm", "mov", "ogg"];
-function mediaBadge(media: string | null) {
-  if (!media) return { label: "Black", cls: "black" };
-  const ext = media.split("?")[0].split(".").pop()?.toLowerCase() ?? "";
-  return VIDEO_EXT.includes(ext) ? { label: "Video", cls: "video" } : { label: "Image", cls: "image" };
-}
+const FEATURED_LIMIT = 5;
 const splitTags = (s: string) => s.split(",").map((t) => t.trim()).filter(Boolean);
 
 const NAV_GROUPS: { label: string; items: [Section, string][] }[] = [
   { label: "Content", items: [["inquiries", "Inquiries"], ["projects", "Projects"], ["services", "Services"]] },
-  { label: "Studio", items: [["availability", "Availability"], ["settings", "Site Settings"], ["website_info", "Website Info"], ["identity", "Identity"], ["fonts", "Font Settings"], ["analytics", "Analytics"]] },
+  { label: "Studio", items: [["settings", "Site Settings"], ["website_info", "Website Info"], ["identity", "Identity"], ["fonts", "Font Settings"], ["analytics", "Analytics"]] },
 ];
 
 export default function AdminApp() {
@@ -33,16 +33,39 @@ export default function AdminApp() {
   const [confirmState, setConfirmState] = useState<{ text: string; onYes: () => void } | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  useEffect(() => {
-    setAuthed(!!db.dbRestoreSession()?.access_token);
-    setBooted(true);
-  }, []);
-
   const showToast = useCallback((text: string, err = false) => {
     setToast({ text, err });
     clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setToast(null), 3000);
   }, []);
+
+  useEffect(() => {
+    let live = true;
+    if (!db.dbRestoreSession()?.access_token) {
+      setBooted(true);
+      return;
+    }
+    db.dbValidateSession().then((ok) => {
+      if (!live) return;
+      setAuthed(ok);
+      setBooted(true);
+      if (!ok) showToast("Session expired. Please log in again.", true);
+    });
+    return () => {
+      live = false;
+    };
+  }, [showToast]);
+
+  useEffect(() => {
+    const on_unauthorized = () => {
+      setAuthed(false);
+      setMenuOpen(false);
+      setConfirmState(null);
+      showToast("Session expired. Please log in again.", true);
+    };
+    window.addEventListener(db.UNAUTHORIZED_EVENT, on_unauthorized);
+    return () => window.removeEventListener(db.UNAUTHORIZED_EVENT, on_unauthorized);
+  }, [showToast]);
 
   const ask = useCallback((text: string, onYes: () => void) => setConfirmState({ text, onYes }), []);
 
@@ -149,8 +172,7 @@ export default function AdminApp() {
             {section === "inquiries" && <Inquiries toast={showToast} ask={ask} onUnread={setUnread} />}
             {section === "projects" && <Projects toast={showToast} ask={ask} />}
             {section === "services" && <Services toast={showToast} ask={ask} />}
-            {section === "availability" && <Availability toast={showToast} />}
-            {section === "settings" && <Settings toast={showToast} ask={ask} />}
+            {section === "settings" && <Settings toast={showToast} />}
             {section === "website_info" && <WebsiteInfoPanel toast={showToast} />}
             {section === "identity" && <IdentityPanel onOpenWebsiteInfo={() => setSection("website_info")} />}
             {section === "fonts" && <Fonts toast={showToast} />}
@@ -237,36 +259,43 @@ function Inquiries({ toast, ask, onUnread }: PanelProps & { onUnread: (n: number
 
   if (selected) {
     const rows: [string, string][] = [
-      ["Name", selected.name || "—"],
-      ["Email", selected.email || "—"],
       ["Type", selected.project_type || "—"],
       ["Budget", selected.budget || "—"],
       ["Timeline", selected.timeline || "—"],
-      ["Received", fmtDate(selected.created_at)],
     ];
     return (
       <div className="admin-panel" id="panel-inquiry-detail" style={{ display: "block" }}>
         <PanelHead title="INQUIRY" sub="Full details of the selected inquiry." error={error} />
-        <div className="admin-actions" style={{ marginBottom: "1.2rem" }}>
+        <div className="inquiry-bar">
           <button className="admin-btn" onClick={() => setOpenId(null)} aria-label="Back to inquiries">Back</button>
-          {selected.status === "unread" && (
-            <button className="admin-btn admin-btn--accent" onClick={() => mark(selected.id)} aria-label="Mark as read">Mark Read</button>
-          )}
-          <button className="admin-btn admin-btn--danger" onClick={() => del(selected.id)} aria-label="Delete inquiry">Delete</button>
-          <span className={`status-badge status-${selected.status || "unread"}`}>{selected.status || "unread"}</span>
+          <div className="admin-actions">
+            {selected.status === "unread" && (
+              <button className="admin-btn admin-btn--accent" onClick={() => mark(selected.id)} aria-label="Mark as read">Mark Read</button>
+            )}
+            <button className="admin-btn admin-btn--danger" onClick={() => del(selected.id)} aria-label="Delete inquiry">Delete</button>
+          </div>
         </div>
-        <div className="inquiry-detail">
+        <article className="inquiry-detail" aria-label={`Inquiry from ${selected.name || "unknown sender"}`}>
+          <header className="inquiry-detail__head">
+            <div className="inquiry-detail__who">
+              <h2 className="inquiry-detail__name">{selected.name || "Unknown sender"}</h2>
+              {selected.email ? <a className="inquiry-detail__email" href={`mailto:${selected.email}`}>{selected.email}</a> : <span className="inquiry-detail__email">—</span>}
+            </div>
+            <time className="inquiry-detail__date" dateTime={selected.created_at ?? undefined}>{fmtDate(selected.created_at)}</time>
+          </header>
           <dl className="inquiry-detail__meta">
             {rows.map(([label, value]) => (
-              <div key={label}>
+              <div key={label} className="inquiry-detail__cell">
                 <dt>{label}</dt>
                 <dd>{value}</dd>
               </div>
             ))}
           </dl>
-          <p className="inquiry-detail__label">Message</p>
-          <div className="inquiry-detail__message">{selected.message?.trim() || "No message provided."}</div>
-        </div>
+          <section className="inquiry-detail__body">
+            <p className="inquiry-detail__label">Message</p>
+            <div className="inquiry-detail__message">{selected.message?.trim() || "No message provided."}</div>
+          </section>
+        </article>
       </div>
     );
   }
@@ -284,7 +313,7 @@ function Inquiries({ toast, ask, onUnread }: PanelProps & { onUnread: (n: number
       <div className="admin-table-wrap">
         <table className="admin-table" aria-label="Inquiries table">
           <thead>
-            <tr>{["Name", "Email", "Type", "Budget", "Timeline", "Date", "Status", "Actions"].map((h) => <th key={h} scope="col">{h}</th>)}</tr>
+            <tr>{["Name", "Email", "Type", "Budget", "Timeline", "Date", "Status", "Actions"].map((h) => <th key={h} scope="col" className={h === "Status" || h === "Actions" ? "cell-center" : undefined}>{h}</th>)}</tr>
           </thead>
           <tbody>
             {items === null ? (
@@ -300,11 +329,13 @@ function Inquiries({ toast, ask, onUnread }: PanelProps & { onUnread: (n: number
                   <td className="cell-trunc" title={i.budget || undefined}>{i.budget || "—"}</td>
                   <td className="cell-trunc" title={i.timeline || undefined}>{i.timeline || "—"}</td>
                   <td>{i.created_at ? new Date(i.created_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "—"}</td>
-                  <td><span className={`status-badge status-${i.status || "unread"}`}>{i.status || "unread"}</span></td>
-                  <td className="admin-actions">
-                    <IconBtn icon="view" label={`View inquiry from ${i.name || "unknown sender"}`} onClick={() => setOpenId(i.id)} />
-                    <IconBtn icon="mail_open" label="Mark as read" onClick={() => mark(i.id)} />
-                    <IconBtn icon="trash" label="Delete inquiry" danger onClick={() => del(i.id)} />
+                  <td className="cell-center"><span className={`status-badge status-${i.status || "unread"}`}>{i.status || "unread"}</span></td>
+                  <td className="cell-center">
+                    <div className="admin-actions admin-actions--center">
+                      <IconBtn icon="view" label={`View inquiry from ${i.name || "unknown sender"}`} onClick={() => setOpenId(i.id)} />
+                      <IconBtn icon="mail_open" label="Mark as read" onClick={() => mark(i.id)} />
+                      <IconBtn icon="trash" label="Delete inquiry" danger onClick={() => del(i.id)} />
+                    </div>
                   </td>
                 </tr>
               ))
@@ -320,10 +351,9 @@ function Projects({ toast, ask }: PanelProps) {
   const [list, setList] = useState<Project[] | null>(null);
   const [error, setError] = useState("");
   const [editing, setEditing] = useState<{ id: string | null; hadUrl: boolean } | null>(null);
-  const [f, setF] = useState({ title: "", description: "", tags: "", url: "", color: "#C8FF00", visible: true });
-  const [mediaStatus, setMediaStatus] = useState("No media — pure black active");
-  const file = useRef<HTMLInputElement>(null);
+  const [f, setF] = useState({ title: "", description: "", tags: "", url: "", color: "#C8FF00", visible: true, featured: false, media: "" });
   const dragSrc = useRef<number | null>(null);
+  useEffect(() => () => media_discard("project"), []);
 
   const load = useCallback(() => {
     db.dbGetProjects().then((d) => { setList(Array.isArray(d) ? d : []); setError(""); }).catch(() => setError("Failed to load projects."));
@@ -331,46 +361,41 @@ function Projects({ toast, ask }: PanelProps) {
   useEffect(load, [load]);
 
   const open = (idx: number | null) => {
+    media_discard("project");
     const p = idx === null ? null : list![idx];
     setEditing({ id: p?.id ?? null, hadUrl: !!p?.url });
-    setF({ title: p?.title ?? "", description: p?.description ?? "", tags: (p?.tags ?? []).join(", "), url: p?.url ?? "", color: p?.color || "#C8FF00", visible: p ? p.visible !== false : true });
-    setMediaStatus(p ? mediaBadge(p.media).label : "No media — pure black active");
+    setF({ title: p?.title ?? "", description: p?.description ?? "", tags: (p?.tags ?? []).join(", "), url: p?.url ?? "", color: p?.color || "#C8FF00", visible: p ? p.visible !== false : true, featured: p?.featured === true, media: p?.media ?? "" });
   };
 
   const save = async () => {
     if (!f.title.trim()) return toast("Title is required.", true);
     const url = f.url.trim();
     if (url && !isHttpUrl(url)) return toast("Project link must start with http:// or https://.", true);
-    const payload: Partial<Project> = { title: f.title.trim(), description: f.description.trim(), tags: splitTags(f.tags), color: f.color, visible: f.visible };
+    if (f.featured && featured_taken >= FEATURED_LIMIT) return toast(limit_msg, true);
+    const payload: Partial<Project> = { title: f.title.trim(), description: f.description.trim(), tags: splitTags(f.tags), color: f.color, visible: f.visible, featured: f.featured, media: f.media.trim() || null };
     if (url) payload.url = url;
     else if (editing?.hadUrl) payload.url = null;
-    if (!editing?.id) { payload.sort_order = list?.length ?? 0; payload.media = null; }
+    if (!editing?.id) payload.sort_order = list?.length ?? 0;
     try {
       await db.dbSaveProject(editing?.id ?? null, payload);
+      media_commit("project", [f.media]);
       setEditing(null); load(); toast("Project saved.");
     } catch (e) { toast(msg(e, "Failed to save project."), true); }
   };
 
   const del = (id: string) =>
     ask("Delete this project? This cannot be undone.", () =>
-      db.dbDeleteProject(id).then(() => { load(); toast("Project deleted."); }).catch(() => toast("Failed to delete.", true)));
+      db.dbDeleteProject(id).then(() => { const gone = list?.find((p) => p.id === id)?.media; if (gone) db.dbDeleteFile(gone); load(); toast("Project deleted."); }).catch(() => toast("Failed to delete.", true)));
 
   const toggle = (p: Project) =>
     db.dbSaveProject(p.id!, { visible: !(p.visible !== false) }).then(load).catch(() => toast("Failed to update.", true));
 
-  const upload = async () => {
-    if (!editing?.id) return toast("Save the project first, then upload media.", true);
-    const fl = file.current?.files?.[0];
-    if (!fl) return;
-    const path = `projects/${editing.id}.${fl.name.split(".").pop()}`;
-    setMediaStatus("Uploading…");
-    try {
-      await db.dbUpload(MEDIA_BUCKET, path, fl);
-      const url = db.dbPublicUrl(MEDIA_BUCKET, path);
-      await db.dbSaveProject(editing.id, { media: url });
-      setMediaStatus(`${mediaBadge(url).label} — uploaded`);
-      toast("Media uploaded."); load();
-    } catch (e) { setMediaStatus("Upload failed."); toast(msg(e, "Upload failed."), true); }
+  const featured_taken = (list ?? []).filter((p) => p.featured && p.id !== editing?.id).length;
+  const limit_msg = `Only ${FEATURED_LIMIT} projects can be featured. Unfeature one first.`;
+
+  const feature = (p: Project) => {
+    if (!p.featured && (list ?? []).filter((x) => x.featured).length >= FEATURED_LIMIT) return toast(limit_msg, true);
+    db.dbSaveProject(p.id!, { featured: !p.featured }).then(load).catch(() => toast("Failed to update.", true));
   };
 
   const drop = (target: number) => {
@@ -409,25 +434,13 @@ function Projects({ toast, ask }: PanelProps) {
             <label htmlFor="pf-url">Project Link (optional)</label>
             <input type="url" id="pf-url" placeholder="https://" value={f.url} onChange={(e) => setF({ ...f, url: e.target.value })} />
           </div>
-          <div className="form-group">
-            <label htmlFor="pf-color">Accent Color</label>
-            <input type="color" id="pf-color" aria-label="Project card accent color" value={f.color} onChange={(e) => setF({ ...f, color: e.target.value })} />
-          </div>
-          <div className="form-group">
-            <Checkbox id="pf-visible" label="Visible on site" checked={f.visible} onChange={(v) => setF({ ...f, visible: v })} />
-          </div>
-          <div className="form-group admin-form-full">
-            <span className="admin-field-label">Media Upload (video, image or .html)</span>
-            <div className="form-group-actions">
-              <FilePicker id="pf-media-file" label="Choose project media file" accept="video/*,image/*,.html,.htm" inputRef={file} busy={mediaStatus === "Uploading…"} status={mediaStatus.toLowerCase().includes("fail") ? "error" : undefined} status_text={mediaStatus.toLowerCase().includes("fail") ? mediaStatus : undefined} />
-              <button className="admin-btn admin-btn--accent" onClick={upload} aria-label="Upload media file">Upload</button>
-              <span className="field-status status--off" aria-live="polite">{mediaStatus}</span>
-            </div>
-          </div>
+          <ColorField id="pf-color" label="Accent Color" value={f.color} onChange={(v) => setF((x) => ({ ...x, color: v }))} />
+          <ToggleField id="pf-featured" label="Featured" checked={f.featured} onChange={(v) => { if (v && featured_taken >= FEATURED_LIMIT) return toast(limit_msg, true); setF((x) => ({ ...x, featured: v })); }} />
+          <MediaField label="Media (video, image or .html)" accept="video/*,image/*,.html,.htm" folder="projects" scope="project" file_name={`project-${slug(f.title) || "untitled"}`} value={f.media} onChange={(v) => setF((x) => ({ ...x, media: v }))} toast={toast} placeholder="or paste media URL" />
         </div>
-        <div className="admin-actions">
+        <div className="admin-actions admin-actions--end">
+          <button className="admin-btn" onClick={() => { media_discard("project"); setEditing(null); }} aria-label="Cancel editing">Cancel</button>
           <button className="admin-btn admin-btn--accent" onClick={save} aria-label="Save project">Save Project</button>
-          <button className="admin-btn" onClick={() => setEditing(null)} aria-label="Cancel editing">Cancel</button>
         </div>
       </div>
 
@@ -435,15 +448,13 @@ function Projects({ toast, ask }: PanelProps) {
         {list === null ? <p className="admin-empty">Loading…</p> : list.length === 0 ? (
           <p className="admin-empty">No projects yet. Add one below.</p>
         ) : list.map((p, i) => {
-          const b = mediaBadge(p.media);
           const vis = p.visible !== false;
           return (
             <div key={p.id} className="project-row" draggable onDragStart={() => { dragSrc.current = i; }} onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); drop(i); }} aria-label={`Project: ${p.title}`}>
               <div className="project-row__drag" aria-hidden="true">⠿</div>
               <div className="project-row__info"><strong>{p.title || "Untitled"}</strong><span className="project-row__tags">{(p.tags ?? []).join(", ")}</span></div>
-              <span className={`media-badge media-badge--${b.cls}`}>{b.label}</span>
-              <span className={`vis-badge ${vis ? "vis--on" : "vis--off"}`}>{vis ? "Visible" : "Hidden"}</span>
               <div className="admin-actions">
+                <IconBtn icon="star" active={!!p.featured} label={p.featured ? `Unfeature ${p.title}` : `Feature ${p.title}`} onClick={() => feature(p)} />
                 <IconBtn icon="edit" label={`Edit ${p.title}`} onClick={() => open(i)} />
                 <IconBtn icon={vis ? "eye_off" : "eye"} label={vis ? `Hide ${p.title}` : `Show ${p.title}`} onClick={() => toggle(p)} />
                 <IconBtn icon="trash" label={`Delete ${p.title}`} danger onClick={() => del(p.id!)} />
@@ -460,7 +471,9 @@ function Services({ toast, ask }: PanelProps) {
   const [list, setList] = useState<Service[] | null>(null);
   const [error, setError] = useState("");
   const [editing, setEditing] = useState<{ id: string | null; hadPrice: boolean } | null>(null);
-  const [f, setF] = useState({ title: "", description: "", tags: "", price: "", visible: true, icon_url: "", cinema_url: "", cinema_type: "video" as CinemaType });
+  const [f, setF] = useState({ title: "", description: "", tags: "", price: "", visible: true, icon_url: "", cinema_url: "" });
+  const dragSrc = useRef<number | null>(null);
+  useEffect(() => () => media_discard("service"), []);
 
   const load = useCallback(() => {
     db.dbGetServices().then((d) => { setList(Array.isArray(d) ? d : []); setError(""); }).catch(() => setError("Failed to load services."));
@@ -468,34 +481,46 @@ function Services({ toast, ask }: PanelProps) {
   useEffect(load, [load]);
 
   const open = (idx: number | null) => {
+    media_discard("service");
     const s = idx === null ? null : list![idx];
     setEditing({ id: s?.id ?? null, hadPrice: !!s?.price });
-    setF({ title: s?.title ?? "", description: s?.description ?? "", tags: (s?.tags ?? []).join(", "), price: s?.price ?? "", visible: s ? s.visible !== false : true, icon_url: s?.icon_url ?? "", cinema_url: s?.cinema_url ?? "", cinema_type: s?.cinema_type ?? "video" });
+    setF({ title: s?.title ?? "", description: s?.description ?? "", tags: (s?.tags ?? []).join(", "), price: s?.price ?? "", visible: s ? s.visible !== false : true, icon_url: s?.icon_url ?? "", cinema_url: s?.cinema_url ?? "" });
   };
 
   const save = async () => {
     if (!f.title.trim()) return toast("Title is required.", true);
     const price = f.price.trim();
-    const payload: Partial<Service> = { title: f.title.trim(), description: f.description.trim(), tags: splitTags(f.tags), visible: f.visible, icon_url: f.icon_url.trim() || null, cinema_url: f.cinema_url.trim() || null, cinema_type: f.cinema_type };
+    const payload: Partial<Service> = { title: f.title.trim(), description: f.description.trim(), tags: splitTags(f.tags), visible: f.visible, icon_url: f.icon_url.trim() || null, cinema_url: f.cinema_url.trim() || null };
     if (price) payload.price = price;
     else if (editing?.hadPrice) payload.price = null;
     if (!editing?.id) payload.sort_order = list?.length ?? 0;
     try {
       await db.dbSaveService(editing?.id ?? null, payload);
+      media_commit("service", [f.icon_url, f.cinema_url]);
       setEditing(null); load(); toast("Service saved.");
     } catch (e) { toast(msg(e, "Failed to save service."), true); }
   };
 
   const del = (id: string) =>
     ask("Delete this service? This cannot be undone.", () =>
-      db.dbDeleteService(id).then(() => { load(); toast("Service deleted."); }).catch(() => toast("Failed to delete.", true)));
+      db.dbDeleteService(id).then(() => { const gone = list?.find((x) => x.id === id); [gone?.icon_url, gone?.cinema_url].forEach((u) => u && db.dbDeleteFile(u)); load(); toast("Service deleted."); }).catch(() => toast("Failed to delete.", true)));
 
   const toggle = (s: Service) =>
     db.dbSaveService(s.id, { visible: !(s.visible !== false) }).then(load).catch(() => toast("Failed to update.", true));
 
+  const drop = (target: number) => {
+    const src = dragSrc.current;
+    dragSrc.current = null;
+    if (src === null || src === target || !list) return;
+    const next = list.slice();
+    next.splice(target, 0, next.splice(src, 1)[0]);
+    setList(next);
+    Promise.all(next.map((x, i) => db.dbSaveService(x.id, { sort_order: i }))).then(load).catch(() => { toast("Failed to reorder.", true); load(); });
+  };
+
   return (
     <div className="admin-panel" id="panel-services" style={{ display: "block" }}>
-      <PanelHead title="SERVICES" sub="Manage studio services. Supports icon, cinema preview and pricing." error={error} />
+      <PanelHead title="SERVICES" sub="Manage studio services. Drag to reorder. Supports icon, cinema preview and pricing." error={error} />
       <div className="admin-actions" style={{ marginBottom: "1.2rem" }}>
         <button className="admin-btn admin-btn--accent" onClick={() => open(null)} aria-label="Add a new service">+ Add Service</button>
       </div>
@@ -519,21 +544,13 @@ function Services({ toast, ask }: PanelProps) {
             <label htmlFor="sf-price">Price (optional)</label>
             <input type="text" id="sf-price" placeholder="Price text" value={f.price} onChange={(e) => setF({ ...f, price: e.target.value })} />
           </div>
-          <div className="form-group">
-            <Checkbox id="sf-visible" label="Visible on site" checked={f.visible} onChange={(v) => setF({ ...f, visible: v })} />
-          </div>
-          <MediaField label="Icon Image" accept="image/*" folder="services" value={f.icon_url} onChange={(v) => setF((x) => ({ ...x, icon_url: v }))} toast={toast} placeholder="or paste icon URL" />
-          <MediaField label="Cinema Preview" accept="video/*,image/*" folder="services" value={f.cinema_url} onChange={(v) => setF((x) => ({ ...x, cinema_url: v }))} toast={toast} placeholder="or paste cinema URL" />
-          <div className="form-group">
-            <label htmlFor="sf-cinema-type">Cinema type</label>
-            <select id="sf-cinema-type" value={f.cinema_type} onChange={(e) => setF({ ...f, cinema_type: e.target.value as CinemaType })}>
-              {CINEMA_TYPES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-            </select>
-          </div>
+          <ToggleField id="sf-visible" label="Visible on site" checked={f.visible} onChange={(v) => setF((x) => ({ ...x, visible: v }))} />
+          <MediaField label="Icon Image" accept="image/*" folder="services" scope="service" file_name={`service-${slug(f.title) || "untitled"}-icon`} value={f.icon_url} onChange={(v) => setF((x) => ({ ...x, icon_url: v }))} toast={toast} placeholder="or paste icon URL" />
+          <MediaField label="Cinema Preview" accept="video/*,image/*" folder="services" scope="service" file_name={`service-${slug(f.title) || "untitled"}-cinema`} value={f.cinema_url} onChange={(v) => setF((x) => ({ ...x, cinema_url: v }))} toast={toast} placeholder="or paste cinema URL" />
         </div>
         <div className="admin-actions">
           <button className="admin-btn admin-btn--accent" onClick={save} aria-label="Save service">Save Service</button>
-          <button className="admin-btn" onClick={() => setEditing(null)} aria-label="Cancel editing">Cancel</button>
+          <button className="admin-btn" onClick={() => { media_discard("service"); setEditing(null); }} aria-label="Cancel editing">Cancel</button>
         </div>
       </div>
 
@@ -543,9 +560,9 @@ function Services({ toast, ask }: PanelProps) {
         ) : list.map((s, i) => {
           const vis = s.visible !== false;
           return (
-            <div key={s.id} className="project-row" aria-label={`Service: ${s.title}`}>
+            <div key={s.id} className="project-row" draggable onDragStart={() => { dragSrc.current = i; }} onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); drop(i); }} aria-label={`Service: ${s.title}`}>
+              <div className="project-row__drag" aria-hidden="true">⠿</div>
               <div className="project-row__info"><strong>{s.title || "Untitled"}</strong><span className="project-row__tags">{s.description ? s.description.slice(0, 60) + "…" : ""}</span></div>
-              <span className={`vis-badge ${vis ? "vis--on" : "vis--off"}`}>{vis ? "Visible" : "Hidden"}</span>
               <div className="admin-actions">
                 <IconBtn icon="edit" label={`Edit ${s.title}`} onClick={() => open(i)} />
                 <IconBtn icon={vis ? "eye_off" : "eye"} label={vis ? `Hide ${s.title}` : `Show ${s.title}`} onClick={() => toggle(s)} />
@@ -560,63 +577,91 @@ function Services({ toast, ask }: PanelProps) {
 }
 
 function Availability({ toast }: Pick<PanelProps, "toast">) {
-  const [available, setAvailable] = useState(true);
+  const [available, setAvailable] = useState<boolean | null>(null);
+  const [texts, setTexts] = useState({ open: DEFAULTS.shared.availability.available_text, booked: DEFAULTS.shared.availability.booked_text });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
-    db.dbGet<{ value: string }[]>("site_settings", "key=eq.availability&select=value")
-      .then((d) => setAvailable((d?.[0]?.value ?? "available") !== "booked"))
-      .catch(() => {});
-  }, []);
+    let live = true;
+    setError("");
+    db.dbLoadSiteSettings()
+      .then((r: SiteSettings) => {
+        if (!live) return;
+        let copy: { availability?: { available_text?: unknown; booked_text?: unknown } } = {};
+        try { copy = r.copy_shared ? JSON.parse(r.copy_shared) : {}; } catch {}
+        const pick = (v: unknown, fallback: string) => (typeof v === "string" && v.trim() ? v.trim() : fallback);
+        setTexts({
+          open: pick(copy?.availability?.available_text, DEFAULTS.shared.availability.available_text),
+          booked: pick(copy?.availability?.booked_text, DEFAULTS.shared.availability.booked_text),
+        });
+        setAvailable((r.availability ?? "available") !== "booked");
+      })
+      .catch(() => { if (live) setError("Failed to load availability."); });
+    return () => { live = false; };
+  }, [attempt]);
 
   const change = async (next: boolean) => {
+    if (saving || available === null || next === available) return;
+    const prev = available;
     setAvailable(next);
+    setSaving(true);
     try {
       await db.dbSaveSetting("availability", next ? "available" : "booked");
       toast("Availability updated.");
     } catch {
-      setAvailable(!next);
-      toast("Failed to update.", true);
+      setAvailable(prev);
+      toast("Failed to update. Your change was reverted.", true);
+    } finally {
+      setSaving(false);
     }
   };
 
+  const loading = available === null && !error;
+  const text = available ? texts.open : texts.booked;
+
   return (
-    <div className="admin-panel" id="panel-availability" style={{ display: "block" }}>
-      <PanelHead title="AVAILABILITY" sub="Toggle studio status. Reflects live in the site header badge instantly." />
-      <div className="avail-card">
-        <div className="avail-status">
-          <div className={`avail-dot ${available ? "avail-dot--green" : "avail-dot--red"}`} aria-hidden="true" />
-          <span className="avail-label-text">{available ? "Now Taking Projects" : "Currently Booked"}</span>
+    <div className="settings-section" id="panel-availability">
+      <p className="settings-section-title">Availability</p>
+      {error && (
+        <div className="admin-actions">
+          <p className="panel-error" role="alert" style={{ display: "block" }}>{error}</p>
+          <button type="button" className="admin-btn" onClick={() => setAttempt((n) => n + 1)}>Retry</button>
         </div>
-        <div className="avail-toggle-wrap">
-          <span className="avail-toggle-label">Available</span>
-          <label className="toggle-switch" aria-label="Toggle studio availability">
-            <input type="checkbox" checked={available} onChange={(e) => change(e.target.checked)} />
-            <span className="toggle-slider" />
-          </label>
-          <span className="avail-toggle-label">Taking clients</span>
-        </div>
-        <p style={{ fontSize: "0.75rem", color: "var(--color-muted)", lineHeight: 1.7, maxWidth: 320 }}>
-          Switching to &quot;Currently Booked&quot; updates the header badge sitewide within seconds. No code change required.
-        </p>
+      )}
+      <div className="settings-grid settings-grid--single" aria-busy={loading || saving}>
+        <ToggleField id="set-availability" label="Studio status" checked={available === true} disabled={available === null || saving} on_text="Taking projects" off_text="Currently booked" onChange={change} />
       </div>
+      <p className="panel-sub" role="status">{loading ? "Loading…" : available === null ? "" : `Header badge shows: ${text}`}</p>
     </div>
   );
 }
 
-function Settings({ toast, ask }: PanelProps) {
-  const [s, setS] = useState({ projects_count: "", years_active: "", clients_count: "", accent_color: "#C8FF00", social_github: "", social_instagram: "", social_facebook: "" });
+const SOCIAL_FIELD_IDS: Record<string, string> = {
+  social_github: "set-social-gh",
+  social_instagram: "set-social-ig",
+  social_facebook: "set-social-fb",
+  social_linkedin: "set-social-li",
+  social_telegram: "set-social-tg",
+  social_threads: "set-social-th",
+  social_discord: "set-social-dc",
+};
+
+const blank_socials = () => Object.fromEntries(SOCIAL_LINKS.map(({ key }) => [key, ""])) as Record<(typeof SOCIAL_LINKS)[number]["key"], string>;
+
+function Settings({ toast }: Pick<PanelProps, "toast">) {
+  const [accent, setAccent] = useState("#C8FF00");
+  const [socials, setSocials] = useState(blank_socials);
   const [video, setVideo] = useState("");
-  const [videoStatus, setVideoStatus] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const file = useRef<HTMLInputElement>(null);
+  useEffect(() => () => media_discard("settings"), []);
 
   useEffect(() => {
     db.dbLoadSiteSettings()
       .then((r: SiteSettings) => {
-        setS({
-          projects_count: r.projects_count ?? "", years_active: r.years_active ?? "", clients_count: r.clients_count ?? "", accent_color: r.accent_color || "#C8FF00",
-          social_github: r.social_github ?? "", social_instagram: r.social_instagram ?? "", social_facebook: r.social_facebook ?? "",
-        });
+        setAccent(r.accent_color || "#C8FF00");
+        setSocials(Object.fromEntries(SOCIAL_LINKS.map(({ key }) => [key, r[key] ?? ""])) as typeof socials);
         setVideo(r.hero_video ?? "");
       })
       .catch(() => setError("Failed to load settings."));
@@ -624,90 +669,58 @@ function Settings({ toast, ask }: PanelProps) {
 
   const save = async () => {
     const fields: Record<string, string> = {
-      projects_count: s.projects_count.trim(), years_active: s.years_active.trim(), clients_count: s.clients_count.trim(), accent_color: s.accent_color,
-      social_github: s.social_github.trim(), social_instagram: s.social_instagram.trim(), social_facebook: s.social_facebook.trim(),
+      accent_color: accent,
+      hero_video: video.trim(),
+      ...Object.fromEntries(SOCIAL_LINKS.map(({ key }) => [key, socials[key].trim()])),
     };
     try {
       await Promise.all(Object.entries(fields).map(([k, v]) => db.dbSaveSetting(k, v)));
-      applyAccent(s.accent_color);
+      applyAccent(accent);
+      media_commit("settings", [video]);
       toast("Settings saved.");
     } catch { toast("Failed to save some settings.", true); }
   };
 
-  const upload = async () => {
-    const fl = file.current?.files?.[0];
-    if (!fl) return toast("Choose a video file first.", true);
-    const path = `hero/hero-video.${fl.name.split(".").pop()}`;
-    setVideoStatus("Uploading…");
-    try {
-      await db.dbUpload(MEDIA_BUCKET, path, fl);
-      const url = db.dbPublicUrl(MEDIA_BUCKET, path);
-      await db.dbSaveSetting("hero_video", url);
-      setVideo(url); setVideoStatus(null);
-      toast("Hero video updated.");
-    } catch { setVideoStatus("Upload failed."); toast("Upload failed.", true); }
-  };
-
-  const clear = () =>
-    ask("Remove hero video? Site will display pure black.", () =>
-      db.dbSaveSetting("hero_video", "").then(() => { setVideo(""); setVideoStatus(null); toast("Hero video removed."); }).catch(() => toast("Failed to update.", true)));
-
-  const on = !!video && videoStatus === null;
-  const text = (k: keyof typeof s, label: string, id: string, ph: string, type = "text") => (
-    <div className="form-group">
-      <label htmlFor={id}>{label}</label>
-      <input type={type} id={id} placeholder={ph} value={s[k]} onChange={(e) => setS({ ...s, [k]: e.target.value })} />
-    </div>
-  );
-
   return (
     <div className="admin-panel" id="panel-settings" style={{ display: "block" }}>
-      <PanelHead title="SITE SETTINGS" sub="Edit global site content. Changes reflect live." error={error} />
+      <PanelHead title="SITE SETTINGS" sub="Edit global site content. Changes reflect live. Counters shown on Home and About are edited once, here." error={error} />
 
       <div className="settings-section">
-        <p className="settings-section-title">Home Counters</p>
-        <p className="panel-sub">Leave empty to count automatically. Page text is edited in Website Info.</p>
-        <div className="settings-grid">
-          {text("projects_count", "Projects Count", "set-projects-count", "Auto", "number")}
-          {text("years_active", "Years Active", "set-years-active", "Auto", "number")}
-          {text("clients_count", "Clients Count", "set-clients-count", "Auto", "number")}
+        <p className="settings-section-title">General</p>
+        <div className="settings-grid settings-grid--single">
+          <ColorField id="set-accent" label="Global Accent Color" value={accent} onChange={setAccent} wide />
         </div>
-      </div>
-
-      <div className="settings-section">
-        <p className="settings-section-title">Brand</p>
-        <div className="settings-grid">
-          <div className="form-group">
-            <label htmlFor="set-accent">Global Accent Color</label>
-            <input type="color" id="set-accent" aria-label="Global accent color picker" value={s.accent_color} onChange={(e) => setS({ ...s, accent_color: e.target.value })} />
-          </div>
+        <div className="admin-form-grid">
+          <MediaField label="Hero Background Video" accept="video/mp4,video/webm" folder="hero" scope="settings" file_name="hero-background" value={video} onChange={setVideo} toast={toast} placeholder="or paste video URL" />
         </div>
-      </div>
-
-      <div className="settings-section">
-        <p className="settings-section-title">Hero Background Video</p>
-        <div className="admin-actions" style={{ gap: "0.8rem", alignItems: "center", flexWrap: "wrap" }}>
-          <FilePicker id="set-video-file" label="Choose hero video file" accept="video/mp4,video/webm" inputRef={file} busy={videoStatus === "Uploading…"} status={videoStatus === "Upload failed." ? "error" : undefined} />
-          <button className="admin-btn admin-btn--accent" onClick={upload} aria-label="Upload hero video">Upload</button>
-          <button className="admin-btn admin-btn--danger" onClick={clear} aria-label="Remove hero video">Clear Video</button>
-          <span className={`field-status ${on ? "status--on" : "status--off"}`} aria-live="polite">
-            {videoStatus ?? (video ? `Video Active — ${video}` : "Displaying Pure Black")}
-          </span>
-        </div>
+        <p className="panel-sub">Empty video shows pure black.</p>
       </div>
 
       <div className="settings-section">
         <p className="settings-section-title">Social Links</p>
+        <p className="panel-sub">Filled links show in the footer and the menu. Empty ones stay hidden.</p>
         <div className="settings-grid">
-          {text("social_github", "GitHub URL", "set-social-gh", "https://", "url")}
-          {text("social_instagram", "Instagram URL", "set-social-ig", "https://", "url")}
-          {text("social_facebook", "Facebook URL", "set-social-fb", "https://", "url")}
+          {SOCIAL_LINKS.map(({ key, label }) => (
+            <div className="form-group" key={key}>
+              <label htmlFor={SOCIAL_FIELD_IDS[key]}>{label} URL</label>
+              <input type="url" id={SOCIAL_FIELD_IDS[key]} placeholder="https://" value={socials[key]} onChange={(e) => setSocials((x) => ({ ...x, [key]: e.target.value }))} />
+            </div>
+          ))}
         </div>
       </div>
 
-      <div className="admin-actions">
-        <button className="admin-btn admin-btn--accent" onClick={save} aria-label="Save all site settings">Save Settings</button>
+      <Availability toast={toast} />
+
+      <div className="admin-actions admin-actions--full">
+        <button type="button" className="admin-btn admin-btn--accent" onClick={save} aria-label="Save general settings and social links">Save General Settings</button>
       </div>
+
+      <CopyEditor
+        items={SETTINGS_COPY_ITEMS}
+        toast={toast}
+        saved_label="Media, navigation and preloader"
+        save_label="Save Media, Navigation and Preloader"
+      />
     </div>
   );
 }
@@ -731,55 +744,49 @@ async function checkFont(file: File): Promise<string | null> {
 
 function Fonts({ toast }: Pick<PanelProps, "toast">) {
   const [active, setActive] = useState<Record<string, string>>({});
-  const files = useRef<Record<string, HTMLInputElement | null>>({});
-  const [busy, setBusy] = useState("");
 
   const load = useCallback(() => {
     db.dbLoadSiteSettings().then((r) => setActive(r as Record<string, string>)).catch(() => {});
   }, []);
   useEffect(load, [load]);
 
-  const upload = async (key: string) => {
-    const fl = files.current[key]?.files?.[0];
-    if (!fl) return toast("Choose a .woff2 file.", true);
-    const problem = await checkFont(fl);
-    if (problem) return toast(problem, true);
-    const path = `fonts/${key}-${Date.now()}.woff2`;
-    setBusy(key);
+  const save_font = async (key: string, url: string) => {
     try {
-      await db.dbUpload(MEDIA_BUCKET, path, new File([fl], `${key}.woff2`, { type: "font/woff2" }));
-    } catch (e) {
-      setBusy("");
-      return toast(msg(e, "Font upload failed."), true);
-    }
-    try {
-      await db.dbSaveSetting(key, db.dbPublicUrl(MEDIA_BUCKET, path));
+      await db.dbSaveSetting(key, url);
+      media_commit("fonts", [url]);
       load();
-      const input = files.current[key];
-      if (input) input.value = "";
-      toast("Font uploaded. Reload the site to see it.");
+      toast(url ? "Font saved. Reload the site to see it." : "Font removed.");
     } catch (e) {
-      toast(`Uploaded, but saving failed: ${msg(e, "unknown error")}`, true);
-    } finally {
-      setBusy("");
+      toast(`Saving failed: ${msg(e, "unknown error")}`, true);
     }
   };
 
   return (
     <div className="admin-panel" id="panel-fonts" style={{ display: "block" }}>
-      <PanelHead title="FONT SETTINGS" sub="Upload .woff2 font files. Green = active. Red = bundled font currently rendering." />
+      <PanelHead title="FONT SETTINGS" sub="Upload .woff2 font files. A font marked Active replaces the default for that slot. Recommended fonts are only suggestions." />
       {FONT_SLOTS.map((slot) => {
         const isOn = !!active[slot.key];
         return (
           <div key={slot.key} className="font-slot" aria-label={`${slot.label} slot`}>
             <div className="font-slot__info">
               <p className="font-slot__label">{slot.label}</p>
-              <p className="font-slot__name">{slot.name}</p>
+              <p className="font-slot__hint">Recommended: {slot.name}</p>
             </div>
-            <span className={`font-status ${isOn ? "font-status--on" : "font-status--off"}`}>{isOn ? "Active" : "bundled font"}</span>
+            {isOn && <span className="font-status font-status--on">Active</span>}
             <div className="font-upload-wrap">
-              <FilePicker id={`font-file-${slot.key}`} label={`Choose ${slot.name} font file`} accept=".woff2" inputRef={(el) => { files.current[slot.key] = el; }} busy={busy === slot.key} />
-              <button className="admin-btn admin-btn--sm admin-btn--accent" onClick={() => upload(slot.key)} disabled={busy === slot.key} aria-label={`Upload ${slot.label} font`}>{busy === slot.key ? "Uploading…" : "Upload"}</button>
+              <MediaField
+                label={`${slot.label} font`}
+                accept=".woff2"
+                folder="fonts"
+                scope="fonts" file_name={slot.key.replace(/_/g, "-")}
+                value={active[slot.key] ?? ""}
+                onChange={(v) => save_font(slot.key, v)}
+                toast={toast}
+                hide_url
+                wide={false}
+                validate={checkFont}
+                prepare={(fl) => new File([fl], `${slot.key}.woff2`, { type: "font/woff2" })}
+              />
             </div>
           </div>
         );

@@ -19,6 +19,8 @@ export type CopyField = {
   options?: string[];
 };
 
+export type CopyItem = { page: PageKey; field: CopyField; section?: string };
+
 export const COPY_SCHEMA: Record<PageKey, CopyField[]> = {
   shared: shared_schema,
   home: home_schema,
@@ -31,7 +33,7 @@ export const COPY_SCHEMA: Record<PageKey, CopyField[]> = {
 };
 
 export const PAGE_LABELS: Record<PageKey, string> = {
-  shared: "Shared (header, footer, menu)",
+  shared: "General",
   home: "Home",
   projects: "Projects",
   services: "Services",

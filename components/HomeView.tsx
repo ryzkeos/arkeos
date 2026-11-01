@@ -1,14 +1,13 @@
 "use client";
 import "@/styles/home.css";
-import { DEFAULTS, type HeroCopy, type SectionCopy } from "@/defaults";
-import { fill_vars, legacy_stats } from "@/lib/copy";
+import { type HeroCopy, type SectionCopy } from "@/defaults";
+import { fill_vars } from "@/lib/copy";
 import { useProjects, useServices } from "@/lib/useContent";
 import { useCopy, useCopyVars } from "@/lib/use_copy";
 import { useArkeosAnimations } from "@/hooks/useArkeosAnimations";
-import { use_stat_values } from "@/hooks/use_stat_values";
+import { use_stats } from "@/hooks/use_stats";
 import { useIntroDone } from "@/lib/preloader";
-import type { StatItem } from "@/lib/types";
-import { useSiteSettings, useSiteSettingsLoaded } from "./SiteSettings";
+import { useSiteSettingsLoaded } from "./SiteSettings";
 import HeroLayout from "./hero/HeroLayout";
 import ServiceCard from "./ServiceCard";
 import CtaSection from "./CtaSection";
@@ -18,8 +17,6 @@ import SectionHeader from "./SectionHeader";
 const MAX_CARDS = 24;
 const clamp_count = (n: number) => Math.min(MAX_CARDS, Math.max(0, Math.floor(n)));
 
-const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
-
 const ICONS = [
   <><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></>,
   <polygon points="5 3 19 12 5 21 5 3" />,
@@ -28,7 +25,6 @@ const ICONS = [
 ];
 
 export default function HomeView() {
-  const settings = useSiteSettings();
   const settingsLoaded = useSiteSettingsLoaded();
   const allProjects = useProjects();
   const allServices = useServices();
@@ -53,32 +49,26 @@ export default function HomeView() {
     ghost: copy.hero.ghost || brand.name,
   };
 
-  const auto_n = use_stat_values();
-  const own_stats = !same(copy.why_stats, DEFAULTS.home.why_stats);
-  const legacy = legacy_stats(settings);
-  const stats: StatItem[] =
-    !own_stats && legacy.length > 0
-      ? legacy
-      : copy.why_stats.map((w, i) => ({ ...w, n: w.n > 0 ? w.n : auto_n[i] ?? 0 }));
+  const stats = use_stats();
   const why = section(copy.why);
 
   return (
     <main className="pg-home">
       <HeroLayout copy={hero_copy} ariaLabel={brand.name} variant="full" />
 
-      {services.length > 0 && (
-        <section id="what" className="section" aria-label={copy.what.label}>
-          <SectionHeader cta_id="btn-svc" copy={section(copy.what)} />
-          <div className="pillars" role="list">
-            {services.map((s, i) => <ServiceCard key={s.id} service={s} icon={ICONS[i % ICONS.length]} />)}
-          </div>
-        </section>
-      )}
-
       {projects.length > 0 && (
         <section id="projects" className="section" aria-label={copy.work.label}>
           <SectionHeader cta_id="btn-all" copy={section(copy.work)} />
           <ProjectGrid projects={projects} variant="home" />
+        </section>
+      )}
+
+      {services.length > 0 && (
+        <section id="what" className="section" aria-label={copy.what.label}>
+          <SectionHeader cta_id="btn-svc" copy={section(copy.what)} />
+          <div className="svc-cards" role="list">
+            {services.map((s, i) => <ServiceCard key={s.id} service={s} icon={ICONS[i % ICONS.length]} index={i} />)}
+          </div>
         </section>
       )}
 

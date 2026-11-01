@@ -1,19 +1,7 @@
 "use client";
 import { useEffect, useRef } from "react";
 import { safeUrl } from "@/lib/gsap";
-
-const VIDEO_EXT = ["mp4", "webm", "mov", "ogg"];
-const HTML_EXT = ["html", "htm"];
-const ext_of = (m: string) => m.split("?")[0].split(".").pop()?.toLowerCase() ?? "";
-
-export type MediaKind = "video" | "html" | "image";
-
-export function media_kind(url: string): MediaKind {
-  const e = ext_of(url);
-  if (VIDEO_EXT.includes(e)) return "video";
-  if (HTML_EXT.includes(e)) return "html";
-  return "image";
-}
+import { media_kind } from "@/lib/media_type";
 
 type Props = { src?: string | null; active?: boolean };
 

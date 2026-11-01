@@ -1,10 +1,14 @@
 "use client";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { dbLoadSiteSettings, dbRestoreSession, dbTrackPageView } from "@/lib/db";
+import { settings_store } from "@/lib/content_store";
+import { dbRestoreSession, dbTrackPageView } from "@/lib/db";
 import type { SiteSettings } from "@/lib/types";
+import { use_isomorphic_layout_effect, use_store } from "@/lib/use_store";
 
-const Ctx = createContext<SiteSettings>({});
+const NO_SETTINGS: SiteSettings = {};
+
+const Ctx = createContext<SiteSettings>(NO_SETTINGS);
 const LoadedCtx = createContext(false);
 
 export const useSiteSettings = () => useContext(Ctx);
@@ -79,30 +83,19 @@ function applyFonts(s: SiteSettings): () => void {
 }
 
 export function SiteSettingsProvider({ children, track = true }: { children: React.ReactNode; track?: boolean }) {
-  const [settings, setSettings] = useState<SiteSettings>({});
-  const [loaded, setLoaded] = useState(false);
+  const { data, ready } = use_store(settings_store);
+  const settings = data ?? NO_SETTINGS;
   const pathname = usePathname();
 
   useEffect(() => {
-    let active = true;
-    let undoFonts: () => void = () => {};
     dbRestoreSession();
-    dbLoadSiteSettings()
-      .then((s) => {
-        if (!active) return;
-        setSettings(s);
-        setLoaded(true);
-        applyAccent(s.accent_color);
-        undoFonts = applyFonts(s);
-      })
-      .catch(() => {
-        if (active) setLoaded(true);
-      });
-    return () => {
-      active = false;
-      undoFonts();
-    };
   }, []);
+
+  use_isomorphic_layout_effect(() => {
+    if (!data) return;
+    applyAccent(data.accent_color);
+    return applyFonts(data);
+  }, [data]);
 
   useEffect(() => {
     if (track) dbTrackPageView(pathname);
@@ -110,7 +103,7 @@ export function SiteSettingsProvider({ children, track = true }: { children: Rea
 
   return (
     <Ctx.Provider value={settings}>
-      <LoadedCtx.Provider value={loaded}>{children}</LoadedCtx.Provider>
+      <LoadedCtx.Provider value={ready}>{children}</LoadedCtx.Provider>
     </Ctx.Provider>
   );
 }

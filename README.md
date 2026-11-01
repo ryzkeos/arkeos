@@ -31,7 +31,7 @@ Set these in `.env.local`:
 | `NEXT_PUBLIC_STORAGE_BUCKET` | optional. Bucket name, defaults to `media` |
 | `NEXT_PUBLIC_SITE_URL` | the public site url, used for share previews |
 
-Run `db/schema.sql` on the database before first use. It creates the tables and the `url` and `price` fields.
+Run `db/schema.sql` on the database before first use. It creates the tables and the `url`, `price` and `featured` fields. Run it again after updating, since it is safe to repeat.
 
 ## Usage
 
@@ -58,11 +58,13 @@ public/assets/   images and fonts
 
 ### Media
 
-Project cards play video and render `.html` media (sandboxed) automatically, and show images as is. Service cards show their image all the time and play video or render html on hover. Media is stored in the storage bucket, not in the repo. Static files that ship with the site (fonts, og image) live in `public/assets/`.
+Project cards play video and render `.html` media (sandboxed) automatically, and show images as is. Service cards show their image all the time and play video or render html on hover. Media is stored in the storage bucket, not in the repo. Uploads are named after where they are used (for example `projects/project-my-title.mp4`, `hero/hero-background.mp4`). Uploading again replaces the file. Replaced or removed files are deleted from storage only after the form is saved, files uploaded and then cancelled are deleted, and deleting a project or service deletes its files. Each upload slot keeps one backup of its previous file under `backups/` in the same bucket, and the Restore previous button brings it back. Static files that ship with the site (fonts, og image) live in `public/assets/`.
 
 ### Content
 
 The database is the source of truth for projects, services and settings. The `defaults/` folder holds the default text and fallback lists. When the database has content it wins, otherwise `defaults/` is used. If both are empty the section is hidden or shows a short empty state.
+
+Content cache: settings, projects and services are stored in `localStorage` (keys `arkeos_cache_v1:*`) after every successful fetch. On the next visit the cached data renders before the first paint, then the database is fetched in the background and the page updates only if the data changed. Fetches start when the app loads, are shared between components, and are skipped for 15 seconds after a success. If the database cannot be reached, cached data stays and, with no cache, the defaults are shown. Admin edits show on the next load after the background refresh.
 
 ### Copy system
 
@@ -89,28 +91,35 @@ Check this list before creating a new helper or component.
 - `components/PageHero.tsx`: thin wrapper over `HeroLayout` for older call sites.
 - `components/SectionHeader.tsx`: section label, title lines, intro and right aligned button.
 - `styles/section_header.css`: css for `SectionHeader`.
-- `components/ServiceCard.tsx`: the home "What We Do" card, built from a service (image always visible, video or html plays on hover).
+- `components/ServiceCard.tsx` and `styles/service_card.css`: the home "What We Do" card, built from a service (number, icon, title, text, tags, price, image always visible, video or html plays on hover).
+- `components/ServiceRow.tsx`: the row used on the services page, same look as the card.
+- `lib/cache.ts`: versioned localStorage helpers (`cache_read`, `cache_write`, `cache_clear`).
+- `lib/content_store.ts`: stale-while-revalidate stores for `settings_store`, `projects_store`, `services_store` and `warm_content`.
+- `lib/use_store.ts`: `use_store(store)` hook and `use_isomorphic_layout_effect`.
 - `components/Btn.tsx`, `SectionH2.tsx`, `SocialIcons.tsx`, `CinemaMedia.tsx`, `SiteSettings.tsx` (`useSiteSettings`): kept as is.
+- `lib/media_type.ts` (`media_kind`): the single place that decides image, video or html from the file extension. `CinemaBg`, `ProjectMedia` and the admin media field all use it, so no media type is picked by hand.
 - `components/admin/copy/copy_schema.ts`: `CopyField`, `COPY_SCHEMA`, `PAGE_LABELS`.
 - `components/admin/copy/schema/<page>.ts`: editable fields for each page.
 - `components/admin/copy/CopyEditor.tsx`: generic admin form built from the schema.
+- `components/admin/copy/schema/settings.ts`: copy fields edited in Site Settings. Both screens merge into the stored copy JSON and only change their own paths.
 - `components/admin/WebsiteInfoPanel.tsx`: the Website Info tab.
 
 ### Admin configuration map
 
 | key or page | admin location |
 | --- | --- |
-| copy_shared (brand, nav, availability texts, menu, footer, cta and its four corridor wall media, buttons, preloader, hero deco) | Website Info, Shared |
-| copy_home (hero, what, work, why, what_count, work_count, why_stats) | Website Info, Home |
+| copy_shared: brand, availability texts, cta text, buttons, hero labels | Website Info, General |
+| copy_shared: nav links, preloader statuses, cta four corridor wall media, section header media | Site Settings |
+| copy_home (hero, what, work, why, what_count, work_count) | Website Info, Home |
 | copy_projects (hero, featured, more, controls, empty_text) | Website Info, Projects |
 | copy_services (hero, sections, process_steps) | Website Info, Services |
-| copy_about (hero, story, stats, values, team, about_image, about_image_wide) | Website Info, About |
+| copy_about (hero, story, stats, values, team). `stats_items` is the one source for the counters on Home and About and is edited only in Site Settings, Counters; a number of 0 is counted automatically | Website Info, About (text), Site Settings (counters) |
+| copy_about: about_image, about_image_wide | Site Settings, Media |
 | copy_contact (labels, placeholders, option lists, success, errors) | Website Info, Contact |
 | copy_privacy | Website Info, Privacy |
 | copy_not_found | Website Info, Not Found |
 | studio_name, tagline, contact_email, response_time, founded_year, hero_headline, hero_deco, cta_text, what_intro, work_intro, about_story, about_stats, about_values, process_steps, team, about_image, about_image_wide (legacy keys, used as fallback under copy_*) | Website Info, same fields as above; Identity points there |
-| projects_count, years_active, clients_count | Site Settings, Home Counters |
-| accent_color, social_github, social_instagram, social_facebook | Site Settings |
+| accent_color, hero_video, social_github, social_instagram, social_facebook, social_linkedin, social_telegram, social_threads, social_discord (shown in the footer and the menu) | Site Settings |
 | hero_video | Site Settings, Hero Background Video |
 | availability | Availability |
 | font_display, font_ui_regular, font_ui_medium, font_label | Font Settings |
@@ -121,7 +130,7 @@ Check this list before creating a new helper or component.
 
 Not editable by design: null cta values in page defaults (hero cta on inner pages, section cta on services and about), because overrides must match the default type. Fallback project and service lists in defaults are edited in Projects and Services.
 
-The pillars table in db/schema.sql is no longer used.
+`db/reset.sql` resets the database to the start: it empties `projects`, `services`, `inquiries`, `analytics` and `site_settings` (the site then shows the built in defaults), drops the unused `pillars` table and `services.cinema_type`. It never touches user accounts (the `auth` schema), table structure, policies, or files in the `media` storage bucket. Run it in the database sql editor. It cannot be undone, so back up first.
 
 ### Data layer
 
@@ -129,7 +138,7 @@ The app only imports from `lib/db`. `lib/db/adapter.ts` is the current adapter. 
 
 Tables: `projects`, `services`, `site_settings`, `inquiries`, `analytics`.
 
-`site_settings` keys: `copy_<page>` (see Copy system), `studio_name`, `founded_year`, `contact_email`, `response_time`, `tagline`, `cta_text`, `about_story`, `hero_headline`, `hero_deco`, `about_image`, `about_image_wide`, `about_stats`, `about_values`, `process_steps`, `team`, `social_github`, `social_instagram`, `social_facebook`, `hero_video`, `accent_color`, `availability`, `font_display`, `font_ui_regular`, `font_ui_medium`, `font_label`.
+`site_settings` keys: `copy_<page>` (see Copy system), `studio_name`, `founded_year`, `contact_email`, `response_time`, `tagline`, `cta_text`, `about_story`, `hero_headline`, `hero_deco`, `about_image`, `about_image_wide`, `about_stats`, `about_values`, `process_steps`, `team`, `social_github`, `social_instagram`, `social_facebook`, `social_linkedin`, `social_telegram`, `social_threads`, `social_discord`, `hero_video`, `accent_color`, `availability`, `font_display`, `font_ui_regular`, `font_ui_medium`, `font_label`.
 
 ### Fonts
 
