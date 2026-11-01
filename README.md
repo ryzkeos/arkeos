@@ -4,38 +4,13 @@ Company website and project portfolio of Arkeos.
 
 ## About
 
-This is the website for Arkeos, my small studio that builds websites, apps and motion work. It does two jobs. It's the company site where people can see what we offer and get in touch, and it's my portfolio, a place to show my projects and what I can do when building a website.
+This is the website for Arkeos, my small studio that builds websites, apps and motion work. It does two jobs. It is the company site where people can see what we offer and get in touch, and it is my portfolio, a place to show my projects and what I can do when building a website.
 
-The site uses real content only, no placeholders. Projects, services and page text come from a database, so I can update them without changing code, and any section with nothing in it stays hidden. It also shows whether I'm taking new projects.
+The site uses real content only, with no placeholders. Projects, services and page text come from a database, so I can update them without changing code, and any section with nothing in it stays hidden. It also shows whether I am taking new projects.
 
-Pages: home, projects, services, about, contact and privacy.
+Pages: Home, Projects, Services, About, Contact and Privacy.
 
-It's still a work in progress, so some things will change.
-
-## Installation
-
-You need Node.js 20 or newer and a database with a REST api. I use Supabase.
-
-```bash
-git clone https://github.com/ryzkeos/arkeos-web.git
-cd arkeos-web
-npm install
-cp .env.example .env.local
-```
-
-Fill in `.env.local` with your database url, the public key and your site url. Public key only, never the secret one.
-
-Then run `db/schema.sql` in your database's sql editor. You can run it again after updates, it won't break anything.
-
-## Usage
-
-```bash
-npm run dev
-```
-
-The site runs on `http://localhost:3000`.
-
-For production, run `npm run build` then `npm run start`. It works on Vercel or any Node host, just add the same environment variables there.
+It is still a work in progress, so some things will change.
 
 ## Credits
 
@@ -47,9 +22,62 @@ For production, run `npm run build` then `npm run start`. It works on Vercel or 
 
 ## Version history
 
-- v0.1 (2026-10-30): first version. Moved the project to Next.js and React, built the home, projects, about, services and contact pages, added the privacy page, and made the content data driven.
-- v0.2 (2026-10-31): content now loads from the database and the sample projects and team are gone. Added custom fonts, the database schema with access rules, security headers, and a protected contact form with spam and rate limiting. Added the hero video, a preloader based on real loading, a new cursor and a full screen mobile menu.
-- v0.3 (2026-10-31): all site text moved into editable defaults with a shared hero and section header. New bento project cards, a featured carousel with card and list view on the projects page, media rows and an animated process flow on the services page, and a contact call to action with media shapes behind the headline.
-- v0.4 (2026-11-01): reworked the call to action into a four wall corridor with entry drift and scroll parallax. Database content is cached in the browser and refreshed in the background. Redesigned the service cards, core value cards and button hover sweep, polished the contact page, and moved projects above services on the home page.
-- v0.5 (2026-11-01): image, video and html media are now detected from the file extension everywhere. Files upload only after saving, replaced files are cleaned up, html media renders in a sandboxed frame, and loading no longer flashes gray blocks. Fixed the projects page layout with the featured carousel on top.
-- v0.5.1 (2026-11-01): rewrote the README, added the Pinterest credit and removed the dependabot config.
+### v0.1 (2026-10-30)
+
+- Ported the project to Next.js and React.
+- Made the Home, Projects, About, Services and Contact pages data driven, with safe project links.
+- Connected the header, footer and call to action to the site settings.
+- Added the Privacy page.
+- Shortened the preloader, set neutral page metadata and sized the grids to their content.
+
+### v0.2 (2026-10-31)
+
+- Content now loads from the database. The sample projects and team were removed and an empty fallback was added.
+- Added custom fonts from validated urls, then bundled local fonts.
+- Moved data access into its own layer and added a database schema with access rules, constraints and storage policies. It can also create the tables from scratch.
+- Added security headers and a content security policy.
+- Added a protected contact form with a honeypot, rate limiting and input cleanup.
+- Made the hero headline and decoration data driven, added hero and About images, a hero video and full height page heroes.
+- Added a preloader based on real resource loading, shown once per session.
+- Added a sharper cursor, a full screen mobile menu and social icons.
+- Shortened the page transition so it never blocks link clicks, and made accent colors follow the theme color.
+- Added weekly dependency updates.
+
+### v0.3 (2026-10-31)
+
+- Moved all site text into a defaults folder with merge logic, so every page reads its text from one place.
+- Added a shared hero and section header for every page.
+- Connected Services, About, Privacy, the 404 page, Contact, Home and Projects to the shared text.
+- Added bento style project cards with image, video and html media, grouped layouts for one to five cards, and details that reveal every five seconds.
+- Added a featured carousel with auto swipe and a card or list switch on the Projects page.
+- Added service rows with image, video or html media, plus an animated process flow on the Services page.
+- Made the section header media span the full width.
+- Added a contact call to action with media shapes behind the headline.
+- Removed the unused pillars feature.
+
+### v0.4 (2026-11-01)
+
+- Reworked the call to action into a four wall corridor with a blended headline, entry drift, scroll parallax and an idle float.
+- Gave the Projects page a full height hero and a wider featured description.
+- Redesigned the process section on the Services page as a connected timeline.
+- Made About use the same numbers as Home and gave it a longer story.
+- Polished the Contact page with line style inputs, a custom select modal and a centered success state.
+- Cached database content in the browser so pages render right away, then refresh in the background.
+- Extended the section header media over the section padding with an edge fade.
+- Redesigned the service cards and the core value cards, and added a shared left to right hover sweep for buttons.
+- Moved Projects above Services on Home, removed the price tag from the Home service cards and removed buttons from sections that do not need them.
+- Fixed the Services page animations so section labels stay visible.
+
+### v0.5 (2026-11-01)
+
+- Image, video and html media are now detected from the file extension everywhere.
+- Files upload only after saving, and replaced, removed or cancelled files are cleaned up.
+- Html media renders in a sandboxed frame, and video is forced muted with a first frame.
+- Removed the gray block before cards animate in and put black behind media while it loads.
+- Reduced the Projects page to a single section with the featured carousel on top.
+- Added a full data reset script and removed unused tables and fields from the schema.
+
+### v0.5.1 (2026-11-01)
+
+- Rewrote the README and added the Pinterest credit.
+- Removed the dependency update config.
