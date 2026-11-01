@@ -43,7 +43,6 @@ export type HomeCopy = {
   work: SectionCopy;
   work_count: number;
   why: SectionCopy;
-  why_stats: StatItem[];
 };
 
 export type ProjectsCopy = {

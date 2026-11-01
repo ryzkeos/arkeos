@@ -5,6 +5,7 @@ import { NAV } from "@/lib/data";
 import { DEFAULTS } from "@/defaults";
 import type { Inquiry, Project, Service, SiteSettings } from "@/lib/types";
 import { applyAccent } from "@/components/SiteSettings";
+import { SOCIAL_LINKS } from "@/components/SocialIcons";
 import IdentityPanel from "./IdentityPanel";
 import WebsiteInfoPanel from "./WebsiteInfoPanel";
 import CopyEditor from "./copy/CopyEditor";
@@ -646,7 +647,10 @@ function Availability({ toast }: Pick<PanelProps, "toast">) {
         {available !== null && (
           <div className="avail-preview">
             <span className="avail-status__eyebrow">Header badge preview</span>
-            <span className="avail-preview__badge" title={text}>{text}</span>
+            <span className="avail-preview__badge" title={text}>
+              <span className={`avail-preview__dot${available ? "" : " avail-preview__dot--booked"}`} aria-hidden="true" />
+              {text}
+            </span>
           </div>
         )}
       </div>
@@ -654,18 +658,29 @@ function Availability({ toast }: Pick<PanelProps, "toast">) {
   );
 }
 
+const SOCIAL_FIELD_IDS: Record<string, string> = {
+  social_github: "set-social-gh",
+  social_instagram: "set-social-ig",
+  social_facebook: "set-social-fb",
+  social_linkedin: "set-social-li",
+  social_telegram: "set-social-tg",
+  social_threads: "set-social-th",
+  social_discord: "set-social-dc",
+};
+
+const blank_socials = () => Object.fromEntries(SOCIAL_LINKS.map(({ key }) => [key, ""])) as Record<(typeof SOCIAL_LINKS)[number]["key"], string>;
+
 function Settings({ toast }: Pick<PanelProps, "toast">) {
-  const [s, setS] = useState({ projects_count: "", years_active: "", clients_count: "", accent_color: "#C8FF00", social_github: "", social_instagram: "", social_facebook: "" });
+  const [accent, setAccent] = useState("#C8FF00");
+  const [socials, setSocials] = useState(blank_socials);
   const [video, setVideo] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
     db.dbLoadSiteSettings()
       .then((r: SiteSettings) => {
-        setS({
-          projects_count: r.projects_count ?? "", years_active: r.years_active ?? "", clients_count: r.clients_count ?? "", accent_color: r.accent_color || "#C8FF00",
-          social_github: r.social_github ?? "", social_instagram: r.social_instagram ?? "", social_facebook: r.social_facebook ?? "",
-        });
+        setAccent(r.accent_color || "#C8FF00");
+        setSocials(Object.fromEntries(SOCIAL_LINKS.map(({ key }) => [key, r[key] ?? ""])) as typeof socials);
         setVideo(r.hero_video ?? "");
       })
       .catch(() => setError("Failed to load settings."));
@@ -673,70 +688,54 @@ function Settings({ toast }: Pick<PanelProps, "toast">) {
 
   const save = async () => {
     const fields: Record<string, string> = {
-      projects_count: s.projects_count.trim(), years_active: s.years_active.trim(), clients_count: s.clients_count.trim(), accent_color: s.accent_color,
-      social_github: s.social_github.trim(), social_instagram: s.social_instagram.trim(), social_facebook: s.social_facebook.trim(), hero_video: video.trim(),
+      accent_color: accent,
+      hero_video: video.trim(),
+      ...Object.fromEntries(SOCIAL_LINKS.map(({ key }) => [key, socials[key].trim()])),
     };
     try {
       await Promise.all(Object.entries(fields).map(([k, v]) => db.dbSaveSetting(k, v)));
-      applyAccent(s.accent_color);
+      applyAccent(accent);
       toast("Settings saved.");
     } catch { toast("Failed to save some settings.", true); }
   };
 
-  const text = (k: keyof typeof s, label: string, id: string, ph: string, type = "text") => (
-    <div className="form-group">
-      <label htmlFor={id}>{label}</label>
-      <input type={type} id={id} placeholder={ph} value={s[k]} onChange={(e) => setS({ ...s, [k]: e.target.value })} />
-    </div>
-  );
-
   return (
     <div className="admin-panel" id="panel-settings" style={{ display: "block" }}>
-      <PanelHead title="SITE SETTINGS" sub="Edit global site content. Changes reflect live." error={error} />
+      <PanelHead title="SITE SETTINGS" sub="Edit global site content. Changes reflect live. Numbers shown on Home and About are edited once, in Website Info, About tab." error={error} />
 
       <div className="settings-section">
-        <p className="settings-section-title">Home Counters</p>
-        <p className="panel-sub">Leave empty to count automatically. Page text is edited in Website Info.</p>
-        <div className="settings-grid">
-          {text("projects_count", "Projects Count", "set-projects-count", "Auto", "number")}
-          {text("years_active", "Years Active", "set-years-active", "Auto", "number")}
-          {text("clients_count", "Clients Count", "set-clients-count", "Auto", "number")}
+        <p className="settings-section-title">General</p>
+        <div className="settings-grid settings-grid--single">
+          <ColorField id="set-accent" label="Global Accent Color" value={accent} onChange={setAccent} wide />
         </div>
-      </div>
-
-      <div className="settings-section">
-        <p className="settings-section-title">Brand</p>
-        <div className="settings-grid">
-          <ColorField id="set-accent" label="Global Accent Color" value={s.accent_color} onChange={(v) => setS((x) => ({ ...x, accent_color: v }))} />
-        </div>
-      </div>
-
-      <div className="settings-section">
-        <p className="settings-section-title">Hero Background Video</p>
         <div className="admin-form-grid">
-          <MediaField label="Hero Video" accept="video/mp4,video/webm" folder="hero" value={video} onChange={setVideo} toast={toast} placeholder="or paste video URL" />
+          <MediaField label="Hero Background Video" accept="video/mp4,video/webm" folder="hero" value={video} onChange={setVideo} toast={toast} placeholder="or paste video URL" />
         </div>
-        <p className="panel-sub">Empty shows pure black. Click Save Settings to apply.</p>
+        <p className="panel-sub">Empty video shows pure black.</p>
       </div>
 
       <div className="settings-section">
         <p className="settings-section-title">Social Links</p>
+        <p className="panel-sub">Filled links show in the footer and the menu. Empty ones stay hidden.</p>
         <div className="settings-grid">
-          {text("social_github", "GitHub URL", "set-social-gh", "https://", "url")}
-          {text("social_instagram", "Instagram URL", "set-social-ig", "https://", "url")}
-          {text("social_facebook", "Facebook URL", "set-social-fb", "https://", "url")}
+          {SOCIAL_LINKS.map(({ key, label }) => (
+            <div className="form-group" key={key}>
+              <label htmlFor={SOCIAL_FIELD_IDS[key]}>{label} URL</label>
+              <input type="url" id={SOCIAL_FIELD_IDS[key]} placeholder="https://" value={socials[key]} onChange={(e) => setSocials((x) => ({ ...x, [key]: e.target.value }))} />
+            </div>
+          ))}
         </div>
       </div>
 
-      <div className="admin-actions" style={{ marginBottom: "2.4rem" }}>
-        <button className="admin-btn admin-btn--accent" onClick={save} aria-label="Save all site settings">Save Settings</button>
+      <div className="admin-actions admin-actions--full">
+        <button type="button" className="admin-btn admin-btn--accent" onClick={save} aria-label="Save general settings and social links">Save General Settings</button>
       </div>
 
       <CopyEditor
         items={SETTINGS_COPY_ITEMS}
         toast={toast}
-        saved_label="Media, links and preloader"
-        save_label="Save media and links"
+        saved_label="Media, navigation and preloader"
+        save_label="Save Media, Navigation and Preloader"
       />
     </div>
   );
@@ -779,19 +778,19 @@ function Fonts({ toast }: Pick<PanelProps, "toast">) {
 
   return (
     <div className="admin-panel" id="panel-fonts" style={{ display: "block" }}>
-      <PanelHead title="FONT SETTINGS" sub="Upload .woff2 font files. Green = active. Red = bundled font currently rendering." />
+      <PanelHead title="FONT SETTINGS" sub="Upload .woff2 font files. A font marked Active replaces the default for that slot. Recommended fonts are only suggestions." />
       {FONT_SLOTS.map((slot) => {
         const isOn = !!active[slot.key];
         return (
           <div key={slot.key} className="font-slot" aria-label={`${slot.label} slot`}>
             <div className="font-slot__info">
               <p className="font-slot__label">{slot.label}</p>
-              <p className="font-slot__name">{slot.name}</p>
+              <p className="font-slot__hint">Recommended: {slot.name}</p>
             </div>
-            <span className={`font-status ${isOn ? "font-status--on" : "font-status--off"}`}>{isOn ? "Active" : "bundled font"}</span>
+            {isOn && <span className="font-status font-status--on">Active</span>}
             <div className="font-upload-wrap">
               <MediaField
-                label={`${slot.name} font`}
+                label={`${slot.label} font`}
                 accept=".woff2"
                 folder="fonts"
                 value={active[slot.key] ?? ""}

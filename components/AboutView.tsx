@@ -4,7 +4,7 @@ import { dbPublicUrl } from "@/lib/db";
 import { fill_vars } from "@/lib/copy";
 import { useCopy, useCopyVars } from "@/lib/use_copy";
 import { useArkeosAnimations } from "@/hooks/useArkeosAnimations";
-import { use_stat_values } from "@/hooks/use_stat_values";
+import { use_stats } from "@/hooks/use_stats";
 import { useProjects } from "@/lib/useContent";
 import { useSiteSettingsLoaded } from "./SiteSettings";
 import HeroLayout from "./hero/HeroLayout";
@@ -23,13 +23,12 @@ export default function AboutView() {
   const vars = useCopyVars();
   const t = (text: string) => fill_vars(text, vars);
   const projects = useProjects();
-  const auto_n = use_stat_values();
+  const stats = use_stats();
   const ready = loaded && projects !== null;
   useArkeosAnimations({ pageHero: true, ready });
 
   const name = String(vars.name);
   const story = copy.story_paragraphs;
-  const stats = copy.stats_items.map((s, i) => ({ ...s, n: s.n > 0 ? s.n : auto_n[i] ?? 0 }));
   const values = copy.values_items;
   const team = copy.team_members;
   const storyImage = pickImage(copy.about_image);
