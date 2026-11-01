@@ -21,7 +21,6 @@ export type Service = {
   price?: string | null;
   icon_url?: string | null;
   cinema_url?: string | null;
-  cinema_type?: CinemaType | null;
   visible: boolean;
   sort_order?: number;
 };

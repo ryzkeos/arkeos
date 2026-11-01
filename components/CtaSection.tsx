@@ -2,7 +2,6 @@
 import { useEffect, useRef } from "react";
 import { gsap, ScrollTrigger, prefersReducedMotion } from "@/lib/gsap";
 import { useCopy } from "@/lib/use_copy";
-import type { CinemaType } from "@/lib/types";
 import Btn from "./Btn";
 import { CinemaBg } from "./CinemaMedia";
 
@@ -12,8 +11,6 @@ const DECOS = [
   { id: "deco-c", key: "c", cls: "cta-deco-c" },
   { id: "deco-d", key: "d", cls: "cta-deco-d" },
 ] as const;
-
-const MEDIA_TYPES: CinemaType[] = ["image", "video", "html"];
 
 const MOTION = [
   { from_x: -170, from_y: 0, depth: 70, float: 12, float_time: 3.4 },
@@ -100,8 +97,6 @@ export default function CtaSection() {
         <div className="cta-tunnel" ref={tunnel} aria-hidden="true">
           {DECOS.map((d) => {
             const url = cta[`deco_${d.key}_url`];
-            const raw = cta[`deco_${d.key}_type`];
-            const type = MEDIA_TYPES.find((t) => t === raw) ?? "image";
             return (
               <div
                 key={d.id}
@@ -110,7 +105,7 @@ export default function CtaSection() {
               >
                 {url && (
                   <div className="cta-deco__media">
-                    <CinemaBg url={url} type={type} active />
+                    <CinemaBg url={url} active />
                   </div>
                 )}
               </div>

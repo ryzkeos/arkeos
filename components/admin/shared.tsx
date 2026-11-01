@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
 import * as db from "@/lib/db";
+import { media_ext, media_kind } from "@/lib/media_type";
 import { media_backup, media_released, media_uploaded } from "./media_tx";
 
 export const MEDIA_BUCKET = "media";
@@ -82,14 +83,9 @@ export function Checkbox({
   );
 }
 
-const VIDEO_EXTS = ["mp4", "webm", "mov", "m4v", "ogv", "ogg"];
-
-function media_kind(name: string): "video" | "html" | "image" | "font" {
-  const ext = name.split("?")[0].split(".").pop()?.toLowerCase() ?? "";
-  if (ext === "woff2" || ext === "woff") return "font";
-  if (VIDEO_EXTS.includes(ext)) return "video";
-  if (ext === "html" || ext === "htm") return "html";
-  return "image";
+function file_kind(name: string): "video" | "html" | "image" | "font" {
+  const ext = media_ext(name);
+  return ext === "woff2" || ext === "woff" ? "font" : media_kind(name);
 }
 
 const KIND_ICON = { video: "film", html: "code", image: "image", font: "code" } as const;
@@ -218,7 +214,7 @@ export function MediaField({
   };
 
   const name = picked ? picked.name : value ? file_name(value) : "";
-  const kind = name ? media_kind(name) : null;
+  const kind = name ? file_kind(name) : null;
   const meta = busy ? "Uploading…" : failed ? "Upload failed" : picked ? `${file_size(picked.size)} · ready to upload` : value ? "Uploaded" : hide_url ? "Choose a file to upload" : "Choose a file or paste a link below";
   const state = failed ? "error" : busy ? "busy" : picked ? "ready" : value ? "done" : "empty";
 

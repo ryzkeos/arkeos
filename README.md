@@ -97,6 +97,7 @@ Check this list before creating a new helper or component.
 - `lib/content_store.ts`: stale-while-revalidate stores for `settings_store`, `projects_store`, `services_store` and `warm_content`.
 - `lib/use_store.ts`: `use_store(store)` hook and `use_isomorphic_layout_effect`.
 - `components/Btn.tsx`, `SectionH2.tsx`, `SocialIcons.tsx`, `CinemaMedia.tsx`, `SiteSettings.tsx` (`useSiteSettings`): kept as is.
+- `lib/media_type.ts` (`media_kind`): the single place that decides image, video or html from the file extension. `CinemaBg`, `ProjectMedia` and the admin media field all use it, so no media type is picked by hand.
 - `components/admin/copy/copy_schema.ts`: `CopyField`, `COPY_SCHEMA`, `PAGE_LABELS`.
 - `components/admin/copy/schema/<page>.ts`: editable fields for each page.
 - `components/admin/copy/CopyEditor.tsx`: generic admin form built from the schema.

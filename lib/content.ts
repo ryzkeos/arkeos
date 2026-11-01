@@ -2,7 +2,6 @@ import { DEFAULTS } from "@/defaults";
 import { dbGet } from "@/lib/db";
 import { getCopy, legacy_stats } from "./copy";
 import type {
-  CinemaType,
   ProcessStep,
   Project,
   Service,
@@ -50,10 +49,6 @@ function toProject(v: unknown): Project | null {
   };
 }
 
-function toCinemaType(v: unknown): CinemaType {
-  return v === "image" || v === "html" ? v : "video";
-}
-
 function toService(v: unknown): Service | null {
   if (!isObj(v)) return null;
   const title = str(v.title);
@@ -66,7 +61,6 @@ function toService(v: unknown): Service | null {
     price: strOrNull(v.price),
     icon_url: strOrNull(v.icon_url),
     cinema_url: strOrNull(v.cinema_url),
-    cinema_type: toCinemaType(v.cinema_type),
     visible: v.visible !== false,
     sort_order: typeof v.sort_order === "number" ? v.sort_order : undefined,
   };
