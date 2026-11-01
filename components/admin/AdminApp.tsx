@@ -12,7 +12,7 @@ import { media_commit, media_discard } from "./media_tx";
 import WebsiteInfoPanel from "./WebsiteInfoPanel";
 import CopyEditor from "./copy/CopyEditor";
 import { SETTINGS_COPY_ITEMS } from "./copy/schema/settings";
-import { ColorField, IconBtn, MediaField, PanelHead, ToggleField, isHttpUrl, media_slot, msg, slug, upload_media, type PanelProps } from "./shared";
+import { ColorField, IconBtn, MediaField, PanelHead, SlideText, ToggleField, isHttpUrl, media_slot, msg, slug, upload_media, type PanelProps } from "./shared";
 
 type Section = "inquiries" | "projects" | "services" | "settings" | "website_info" | "fonts" | "analytics";
 
@@ -866,10 +866,10 @@ function Analytics() {
       <div className="analytics-grid" role="list">
         {[
           ["Total Page Views", v.views], ["Most Visited Page", v.top], ["Total Inquiries", v.inqs], ["Unread Inquiries", v.unread],
-        ].map(([label, val], i) => (
+        ].map(([label, val]) => (
           <div key={label} className="analytics-card" role="listitem">
-            <p className="analytics-card__label">{label}</p>
-            <p className="analytics-card__val" style={i === 1 ? { fontSize: "1.2rem", letterSpacing: "0.04em" } : undefined}>{val}</p>
+            <p className="analytics-card__label"><SlideText>{label}</SlideText></p>
+            <p className="analytics-card__val"><SlideText>{val}</SlideText></p>
           </div>
         ))}
       </div>
