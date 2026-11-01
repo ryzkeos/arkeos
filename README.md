@@ -31,7 +31,7 @@ Set these in `.env.local`:
 | `NEXT_PUBLIC_STORAGE_BUCKET` | optional. Bucket name, defaults to `media` |
 | `NEXT_PUBLIC_SITE_URL` | the public site url, used for share previews |
 
-Run `db/schema.sql` on the database before first use. It creates the tables and the `url` and `price` fields.
+Run `db/schema.sql` on the database before first use. It creates the tables and the `url`, `price` and `featured` fields. Run it again after updating, since it is safe to repeat.
 
 ## Usage
 

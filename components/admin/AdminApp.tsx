@@ -6,7 +6,7 @@ import type { CinemaType, Inquiry, Project, Service, SiteSettings } from "@/lib/
 import { applyAccent } from "@/components/SiteSettings";
 import IdentityPanel from "./IdentityPanel";
 import WebsiteInfoPanel from "./WebsiteInfoPanel";
-import { CINEMA_TYPES, Checkbox, FilePicker, IconBtn, MEDIA_BUCKET, MediaField, PanelHead, isHttpUrl, msg, type PanelProps } from "./shared";
+import { CINEMA_TYPES, Checkbox, ColorField, FilePicker, IconBtn, MEDIA_BUCKET, MediaField, PanelHead, ToggleField, isHttpUrl, msg, type PanelProps } from "./shared";
 
 type Section = "inquiries" | "projects" | "services" | "availability" | "settings" | "website_info" | "identity" | "fonts" | "analytics";
 
@@ -320,9 +320,7 @@ function Projects({ toast, ask }: PanelProps) {
   const [list, setList] = useState<Project[] | null>(null);
   const [error, setError] = useState("");
   const [editing, setEditing] = useState<{ id: string | null; hadUrl: boolean } | null>(null);
-  const [f, setF] = useState({ title: "", description: "", tags: "", url: "", color: "#C8FF00", visible: true });
-  const [mediaStatus, setMediaStatus] = useState("No media — pure black active");
-  const file = useRef<HTMLInputElement>(null);
+  const [f, setF] = useState({ title: "", description: "", tags: "", url: "", color: "#C8FF00", visible: true, featured: false, media: "" });
   const dragSrc = useRef<number | null>(null);
 
   const load = useCallback(() => {
@@ -333,18 +331,17 @@ function Projects({ toast, ask }: PanelProps) {
   const open = (idx: number | null) => {
     const p = idx === null ? null : list![idx];
     setEditing({ id: p?.id ?? null, hadUrl: !!p?.url });
-    setF({ title: p?.title ?? "", description: p?.description ?? "", tags: (p?.tags ?? []).join(", "), url: p?.url ?? "", color: p?.color || "#C8FF00", visible: p ? p.visible !== false : true });
-    setMediaStatus(p ? mediaBadge(p.media).label : "No media — pure black active");
+    setF({ title: p?.title ?? "", description: p?.description ?? "", tags: (p?.tags ?? []).join(", "), url: p?.url ?? "", color: p?.color || "#C8FF00", visible: p ? p.visible !== false : true, featured: p?.featured === true, media: p?.media ?? "" });
   };
 
   const save = async () => {
     if (!f.title.trim()) return toast("Title is required.", true);
     const url = f.url.trim();
     if (url && !isHttpUrl(url)) return toast("Project link must start with http:// or https://.", true);
-    const payload: Partial<Project> = { title: f.title.trim(), description: f.description.trim(), tags: splitTags(f.tags), color: f.color, visible: f.visible };
+    const payload: Partial<Project> = { title: f.title.trim(), description: f.description.trim(), tags: splitTags(f.tags), color: f.color, visible: f.visible, featured: f.featured, media: f.media.trim() || null };
     if (url) payload.url = url;
     else if (editing?.hadUrl) payload.url = null;
-    if (!editing?.id) { payload.sort_order = list?.length ?? 0; payload.media = null; }
+    if (!editing?.id) payload.sort_order = list?.length ?? 0;
     try {
       await db.dbSaveProject(editing?.id ?? null, payload);
       setEditing(null); load(); toast("Project saved.");
@@ -357,21 +354,6 @@ function Projects({ toast, ask }: PanelProps) {
 
   const toggle = (p: Project) =>
     db.dbSaveProject(p.id!, { visible: !(p.visible !== false) }).then(load).catch(() => toast("Failed to update.", true));
-
-  const upload = async () => {
-    if (!editing?.id) return toast("Save the project first, then upload media.", true);
-    const fl = file.current?.files?.[0];
-    if (!fl) return;
-    const path = `projects/${editing.id}.${fl.name.split(".").pop()}`;
-    setMediaStatus("Uploading…");
-    try {
-      await db.dbUpload(MEDIA_BUCKET, path, fl);
-      const url = db.dbPublicUrl(MEDIA_BUCKET, path);
-      await db.dbSaveProject(editing.id, { media: url });
-      setMediaStatus(`${mediaBadge(url).label} — uploaded`);
-      toast("Media uploaded."); load();
-    } catch (e) { setMediaStatus("Upload failed."); toast(msg(e, "Upload failed."), true); }
-  };
 
   const drop = (target: number) => {
     const src = dragSrc.current;
@@ -409,25 +391,13 @@ function Projects({ toast, ask }: PanelProps) {
             <label htmlFor="pf-url">Project Link (optional)</label>
             <input type="url" id="pf-url" placeholder="https://" value={f.url} onChange={(e) => setF({ ...f, url: e.target.value })} />
           </div>
-          <div className="form-group">
-            <label htmlFor="pf-color">Accent Color</label>
-            <input type="color" id="pf-color" aria-label="Project card accent color" value={f.color} onChange={(e) => setF({ ...f, color: e.target.value })} />
-          </div>
-          <div className="form-group">
-            <Checkbox id="pf-visible" label="Visible on site" checked={f.visible} onChange={(v) => setF({ ...f, visible: v })} />
-          </div>
-          <div className="form-group admin-form-full">
-            <span className="admin-field-label">Media Upload (video, image or .html)</span>
-            <div className="form-group-actions">
-              <FilePicker id="pf-media-file" label="Choose project media file" accept="video/*,image/*,.html,.htm" inputRef={file} busy={mediaStatus === "Uploading…"} status={mediaStatus.toLowerCase().includes("fail") ? "error" : undefined} status_text={mediaStatus.toLowerCase().includes("fail") ? mediaStatus : undefined} />
-              <button className="admin-btn admin-btn--accent" onClick={upload} aria-label="Upload media file">Upload</button>
-              <span className="field-status status--off" aria-live="polite">{mediaStatus}</span>
-            </div>
-          </div>
+          <ColorField id="pf-color" label="Accent Color" value={f.color} onChange={(v) => setF((x) => ({ ...x, color: v }))} />
+          <ToggleField id="pf-featured" label="Featured" checked={f.featured} onChange={(v) => setF((x) => ({ ...x, featured: v }))} />
+          <MediaField label="Media (video, image or .html)" accept="video/*,image/*,.html,.htm" folder="projects" value={f.media} onChange={(v) => setF((x) => ({ ...x, media: v }))} toast={toast} placeholder="or paste media URL" />
         </div>
-        <div className="admin-actions">
-          <button className="admin-btn admin-btn--accent" onClick={save} aria-label="Save project">Save Project</button>
+        <div className="admin-actions admin-actions--end">
           <button className="admin-btn" onClick={() => setEditing(null)} aria-label="Cancel editing">Cancel</button>
+          <button className="admin-btn admin-btn--accent" onClick={save} aria-label="Save project">Save Project</button>
         </div>
       </div>
 
@@ -442,6 +412,7 @@ function Projects({ toast, ask }: PanelProps) {
               <div className="project-row__drag" aria-hidden="true">⠿</div>
               <div className="project-row__info"><strong>{p.title || "Untitled"}</strong><span className="project-row__tags">{(p.tags ?? []).join(", ")}</span></div>
               <span className={`media-badge media-badge--${b.cls}`}>{b.label}</span>
+              {p.featured && <span className="vis-badge vis--on">Featured</span>}
               <span className={`vis-badge ${vis ? "vis--on" : "vis--off"}`}>{vis ? "Visible" : "Hidden"}</span>
               <div className="admin-actions">
                 <IconBtn icon="edit" label={`Edit ${p.title}`} onClick={() => open(i)} />
@@ -677,10 +648,7 @@ function Settings({ toast, ask }: PanelProps) {
       <div className="settings-section">
         <p className="settings-section-title">Brand</p>
         <div className="settings-grid">
-          <div className="form-group">
-            <label htmlFor="set-accent">Global Accent Color</label>
-            <input type="color" id="set-accent" aria-label="Global accent color picker" value={s.accent_color} onChange={(e) => setS({ ...s, accent_color: e.target.value })} />
-          </div>
+          <ColorField id="set-accent" label="Global Accent Color" value={s.accent_color} onChange={(v) => setS((x) => ({ ...x, accent_color: v }))} />
         </div>
       </div>
 

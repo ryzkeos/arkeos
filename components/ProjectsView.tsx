@@ -21,8 +21,9 @@ export default function ProjectsView() {
 
   const list = projects ?? [];
   const featured_n = Math.min(FEATURED_MAX, Math.max(0, Math.floor(work_count)));
-  const featured = list.slice(0, featured_n);
-  const others = list.slice(featured.length);
+  const flagged = list.filter((p) => p.featured);
+  const featured = flagged.length > 0 ? flagged.slice(0, FEATURED_MAX) : list.slice(0, featured_n);
+  const others = list.filter((p) => !featured.includes(p));
 
   return (
     <main className="pg-projects">
