@@ -58,7 +58,7 @@ public/assets/   images and fonts
 
 ### Media
 
-Project cards play video and render `.html` media (sandboxed) automatically, and show images as is. Service cards show their image all the time and play video or render html on hover. Media is stored in the storage bucket, not in the repo. Static files that ship with the site (fonts, og image) live in `public/assets/`.
+Project cards play video and render `.html` media (sandboxed) automatically, and show images as is. Service cards show their image all the time and play video or render html on hover. Media is stored in the storage bucket, not in the repo. Uploads are named after where they are used (for example `projects/project-my-title.mp4`, `hero/hero-background.mp4`). Uploading again replaces the file, and an old file under a different name is deleted from storage. Static files that ship with the site (fonts, og image) live in `public/assets/`.
 
 ### Content
 
@@ -101,7 +101,7 @@ Check this list before creating a new helper or component.
 
 | key or page | admin location |
 | --- | --- |
-| copy_shared: brand, availability texts, cta text, buttons, hero labels | Website Info, Shared |
+| copy_shared: brand, availability texts, cta text, buttons, hero labels | Website Info, General |
 | copy_shared: nav links, preloader statuses, cta four corridor wall media, section header media | Site Settings |
 | copy_home (hero, what, work, why, what_count, work_count) | Website Info, Home |
 | copy_projects (hero, featured, more, controls, empty_text) | Website Info, Projects |

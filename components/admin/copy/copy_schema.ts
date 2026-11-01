@@ -33,7 +33,7 @@ export const COPY_SCHEMA: Record<PageKey, CopyField[]> = {
 };
 
 export const PAGE_LABELS: Record<PageKey, string> = {
-  shared: "Shared",
+  shared: "General",
   home: "Home",
   projects: "Projects",
   services: "Services",
