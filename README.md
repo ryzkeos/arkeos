@@ -94,3 +94,8 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 - Added the Arkeos logo as the browser tab icon and the phone home screen icon.
 - Added the animated logo SVG.
 - Added the logo mark beside the name in the header.
+
+### v1.3 (2026-11-02)
+
+- Added robots.txt and a sitemap that list the public pages and keep admin and api out of search.
+- Added Vercel Web Analytics, which is cookieless and works with the existing content security policy.
