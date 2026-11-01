@@ -219,7 +219,7 @@
 .pg-contact .btn-submit:hover .btn-label,
 .pg-contact .btn-submit:focus-visible .btn-label { color: #000; }
 .pg-contact .btn-submit:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; border-color: var(--color-accent); }
-.pg-contact .btn-submit:focus-visible::before { transform: translateY(0); }
+.pg-contact .btn-submit:focus-visible::before { transform: scaleX(1); }
 .pg-contact .btn-submit:focus-visible .btn-arrow { color: #000; }
 .pg-contact .btn-submit[aria-disabled="true"] { opacity: 0.55; pointer-events: none; }
 
@@ -227,17 +227,22 @@
 .pg-contact .form-success {
   display: none;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
   gap: 1.5rem;
+  width: 100%;
+  min-height: min(26rem, 60vh);
+  margin-inline: auto;
   opacity: 0;
   transform: translateY(20px);
 }
 
 .pg-contact .form-success__icon {
-  width: 48px;
-  height: 48px;
+  width: 56px;
+  height: 56px;
   border: 1px solid var(--color-accent);
-  border-radius: 50%;
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -264,6 +269,8 @@
   color: var(--color-muted);
   line-height: 1.8;
   max-width: 340px;
+  margin-inline: auto;
+  text-align: center;
 }
 
 /* ── Error state ── */
@@ -310,7 +317,7 @@
   overflow: hidden;
 }
 
-.pg-contact .form-success .btn { align-self: flex-start; }
+.pg-contact .form-success .btn { align-self: center; }
 
 .pg-contact .contact-skeleton__info,
 .pg-contact .contact-skeleton__form { display: flex; flex-direction: column; gap: 1.2rem; }
