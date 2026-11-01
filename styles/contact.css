@@ -302,6 +302,10 @@
   .pg-contact .form-row { grid-template-columns: 1fr; }
 }
 
+@media (max-width: 768px) {
+  .pg-contact .form-note { display: none; }
+}
+
 @media (max-width: 480px) {
   .pg-contact #contact { padding: 3rem 1.2rem 5rem; }
   .pg-contact .contact-info__title { font-size: clamp(1.5rem, 8vw, 2.2rem); }

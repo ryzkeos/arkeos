@@ -29,25 +29,27 @@ export default function ProjectRow({ project, index }: Props) {
       </div>
       <div className="p-row__main">
         <h3 className="p-row__name">{project.title.toUpperCase()}</h3>
-        {project.description && <p className="p-row__desc">{project.description}</p>}
-        {(project.tags ?? []).length > 0 && (
-          <div className="p-row__tags">
-            {project.tags.map((t) => <span key={t} className="tag">{t}</span>)}
+        {project.description && <p className="p-row__desc" title={project.description}>{project.description}</p>}
+        {((project.tags ?? []).length > 0 || link) && (
+          <div className="p-row__foot">
+            <div className="p-row__tags">
+              {(project.tags ?? []).map((t) => <span key={t} className="tag">{t}</span>)}
+            </div>
+            {link && (
+              <a
+                href={link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn--visible p-row__cta"
+                aria-label={`${buttons.view_project}: ${project.title}`}
+              >
+                <span className="btn-label">{buttons.view_project_short}</span>
+                <span className="btn-arrow" aria-hidden="true" />
+              </a>
+            )}
           </div>
         )}
       </div>
-      {link && (
-        <a
-          href={link}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn btn--visible p-row__cta"
-          aria-label={`${buttons.view_project}: ${project.title}`}
-        >
-          <span className="btn-label">{buttons.view_project_short}</span>
-          <span className="btn-arrow" aria-hidden="true" />
-        </a>
-      )}
       <span className="p-row__num" aria-hidden="true">{num}</span>
     </article>
   );
