@@ -165,15 +165,6 @@
   color: var(--color-text);
 }
 
-.svc-card__price {
-  font-family: var(--font-label);
-  font-size: 0.62rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--color-accent);
-  white-space: nowrap;
-}
-
 @media (max-width: 768px) {
   .svc-card { min-height: 19rem; padding: 1.6rem 1.4rem 1.5rem; gap: 1.8rem; }
   .svc-card__desc { min-height: 0; }
