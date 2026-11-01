@@ -58,7 +58,7 @@ public/assets/   images and fonts
 
 ### Media
 
-Project cards play video and render `.html` media (sandboxed) automatically, and show images as is. Service cards show their image all the time and play video or render html on hover. Media is stored in the storage bucket, not in the repo. Uploads are named after where they are used (for example `projects/project-my-title.mp4`, `hero/hero-background.mp4`). Uploading again replaces the file. In the project and service forms, a chosen file is uploaded only after the row is saved, so a failed save (for example an outdated schema) uploads nothing. Replaced or removed files are deleted from storage only after the form is saved, files uploaded and then cancelled are deleted, and deleting a project or service deletes its files. Each upload slot keeps one backup of its previous file under `backups/` in the same bucket, and the Restore previous button brings it back. Static files that ship with the site (fonts, og image) live in `public/assets/`.
+Project cards play video and render `.html` media (sandboxed) automatically, and show images as is. Service cards show their image all the time and play video or render html on hover. Media is stored in the storage bucket, not in the repo. Uploads are named after where they are used (for example `projects/project-my-title.mp4`, `hero/hero-background.mp4`). Uploading again replaces the file. In the project and service forms, a chosen file is uploaded only after the row is saved, so a failed save (for example an outdated schema) uploads nothing. Replaced or removed files are deleted from storage only after the form is saved, files uploaded and then cancelled are deleted, and deleting a project or service deletes its files. Each upload slot keeps one backup of its previous file under `backups/` in the same bucket, and the Restore previous button brings it back. HTML media is fetched and shown through `srcdoc` in a sandboxed frame, because Supabase storage serves `.html` files as plain text. Keep html files self contained (inline css, js and images), since relative files are not loaded and scripts follow the site security policy. Static files that ship with the site (fonts, og image) live in `public/assets/`.
 
 ### Content
 
@@ -96,6 +96,7 @@ Check this list before creating a new helper or component.
 - `lib/cache.ts`: versioned localStorage helpers (`cache_read`, `cache_write`, `cache_clear`).
 - `lib/content_store.ts`: stale-while-revalidate stores for `settings_store`, `projects_store`, `services_store` and `warm_content`.
 - `lib/use_store.ts`: `use_store(store)` hook and `use_isomorphic_layout_effect`.
+- `components/HtmlFrame.tsx`: sandboxed frame that renders an `.html` media file, used by `ProjectMedia` and `CinemaBg`.
 - `components/Btn.tsx`, `SectionH2.tsx`, `SocialIcons.tsx`, `CinemaMedia.tsx`, `SiteSettings.tsx` (`useSiteSettings`): kept as is.
 - `lib/media_type.ts` (`media_kind`): the single place that decides image, video or html from the file extension. `CinemaBg`, `ProjectMedia` and the admin media field all use it, so no media type is picked by hand.
 - `components/admin/copy/copy_schema.ts`: `CopyField`, `COPY_SCHEMA`, `PAGE_LABELS`.
@@ -164,4 +165,4 @@ Deploy to Vercel (or any Node host) and add the same environment variables there
 - v0.1 (2026-10-31): first Next.js and React version with all pages and the admin panel.
 - v0.2 (2026-10-31): content loaded from the database, no placeholder content, provider neutral data layer, privacy page.
 - v0.3 (2026-11-01): projects page featured carousel and cards or list view, services media rows and animated process flow, project cards reveal details on a timer, full width section header media.
-- v0.3.1 (2026-11-01): project and service files upload only after the row is saved, schema cache reload added to `db/schema.sql`.
+- v0.3.1 (2026-11-01): project and service files upload only after the row is saved, saving state and right aligned buttons in the service form, html media renders through a sandboxed `srcdoc` frame, video elements forced muted with a first frame, schema cache reload added to `db/schema.sql`.
