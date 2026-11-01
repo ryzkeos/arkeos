@@ -10,7 +10,7 @@ export const privacy_schema: CopyField[] = [
     type: "list",
     item_fields: [
       { path: "heading", label: "Heading", type: "text", max: 80 },
-      { path: "paragraphs", label: "Paragraphs (one per line)", type: "lines", max: 2000 },
+      { path: "paragraphs", label: "Paragraphs (separate lines with |)", type: "lines", max: 2000 },
     ],
   },
 ];

@@ -6,7 +6,14 @@ const STORAGE_URL = process.env.NEXT_PUBLIC_STORAGE_URL || API_URL;
 const STORAGE_BUCKET = process.env.NEXT_PUBLIC_STORAGE_BUCKET || "media";
 const SESSION_KEY = "arkeos_session";
 
+export const UNAUTHORIZED_EVENT = "arkeos:unauthorized";
+
 let session: Session | null = null;
+
+function drop_session() {
+  session = null;
+  try { sessionStorage.removeItem(SESSION_KEY); } catch {}
+}
 
 function headers(extra?: Record<string, string>): Record<string, string> {
   const token = session?.access_token ?? API_KEY;
@@ -20,6 +27,10 @@ function headers(extra?: Record<string, string>): Record<string, string> {
 
 async function check(res: Response): Promise<Response> {
   if (!res.ok) {
+    if (res.status === 401 && session) {
+      drop_session();
+      if (typeof window !== "undefined") window.dispatchEvent(new Event(UNAUTHORIZED_EVENT));
+    }
     let msg = `Request failed (${res.status})`;
     try {
       const body = await res.clone().json();
@@ -88,8 +99,7 @@ export async function dbSignOut() {
       headers: { Authorization: `Bearer ${session.access_token}`, apikey: API_KEY },
     });
   } finally {
-    session = null;
-    try { sessionStorage.removeItem(SESSION_KEY); } catch {}
+    drop_session();
   }
 }
 
@@ -106,6 +116,20 @@ export function dbRestoreSession(): Session | null {
   return session;
 }
 
+export async function dbValidateSession(): Promise<boolean> {
+  if (!session?.access_token) return false;
+  try {
+    const res = await fetch(`${API_URL}/auth/v1/user`, { headers: { Authorization: `Bearer ${session.access_token}`, apikey: API_KEY } });
+    if (res.status === 401 || res.status === 403) {
+      drop_session();
+      return false;
+    }
+    return true;
+  } catch {
+    return true;
+  }
+}
+
 export const dbIsAuthed = () => !!session?.access_token;
 
 export async function dbUpload(_bucket: string, path: string, file: File) {
@@ -116,6 +140,76 @@ export async function dbUpload(_bucket: string, path: string, file: File) {
     body: file,
   });
   await check(res);
+}
+
+export async function dbDeleteFile(url: string) {
+  const prefix = `${STORAGE_URL}/storage/v1/object/public/${STORAGE_BUCKET}/`;
+  if (!url.startsWith(prefix)) return;
+  let path = url.slice(prefix.length).split("?")[0];
+  try { path = decodeURIComponent(path); } catch {}
+  if (!path) return;
+  const token = session?.access_token ?? API_KEY;
+  try {
+    await fetch(`${STORAGE_URL}/storage/v1/object/${STORAGE_BUCKET}/${path}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}`, apikey: API_KEY } });
+  } catch {}
+}
+
+const STORAGE_PREFIX = `${STORAGE_URL}/storage/v1/object/public/${STORAGE_BUCKET}/`;
+const BACKUP_DIR = "backups";
+
+function storage_path(url: string): string | null {
+  if (!url.startsWith(STORAGE_PREFIX)) return null;
+  let path = url.slice(STORAGE_PREFIX.length).split("?")[0];
+  try { path = decodeURIComponent(path); } catch {}
+  return path || null;
+}
+
+const storage_headers = () => ({ Authorization: `Bearer ${session?.access_token ?? API_KEY}`, apikey: API_KEY });
+
+async function list_backups(folder: string, base: string): Promise<string[]> {
+  try {
+    const res = await fetch(`${STORAGE_URL}/storage/v1/object/list/${STORAGE_BUCKET}`, {
+      method: "POST",
+      headers: { ...storage_headers(), "Content-Type": "application/json" },
+      body: JSON.stringify({ prefix: `${BACKUP_DIR}/${folder}`, search: base, limit: 100 }),
+    });
+    if (!res.ok) return [];
+    const rows = (await res.json()) as { name?: string }[];
+    return rows.map((r) => r.name ?? "").filter((n) => n.startsWith(`${base}.`));
+  } catch {
+    return [];
+  }
+}
+
+const split_slot = (path: string) => {
+  const cut = path.lastIndexOf("/");
+  const folder = path.slice(0, cut);
+  const name = path.slice(cut + 1);
+  return { folder, name, base: name.replace(/\.[^.]+$/, "") };
+};
+
+export async function dbBackupFile(url: string) {
+  const path = storage_path(url);
+  if (!path || path.startsWith(`${BACKUP_DIR}/`)) return;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return;
+    const blob = await res.blob();
+    const { folder, name, base } = split_slot(path);
+    for (const old of await list_backups(folder, base)) {
+      await fetch(`${STORAGE_URL}/storage/v1/object/${STORAGE_BUCKET}/${BACKUP_DIR}/${folder}/${old}`, { method: "DELETE", headers: storage_headers() });
+    }
+    await fetch(`${STORAGE_URL}/storage/v1/object/${STORAGE_BUCKET}/${BACKUP_DIR}/${folder}/${name}`, {
+      method: "POST",
+      headers: { ...storage_headers(), "Content-Type": blob.type || "application/octet-stream", "x-upsert": "true" },
+      body: blob,
+    });
+  } catch {}
+}
+
+export async function dbFindBackup(folder: string, base: string): Promise<string | null> {
+  const [name] = await list_backups(folder, base);
+  return name ? `${STORAGE_PREFIX}${BACKUP_DIR}/${folder}/${name}` : null;
 }
 
 export const dbPublicUrl = (_bucket: string, path: string) =>

@@ -2,7 +2,6 @@ import { DEFAULTS } from "@/defaults";
 import { dbGet } from "@/lib/db";
 import { getCopy, legacy_stats } from "./copy";
 import type {
-  CinemaType,
   ProcessStep,
   Project,
   Service,
@@ -45,12 +44,9 @@ function toProject(v: unknown): Project | null {
     color: strOrNull(v.color),
     url: strOrNull(v.url),
     visible: v.visible !== false,
+    featured: v.featured === true,
     sort_order: typeof v.sort_order === "number" ? v.sort_order : undefined,
   };
-}
-
-function toCinemaType(v: unknown): CinemaType {
-  return v === "image" || v === "html" ? v : "video";
 }
 
 function toService(v: unknown): Service | null {
@@ -65,7 +61,6 @@ function toService(v: unknown): Service | null {
     price: strOrNull(v.price),
     icon_url: strOrNull(v.icon_url),
     cinema_url: strOrNull(v.cinema_url),
-    cinema_type: toCinemaType(v.cinema_type),
     visible: v.visible !== false,
     sort_order: typeof v.sort_order === "number" ? v.sort_order : undefined,
   };
@@ -81,22 +76,57 @@ function collect<T>(rows: unknown, convert: (v: unknown) => T | null): T[] {
   return out;
 }
 
+export const fallback_projects = (): Project[] =>
+  bySortOrder(collect(DEFAULTS.projects.projects, toProject).filter((p) => p.visible));
+
+export const fallback_services = (): Service[] =>
+  bySortOrder(collect(DEFAULTS.services.services, toService).filter((s) => s.visible));
+
+export function parse_projects(raw: unknown): Project[] | null {
+  return Array.isArray(raw) ? collect(raw, toProject).filter((p) => p.visible) : null;
+}
+
+export function parse_services(raw: unknown): Service[] | null {
+  return Array.isArray(raw) ? collect(raw, toService).filter((s) => s.visible) : null;
+}
+
+export function parse_settings(raw: unknown): SiteSettings | null {
+  if (!isObj(raw)) return null;
+  const out: Record<string, string> = {};
+  for (const k of Object.keys(raw)) {
+    if (k === "__proto__" || k === "constructor" || k === "prototype") continue;
+    const v = raw[k];
+    if (typeof v === "string") out[k] = v;
+  }
+  return out as SiteSettings;
+}
+
+export async function fetch_projects(): Promise<Project[]> {
+  const rows = await dbGet<unknown>("projects", "select=*&visible=eq.true&order=sort_order.asc");
+  const items = parse_projects(rows) ?? [];
+  return items.length > 0 ? items : fallback_projects();
+}
+
+export async function fetch_services(): Promise<Service[]> {
+  const rows = await dbGet<unknown>("services", "select=*&visible=eq.true&order=sort_order.asc");
+  const items = parse_services(rows) ?? [];
+  return items.length > 0 ? items : fallback_services();
+}
+
 export async function loadProjects(): Promise<Project[]> {
   try {
-    const rows = await dbGet<unknown>("projects", "select=*&visible=eq.true&order=sort_order.asc");
-    const items = collect(rows, toProject).filter((p) => p.visible);
-    if (items.length > 0) return items;
-  } catch {}
-  return bySortOrder(collect(DEFAULTS.projects.projects, toProject).filter((p) => p.visible));
+    return await fetch_projects();
+  } catch {
+    return fallback_projects();
+  }
 }
 
 export async function loadServices(): Promise<Service[]> {
   try {
-    const rows = await dbGet<unknown>("services", "select=*&visible=eq.true&order=sort_order.asc");
-    const items = collect(rows, toService).filter((s) => s.visible);
-    if (items.length > 0) return items;
-  } catch {}
-  return bySortOrder(collect(DEFAULTS.services.services, toService).filter((s) => s.visible));
+    return await fetch_services();
+  } catch {
+    return fallback_services();
+  }
 }
 
 export function getIdentity(s: SiteSettings) {
@@ -137,11 +167,6 @@ export function getStory(s: SiteSettings): string[] {
 const DEFAULT_WHAT_INTRO =
   "We are not a production house. We are your unfair advantage. Every project we touch becomes a benchmark in its category, not by accident, by obsession.";
 const DEFAULT_WORK_INTRO = "A selection of recent projects from the studio.";
-const DEFAULT_STAT_COPY = [
-  { label: "PROJECTS SHIPPED", desc: "Every single one delivered on time, on spec, and above expectation." },
-  { label: "YEARS ACTIVE", desc: "Refusing to ship anything that would not carry the name. That standard does not drop." },
-  { label: "CLIENTS SERVED", desc: "From solo founders to funded startups. Every client gets the same obsessive attention." },
-];
 
 export function getSectionCopy(s: SiteSettings) {
   const home = getCopy("home", s);
@@ -149,18 +174,4 @@ export function getSectionCopy(s: SiteSettings) {
     what: home.what.intro || DEFAULT_WHAT_INTRO,
     work: home.work.intro || DEFAULT_WORK_INTRO,
   };
-}
-
-function wholeNumber(v: unknown): number | null {
-  const n = Number.parseInt(str(v), 10);
-  return Number.isFinite(n) && n >= 0 ? n : null;
-}
-
-export function getHomeStats(s: SiteSettings, projectCount: number): StatItem[] {
-  const own = legacy_stats(s);
-  if (own.length > 0) return own;
-  const founded = getIdentity(s).foundedYear;
-  const years = founded ? Math.max(1, new Date().getFullYear() - founded + 1) : 1;
-  const values = [wholeNumber(s.projects_count) ?? projectCount, wholeNumber(s.years_active) ?? years, wholeNumber(s.clients_count) ?? 0];
-  return DEFAULT_STAT_COPY.map((c, i) => ({ n: values[i], label: c.label, desc: c.desc }));
 }

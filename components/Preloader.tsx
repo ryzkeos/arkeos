@@ -1,9 +1,11 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
+import { projects_store, services_store } from "@/lib/content_store";
 import { gsap, prefersReducedMotion } from "@/lib/gsap";
 import { PRELOADER_KEY, markIntroDone } from "@/lib/preloader";
 import { useCopy } from "@/lib/use_copy";
+import { use_store } from "@/lib/use_store";
 import { usePreloadProgress } from "@/hooks/usePreloadProgress";
 import { useSiteSettingsLoaded } from "./SiteSettings";
 
@@ -19,6 +21,8 @@ const seen = () => {
 export default function Preloader() {
   const pathname = usePathname();
   const settingsLoaded = useSiteSettingsLoaded();
+  const projects_ready = use_store(projects_store).ready;
+  const services_ready = use_store(services_store).ready;
   const { brand, preloader } = useCopy("shared");
   const statuses = useRef(preloader.statuses);
   statuses.current = preloader.statuses;
@@ -39,7 +43,7 @@ export default function Preloader() {
   }, [pathname]);
 
   const running = mounted && active;
-  const progress = usePreloadProgress(running, settingsLoaded, page);
+  const progress = usePreloadProgress(running, settingsLoaded && projects_ready && services_ready, page);
   const name = brand.name;
 
   useEffect(() => {

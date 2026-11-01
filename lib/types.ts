@@ -9,6 +9,7 @@ export type Project = {
   color: string | null;
   url?: string | null;
   visible: boolean;
+  featured?: boolean;
   sort_order?: number;
 };
 
@@ -20,7 +21,6 @@ export type Service = {
   price?: string | null;
   icon_url?: string | null;
   cinema_url?: string | null;
-  cinema_type?: CinemaType | null;
   visible: boolean;
   sort_order?: number;
 };
@@ -66,6 +66,10 @@ export type SiteSettings = Partial<{
   social_github: string;
   social_instagram: string;
   social_facebook: string;
+  social_linkedin: string;
+  social_telegram: string;
+  social_threads: string;
+  social_discord: string;
   hero_video: string;
   tagline: string;
   cta_text: string;
@@ -88,9 +92,6 @@ export type SiteSettings = Partial<{
   about_image_wide: string;
   what_intro: string;
   work_intro: string;
-  projects_count: string;
-  years_active: string;
-  clients_count: string;
   copy_shared: string;
   copy_home: string;
   copy_projects: string;
