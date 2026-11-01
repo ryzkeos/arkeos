@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Analytics } from "@vercel/analytics/next";
 
 const DEFAULT_SITE_URL = "http://localhost:3000";
 
@@ -46,6 +47,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <style>{NOSCRIPT_CSS}</style>
         </noscript>
         {children}
+        <Analytics />
       </body>
     </html>
   );
