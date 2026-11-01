@@ -6,7 +6,14 @@ const STORAGE_URL = process.env.NEXT_PUBLIC_STORAGE_URL || API_URL;
 const STORAGE_BUCKET = process.env.NEXT_PUBLIC_STORAGE_BUCKET || "media";
 const SESSION_KEY = "arkeos_session";
 
+export const UNAUTHORIZED_EVENT = "arkeos:unauthorized";
+
 let session: Session | null = null;
+
+function drop_session() {
+  session = null;
+  try { sessionStorage.removeItem(SESSION_KEY); } catch {}
+}
 
 function headers(extra?: Record<string, string>): Record<string, string> {
   const token = session?.access_token ?? API_KEY;
@@ -20,6 +27,10 @@ function headers(extra?: Record<string, string>): Record<string, string> {
 
 async function check(res: Response): Promise<Response> {
   if (!res.ok) {
+    if (res.status === 401 && session) {
+      drop_session();
+      if (typeof window !== "undefined") window.dispatchEvent(new Event(UNAUTHORIZED_EVENT));
+    }
     let msg = `Request failed (${res.status})`;
     try {
       const body = await res.clone().json();
@@ -88,8 +99,7 @@ export async function dbSignOut() {
       headers: { Authorization: `Bearer ${session.access_token}`, apikey: API_KEY },
     });
   } finally {
-    session = null;
-    try { sessionStorage.removeItem(SESSION_KEY); } catch {}
+    drop_session();
   }
 }
 
@@ -104,6 +114,20 @@ export function dbRestoreSession(): Session | null {
     if (raw) session = JSON.parse(raw);
   } catch {}
   return session;
+}
+
+export async function dbValidateSession(): Promise<boolean> {
+  if (!session?.access_token) return false;
+  try {
+    const res = await fetch(`${API_URL}/auth/v1/user`, { headers: { Authorization: `Bearer ${session.access_token}`, apikey: API_KEY } });
+    if (res.status === 401 || res.status === 403) {
+      drop_session();
+      return false;
+    }
+    return true;
+  } catch {
+    return true;
+  }
 }
 
 export const dbIsAuthed = () => !!session?.access_token;
