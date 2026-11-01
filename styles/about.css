@@ -173,17 +173,6 @@
   pointer-events: none;
 }
 
-.pg-about .val-item::after {
-  content: '';
-  position: absolute;
-  left: 0; right: 0; top: 0;
-  height: 2px;
-  background: var(--color-accent);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.7s var(--ease-out);
-}
-
 .pg-about .val-item:hover,
 .pg-about .val-item:focus-within {
   background: radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--color-accent) 9%, transparent), transparent 65%), var(--color-bg);
@@ -191,8 +180,6 @@
 
 .pg-about .val-item:hover::before,
 .pg-about .val-item:focus-within::before { opacity: 0.11; transform: translateY(0); }
-.pg-about .val-item:hover::after,
-.pg-about .val-item:focus-within::after { transform: scaleX(1); }
 
 .pg-about .val-item .val-num,
 .pg-about .val-item .val-title,
@@ -206,14 +193,12 @@
 .pg-about .val-item:focus-within .val-desc { color: var(--color-text); transform: translateY(-4px); }
 
 @media (hover: none) {
-  .pg-about .val-item::after { transform: scaleX(0.22); }
   .pg-about .val-item::before { opacity: 0.07; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .pg-about .val-item,
   .pg-about .val-item::before,
-  .pg-about .val-item::after,
   .pg-about .val-item .val-num,
   .pg-about .val-item .val-title,
   .pg-about .val-item .val-desc { transition: none; }
