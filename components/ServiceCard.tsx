@@ -19,7 +19,7 @@ export default function ServiceCard({ service, icon }: Props) {
     >
       {service.cinema_url && (
         <div className="pillar-cinema-bg" aria-hidden="true">
-          <CinemaBg url={service.cinema_url} type={service.cinema_type ?? "video"} active={active} />
+          <CinemaBg url={service.cinema_url} active={active} />
         </div>
       )}
       <div className="pillar-body">
