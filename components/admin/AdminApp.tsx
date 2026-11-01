@@ -10,7 +10,7 @@ import IdentityPanel from "./IdentityPanel";
 import WebsiteInfoPanel from "./WebsiteInfoPanel";
 import CopyEditor from "./copy/CopyEditor";
 import { SETTINGS_COPY_ITEMS } from "./copy/schema/settings";
-import { ColorField, IconBtn, MediaField, PanelHead, ToggleField, isHttpUrl, msg, type PanelProps } from "./shared";
+import { ColorField, IconBtn, MediaField, PanelHead, ToggleField, isHttpUrl, msg, slug, type PanelProps } from "./shared";
 
 type Section = "inquiries" | "projects" | "services" | "settings" | "website_info" | "identity" | "fonts" | "analytics";
 
@@ -432,7 +432,7 @@ function Projects({ toast, ask }: PanelProps) {
           </div>
           <ColorField id="pf-color" label="Accent Color" value={f.color} onChange={(v) => setF((x) => ({ ...x, color: v }))} />
           <ToggleField id="pf-featured" label="Featured" checked={f.featured} onChange={(v) => { if (v && featured_taken >= FEATURED_LIMIT) return toast(limit_msg, true); setF((x) => ({ ...x, featured: v })); }} />
-          <MediaField label="Media (video, image or .html)" accept="video/*,image/*,.html,.htm" folder="projects" value={f.media} onChange={(v) => setF((x) => ({ ...x, media: v }))} toast={toast} placeholder="or paste media URL" />
+          <MediaField label="Media (video, image or .html)" accept="video/*,image/*,.html,.htm" folder="projects" file_name={`project-${slug(f.title) || "untitled"}`} value={f.media} onChange={(v) => setF((x) => ({ ...x, media: v }))} toast={toast} placeholder="or paste media URL" />
         </div>
         <div className="admin-actions admin-actions--end">
           <button className="admin-btn" onClick={() => setEditing(null)} aria-label="Cancel editing">Cancel</button>
@@ -468,6 +468,7 @@ function Services({ toast, ask }: PanelProps) {
   const [error, setError] = useState("");
   const [editing, setEditing] = useState<{ id: string | null; hadPrice: boolean } | null>(null);
   const [f, setF] = useState({ title: "", description: "", tags: "", price: "", visible: true, icon_url: "", cinema_url: "" });
+  const dragSrc = useRef<number | null>(null);
 
   const load = useCallback(() => {
     db.dbGetServices().then((d) => { setList(Array.isArray(d) ? d : []); setError(""); }).catch(() => setError("Failed to load services."));
@@ -500,9 +501,19 @@ function Services({ toast, ask }: PanelProps) {
   const toggle = (s: Service) =>
     db.dbSaveService(s.id, { visible: !(s.visible !== false) }).then(load).catch(() => toast("Failed to update.", true));
 
+  const drop = (target: number) => {
+    const src = dragSrc.current;
+    dragSrc.current = null;
+    if (src === null || src === target || !list) return;
+    const next = list.slice();
+    next.splice(target, 0, next.splice(src, 1)[0]);
+    setList(next);
+    Promise.all(next.map((x, i) => db.dbSaveService(x.id, { sort_order: i }))).then(load).catch(() => { toast("Failed to reorder.", true); load(); });
+  };
+
   return (
     <div className="admin-panel" id="panel-services" style={{ display: "block" }}>
-      <PanelHead title="SERVICES" sub="Manage studio services. Supports icon, cinema preview and pricing." error={error} />
+      <PanelHead title="SERVICES" sub="Manage studio services. Drag to reorder. Supports icon, cinema preview and pricing." error={error} />
       <div className="admin-actions" style={{ marginBottom: "1.2rem" }}>
         <button className="admin-btn admin-btn--accent" onClick={() => open(null)} aria-label="Add a new service">+ Add Service</button>
       </div>
@@ -527,8 +538,8 @@ function Services({ toast, ask }: PanelProps) {
             <input type="text" id="sf-price" placeholder="Price text" value={f.price} onChange={(e) => setF({ ...f, price: e.target.value })} />
           </div>
           <ToggleField id="sf-visible" label="Visible on site" checked={f.visible} onChange={(v) => setF((x) => ({ ...x, visible: v }))} />
-          <MediaField label="Icon Image" accept="image/*" folder="services" value={f.icon_url} onChange={(v) => setF((x) => ({ ...x, icon_url: v }))} toast={toast} placeholder="or paste icon URL" />
-          <MediaField label="Cinema Preview" accept="video/*,image/*" folder="services" value={f.cinema_url} onChange={(v) => setF((x) => ({ ...x, cinema_url: v }))} toast={toast} placeholder="or paste cinema URL" />
+          <MediaField label="Icon Image" accept="image/*" folder="services" file_name={`service-${slug(f.title) || "untitled"}-icon`} value={f.icon_url} onChange={(v) => setF((x) => ({ ...x, icon_url: v }))} toast={toast} placeholder="or paste icon URL" />
+          <MediaField label="Cinema Preview" accept="video/*,image/*" folder="services" file_name={`service-${slug(f.title) || "untitled"}-cinema`} value={f.cinema_url} onChange={(v) => setF((x) => ({ ...x, cinema_url: v }))} toast={toast} placeholder="or paste cinema URL" />
         </div>
         <div className="admin-actions">
           <button className="admin-btn admin-btn--accent" onClick={save} aria-label="Save service">Save Service</button>
@@ -542,7 +553,8 @@ function Services({ toast, ask }: PanelProps) {
         ) : list.map((s, i) => {
           const vis = s.visible !== false;
           return (
-            <div key={s.id} className="project-row" aria-label={`Service: ${s.title}`}>
+            <div key={s.id} className="project-row" draggable onDragStart={() => { dragSrc.current = i; }} onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); drop(i); }} aria-label={`Service: ${s.title}`}>
+              <div className="project-row__drag" aria-hidden="true">⠿</div>
               <div className="project-row__info"><strong>{s.title || "Untitled"}</strong><span className="project-row__tags">{s.description ? s.description.slice(0, 60) + "…" : ""}</span></div>
               <div className="admin-actions">
                 <IconBtn icon="edit" label={`Edit ${s.title}`} onClick={() => open(i)} />
@@ -563,7 +575,6 @@ function Availability({ toast }: Pick<PanelProps, "toast">) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [attempt, setAttempt] = useState(0);
-  const seg = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let live = true;
@@ -600,61 +611,22 @@ function Availability({ toast }: Pick<PanelProps, "toast">) {
     }
   };
 
-  const on_key = (e: React.KeyboardEvent) => {
-    const forward = e.key === "ArrowRight" || e.key === "ArrowDown";
-    const back = e.key === "ArrowLeft" || e.key === "ArrowUp";
-    if (!forward && !back) return;
-    e.preventDefault();
-    change(back);
-    seg.current?.querySelectorAll<HTMLButtonElement>("button")[back ? 0 : 1]?.focus();
-  };
-
   const loading = available === null && !error;
   const text = available ? texts.open : texts.booked;
-  const options: [boolean, string][] = [[true, "Taking projects"], [false, "Currently booked"]];
 
   return (
     <div className="settings-section" id="panel-availability">
       <p className="settings-section-title">Availability</p>
-      <p className="panel-sub">Choose the studio status. The site header badge follows it within seconds.</p>
-      {error && <p className="panel-error" role="alert" style={{ display: "block" }}>{error}</p>}
       {error && (
-        <div className="admin-actions" style={{ marginBottom: "1.2rem" }}>
+        <div className="admin-actions">
+          <p className="panel-error" role="alert" style={{ display: "block" }}>{error}</p>
           <button type="button" className="admin-btn" onClick={() => setAttempt((n) => n + 1)}>Retry</button>
         </div>
       )}
-      <div className="avail-panel">
-        <div className={`avail-status${available === null ? "" : available ? " avail-status--open" : " avail-status--booked"}`} aria-busy={loading || saving} role="status">
-          <span className="avail-status__eyebrow">Current status</span>
-          <span className="avail-status__text">{loading ? "Loading…" : available === null ? "Unavailable" : text}</span>
-        </div>
-        <div ref={seg} className="avail-seg" role="radiogroup" aria-label="Studio availability" onKeyDown={on_key}>
-          {options.map(([value, label]) => (
-            <button
-              key={label}
-              type="button"
-              role="radio"
-              aria-checked={available === value}
-              tabIndex={available === value || (available === null && value) ? 0 : -1}
-              className="avail-seg__btn"
-              disabled={available === null || saving}
-              aria-busy={saving && available === value}
-              onClick={() => change(value)}
-            >
-              {saving && available === value ? "Saving…" : label}
-            </button>
-          ))}
-        </div>
-        {available !== null && (
-          <div className="avail-preview">
-            <span className="avail-status__eyebrow">Header badge preview</span>
-            <span className="avail-preview__badge" title={text}>
-              <span className={`avail-preview__dot${available ? "" : " avail-preview__dot--booked"}`} aria-hidden="true" />
-              {text}
-            </span>
-          </div>
-        )}
+      <div className="settings-grid settings-grid--single" aria-busy={loading || saving}>
+        <ToggleField id="set-availability" label="Studio status" checked={available === true} disabled={available === null || saving} on_text="Taking projects" off_text="Currently booked" onChange={change} />
       </div>
+      <p className="panel-sub" role="status">{loading ? "Loading…" : available === null ? "" : `Header badge shows: ${text}`}</p>
     </div>
   );
 }
@@ -710,7 +682,7 @@ function Settings({ toast }: Pick<PanelProps, "toast">) {
           <ColorField id="set-accent" label="Global Accent Color" value={accent} onChange={setAccent} wide />
         </div>
         <div className="admin-form-grid">
-          <MediaField label="Hero Background Video" accept="video/mp4,video/webm" folder="hero" value={video} onChange={setVideo} toast={toast} placeholder="or paste video URL" />
+          <MediaField label="Hero Background Video" accept="video/mp4,video/webm" folder="hero" file_name="hero-background" value={video} onChange={setVideo} toast={toast} placeholder="or paste video URL" />
         </div>
         <p className="panel-sub">Empty video shows pure black.</p>
       </div>
@@ -796,6 +768,7 @@ function Fonts({ toast }: Pick<PanelProps, "toast">) {
                 label={`${slot.label} font`}
                 accept=".woff2"
                 folder="fonts"
+                file_name={slot.key.replace(/_/g, "-")}
                 value={active[slot.key] ?? ""}
                 onChange={(v) => save_font(slot.key, v)}
                 toast={toast}
