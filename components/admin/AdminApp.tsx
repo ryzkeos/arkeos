@@ -12,14 +12,14 @@ import CopyEditor from "./copy/CopyEditor";
 import { SETTINGS_COPY_ITEMS } from "./copy/schema/settings";
 import { ColorField, IconBtn, MediaField, PanelHead, ToggleField, isHttpUrl, msg, type PanelProps } from "./shared";
 
-type Section = "inquiries" | "projects" | "services" | "availability" | "settings" | "website_info" | "identity" | "fonts" | "analytics";
+type Section = "inquiries" | "projects" | "services" | "settings" | "website_info" | "identity" | "fonts" | "analytics";
 
 const FEATURED_LIMIT = 5;
 const splitTags = (s: string) => s.split(",").map((t) => t.trim()).filter(Boolean);
 
 const NAV_GROUPS: { label: string; items: [Section, string][] }[] = [
   { label: "Content", items: [["inquiries", "Inquiries"], ["projects", "Projects"], ["services", "Services"]] },
-  { label: "Studio", items: [["availability", "Availability"], ["settings", "Site Settings"], ["website_info", "Website Info"], ["identity", "Identity"], ["fonts", "Font Settings"], ["analytics", "Analytics"]] },
+  { label: "Studio", items: [["settings", "Site Settings"], ["website_info", "Website Info"], ["identity", "Identity"], ["fonts", "Font Settings"], ["analytics", "Analytics"]] },
 ];
 
 export default function AdminApp() {
@@ -171,7 +171,6 @@ export default function AdminApp() {
             {section === "inquiries" && <Inquiries toast={showToast} ask={ask} onUnread={setUnread} />}
             {section === "projects" && <Projects toast={showToast} ask={ask} />}
             {section === "services" && <Services toast={showToast} ask={ask} />}
-            {section === "availability" && <Availability toast={showToast} />}
             {section === "settings" && <Settings toast={showToast} />}
             {section === "website_info" && <WebsiteInfoPanel toast={showToast} />}
             {section === "identity" && <IdentityPanel onOpenWebsiteInfo={() => setSection("website_info")} />}
@@ -615,8 +614,10 @@ function Availability({ toast }: Pick<PanelProps, "toast">) {
   const options: [boolean, string][] = [[true, "Taking projects"], [false, "Currently booked"]];
 
   return (
-    <div className="admin-panel" id="panel-availability" style={{ display: "block" }}>
-      <PanelHead title="AVAILABILITY" sub="Choose the studio status. The site header badge follows it within seconds." error={error} />
+    <div className="settings-section" id="panel-availability">
+      <p className="settings-section-title">Availability</p>
+      <p className="panel-sub">Choose the studio status. The site header badge follows it within seconds.</p>
+      {error && <p className="panel-error" role="alert" style={{ display: "block" }}>{error}</p>}
       {error && (
         <div className="admin-actions" style={{ marginBottom: "1.2rem" }}>
           <button type="button" className="admin-btn" onClick={() => setAttempt((n) => n + 1)}>Retry</button>
@@ -701,7 +702,7 @@ function Settings({ toast }: Pick<PanelProps, "toast">) {
 
   return (
     <div className="admin-panel" id="panel-settings" style={{ display: "block" }}>
-      <PanelHead title="SITE SETTINGS" sub="Edit global site content. Changes reflect live. Numbers shown on Home and About are edited once, in Website Info, About tab." error={error} />
+      <PanelHead title="SITE SETTINGS" sub="Edit global site content. Changes reflect live. Counters shown on Home and About are edited once, here." error={error} />
 
       <div className="settings-section">
         <p className="settings-section-title">General</p>
@@ -726,6 +727,8 @@ function Settings({ toast }: Pick<PanelProps, "toast">) {
           ))}
         </div>
       </div>
+
+      <Availability toast={toast} />
 
       <div className="admin-actions admin-actions--full">
         <button type="button" className="admin-btn admin-btn--accent" onClick={save} aria-label="Save general settings and social links">Save General Settings</button>

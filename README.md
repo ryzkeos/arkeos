@@ -106,7 +106,7 @@ Check this list before creating a new helper or component.
 | copy_home (hero, what, work, why, what_count, work_count) | Website Info, Home |
 | copy_projects (hero, featured, more, controls, empty_text) | Website Info, Projects |
 | copy_services (hero, sections, process_steps) | Website Info, Services |
-| copy_about (hero, story, stats, values, team). `stats_items` is the one source for the numbers on Home and About; a number of 0 is counted automatically | Website Info, About |
+| copy_about (hero, story, stats, values, team). `stats_items` is the one source for the counters on Home and About and is edited only in Site Settings, Counters; a number of 0 is counted automatically | Website Info, About (text), Site Settings (counters) |
 | copy_about: about_image, about_image_wide | Site Settings, Media |
 | copy_contact (labels, placeholders, option lists, success, errors) | Website Info, Contact |
 | copy_privacy | Website Info, Privacy |

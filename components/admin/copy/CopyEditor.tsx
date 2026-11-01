@@ -244,12 +244,6 @@ export default function CopyEditor({ items, toast, title, sub, saved_label, save
     const default_arr = (get_path(DEFAULTS[it.page], f.path) as unknown[] | undefined) ?? [];
     const label = f.label;
     const title_id = `${id_of(it)}-title`;
-    const list_title = (n: number) => (
-      <div className="copy-list__head">
-        <span className="copy-list__title" id={title_id}>{label}</span>
-        <span className={`copy-list__badge${n === 0 ? "" : " copy-list__badge--custom"}`}>{n === 0 ? "Using default" : `Custom, ${n} ${n === 1 ? "row" : "rows"}`}</span>
-      </div>
-    );
     const reset_btn = (
       <button type="button" className="admin-btn admin-btn--sm admin-btn--danger" aria-label={`Reset ${label} to default`} onClick={() => set(it, [])}>
         Reset
@@ -262,11 +256,20 @@ export default function CopyEditor({ items, toast, title, sub, saved_label, save
         {reset_btn}
       </div>
     );
+    const list_title = (n: number, actions: React.ReactNode) => (
+      <div className="copy-list__head">
+        <span className="copy-list__title" id={title_id}>{label}</span>
+        <span className="copy-list__side">
+          <span className={`copy-list__badge${n === 0 ? "" : " copy-list__badge--custom"}`}>{n === 0 ? "Using default" : `Custom, ${n} ${n === 1 ? "row" : "rows"}`}</span>
+          {n > 0 && actions}
+        </span>
+      </div>
+    );
     if (!fields_of) {
       const list = rows as string[];
       return (
         <fieldset className="copy-list" key={key_of(it)} aria-labelledby={title_id}>
-          {list_title(list.length)}
+          {list_title(list.length, list_actions("", default_arr.map(as_text)))}
           {list.length === 0 && <p className="copy-empty">Nothing saved yet. The site shows the default list. Add a row or load the defaults to edit it.</p>}
           {list.map((item, i) => (
             <div className="copy-row copy-row--plain" key={i}>
@@ -282,14 +285,14 @@ export default function CopyEditor({ items, toast, title, sub, saved_label, save
               <RowActions label={label} index={i} count={list.length} onUp={() => set(it, swap(list, i, i - 1))} onDown={() => set(it, swap(list, i, i + 1))} onRemove={() => set(it, list.filter((_, j) => j !== i))} />
             </div>
           ))}
-          {list_actions("", default_arr.map(as_text))}
+          {list.length === 0 && list_actions("", default_arr.map(as_text))}
         </fieldset>
       );
     }
     const list = rows as Row[];
     return (
       <fieldset className="copy-list" key={key_of(it)} aria-labelledby={title_id}>
-        {list_title(list.length)}
+        {list_title(list.length, list_actions(to_row(fields_of, {}), default_arr.map((x) => to_row(fields_of, x))))}
         {list.length === 0 && <p className="copy-empty">Nothing saved yet. The site shows the default list. Add a row or load the defaults to edit it.</p>}
         {list.map((row, i) => (
           <div className="copy-row" key={i}>
@@ -332,7 +335,7 @@ export default function CopyEditor({ items, toast, title, sub, saved_label, save
             <RowActions label={`${label} row`} index={i} count={list.length} onUp={() => set(it, swap(list, i, i - 1))} onDown={() => set(it, swap(list, i, i + 1))} onRemove={() => set(it, list.filter((_, j) => j !== i))} />
           </div>
         ))}
-        {list_actions(to_row(fields_of, {}), default_arr.map((x) => to_row(fields_of, x)))}
+        {list.length === 0 && list_actions(to_row(fields_of, {}), default_arr.map((x) => to_row(fields_of, x)))}
       </fieldset>
     );
   };

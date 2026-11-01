@@ -9,6 +9,20 @@ const cta_media = (slot: "a" | "b" | "c" | "d", place: string): CopyItem[] => [
 ];
 
 export const SETTINGS_COPY_ITEMS: CopyItem[] = [
+  {
+    page: "about",
+    section: "Counters",
+    field: {
+      path: "stats_items",
+      label: "Counters shown on Home and About (a number of 0 is counted automatically)",
+      type: "list",
+      item_fields: [
+        { path: "n", label: "Number", type: "text", max: 10 },
+        { path: "label", label: "Label", type: "text", max: 60 },
+        { path: "desc", label: "Text", type: "textarea", max: 300 },
+      ],
+    },
+  },
   ...cta_media("a", "left near"),
   ...cta_media("b", "right near"),
   ...cta_media("c", "left far"),

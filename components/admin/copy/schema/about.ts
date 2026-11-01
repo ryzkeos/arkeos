@@ -18,16 +18,6 @@ export const about_schema: CopyField[] = [
   { path: "stats.intro", label: "Numbers intro text", type: "textarea", max: 500 },
   { path: "stats.cta.label", label: "Numbers button label (empty hides the button)", type: "text", max: 40 },
   { path: "stats.cta.href", label: "Numbers button link", type: "text", max: 300 },
-  {
-    path: "stats_items",
-    label: "Numbers",
-    type: "list",
-    item_fields: [
-      { path: "n", label: "Number", type: "text", max: 10 },
-      { path: "label", label: "Label", type: "text", max: 60 },
-      { path: "desc", label: "Text", type: "textarea", max: 300 },
-    ],
-  },
   { path: "values.label", label: "Values label", type: "text", max: 60 },
   { path: "values.lines", label: "Values title lines (separate lines with |)", type: "lines", max: 200 },
   { path: "values.intro", label: "Values intro text", type: "textarea", max: 500 },
