@@ -46,7 +46,7 @@ export default function ProjectCard({ project, index, variant, layout, reveal = 
           <Title className="p-card__name">{project.title.toUpperCase()}</Title>
           <span className="p-card__num" aria-hidden="true">{num}</span>
         </div>
-        <p className="p-card__desc">{project.description}</p>
+        <p className="p-card__desc" data-lenis-prevent title={project.description}>{project.description}</p>
         <div className="p-card__foot">
           <div className="p-card__tags">
             {(project.tags ?? []).map((t) => <span key={t} className="tag">{t}</span>)}

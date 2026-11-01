@@ -67,11 +67,11 @@ export default function Header() {
             </div>
           ))}
         </div>
+        <div className="nav-ov__avail">
+          <span className={`dot${booked ? " booked" : ""}`} />
+          <span>{availText}</span>
+        </div>
         <div className="nav-ov__foot">
-          <div className="nav-ov__avail">
-            <span className={`dot${booked ? " booked" : ""}`} />
-            <span>{availText}</span>
-          </div>
           {socials.length > 0 && (
             <nav className="nav-ov__socials" aria-label={name}>
               {socials.map(({ label, href }) => (
@@ -82,7 +82,7 @@ export default function Header() {
         </div>
       </div>
 
-      <header id="header" className={stuck ? "stuck" : ""} role="banner">
+      <header id="header" className={[stuck ? "stuck" : "", open ? "menu-open" : ""].filter(Boolean).join(" ")} role="banner">
         <Link href="/" className="hdr-logo" aria-label={name}><LogoMark className="hdr-logo__mark" /><span>{name}</span></Link>
 
         <nav className="hdr-nav" role="navigation" aria-label={menu.open_label}>
