@@ -105,6 +105,25 @@ function file_size(n: number) {
   return n < 1048576 ? `${Math.max(1, Math.round(n / 1024))} KB` : `${(n / 1048576).toFixed(1)} MB`;
 }
 
+export const media_slot = (base_name = "", label = "") => slug(base_name) || slug(label) || "file";
+
+export async function upload_media(
+  scope: string,
+  folder: string,
+  slot: string,
+  file: File,
+  previous: string,
+  prepare?: (file: File) => File,
+) {
+  const ext = (file.name.split(".").pop() ?? "bin").toLowerCase().replace(/[^a-z0-9]/g, "") || "bin";
+  const path = `${folder}/${slot}.${ext}`;
+  await media_backup(scope, previous);
+  await db.dbUpload(MEDIA_BUCKET, path, prepare ? prepare(file) : file);
+  const next = `${db.dbPublicUrl(MEDIA_BUCKET, path)}?v=${Date.now()}`;
+  media_uploaded(scope, next, previous);
+  return next;
+}
+
 export function MediaField({
   label,
   accept,
@@ -120,6 +139,8 @@ export function MediaField({
   prepare,
   trailing,
   wide = true,
+  staged,
+  on_stage,
 }: {
   label: string;
   accept: string;
@@ -135,18 +156,27 @@ export function MediaField({
   prepare?: (file: File) => File;
   trailing?: React.ReactNode;
   wide?: boolean;
+  staged?: File | null;
+  on_stage?: (file: File | null) => void;
 }) {
   const input = useRef<HTMLInputElement>(null);
-  const [picked, setPicked] = useState<File | null>(null);
+  const [local_picked, setLocalPicked] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
   const id = `media-${folder.replace(/\W/g, "-")}-${label.replace(/\W/g, "-")}`;
+  const deferred = !!on_stage;
+  const picked = deferred ? staged ?? null : local_picked;
+  const setPicked = (file: File | null) => (on_stage ? on_stage(file) : setLocalPicked(file));
 
   const reset_input = () => {
     if (input.current) input.current.value = "";
   };
 
-  const slot_base = slug(base_name ?? "") || slug(label) || "file";
+  useEffect(() => {
+    if (!picked) reset_input();
+  }, [picked]);
+
+  const slot_base = media_slot(base_name, label);
   const [backup, setBackup] = useState<string | null>(null);
   const [backup_tick, setBackupTick] = useState(0);
 
@@ -162,15 +192,10 @@ export function MediaField({
       setFailed(true);
       return toast(problem, true);
     }
-    const ext = (file.name.split(".").pop() ?? "bin").toLowerCase().replace(/[^a-z0-9]/g, "") || "bin";
-    const path = `${folder}/${slot_base}.${ext}`;
     setBusy(true);
     setFailed(false);
     try {
-      await media_backup(scope, value);
-      await db.dbUpload(MEDIA_BUCKET, path, prepare ? prepare(file) : file);
-      const next = `${db.dbPublicUrl(MEDIA_BUCKET, path)}?v=${Date.now()}`;
-      media_uploaded(scope, next, value);
+      const next = await upload_media(scope, folder, slot_base, file, value, prepare);
       onChange(next);
       setPicked(null);
       reset_input();
@@ -186,6 +211,19 @@ export function MediaField({
 
   const upload = () => (picked ? send(picked) : toast("Choose a file first.", true));
 
+  const pick = async (file: File | null) => {
+    setFailed(false);
+    if (deferred && file && validate) {
+      const problem = await validate(file);
+      if (problem) {
+        setFailed(true);
+        reset_input();
+        return toast(problem, true);
+      }
+    }
+    setPicked(file);
+  };
+
   const restore = async () => {
     if (!backup) return;
     setBusy(true);
@@ -195,7 +233,9 @@ export function MediaField({
       const blob = await res.blob();
       const name = decodeURIComponent(backup.split("?")[0].split("/").pop() ?? "backup");
       setBusy(false);
-      await send(new File([blob], name, { type: blob.type }));
+      const file = new File([blob], name, { type: blob.type });
+      if (deferred) await pick(file);
+      else await send(file);
     } catch (e) {
       setBusy(false);
       toast(msg(e, "Restore failed."), true);
@@ -215,14 +255,14 @@ export function MediaField({
 
   const name = picked ? picked.name : value ? file_name(value) : "";
   const kind = name ? file_kind(name) : null;
-  const meta = busy ? "Uploading…" : failed ? "Upload failed" : picked ? `${file_size(picked.size)} · ready to upload` : value ? "Uploaded" : hide_url ? "Choose a file to upload" : "Choose a file or paste a link below";
+  const meta = busy ? "Uploading…" : failed ? "Upload failed" : picked ? `${file_size(picked.size)} · ${deferred ? "uploads when you save" : "ready to upload"}` : value ? "Uploaded" : hide_url ? "Choose a file to upload" : "Choose a file or paste a link below";
   const state = failed ? "error" : busy ? "busy" : picked ? "ready" : value ? "done" : "empty";
 
   return (
     <div className={`form-group${wide ? " admin-form-full" : ""}`}>
       <span className="admin-field-label">{label}</span>
       <div className={`admin-media admin-media--${state}`}>
-        <input id={id} ref={input} type="file" className="admin-media__input" accept={accept} disabled={busy} onChange={(e) => { setPicked(e.target.files?.[0] ?? null); setFailed(false); }} />
+        <input id={id} ref={input} type="file" className="admin-media__input" accept={accept} disabled={busy} onChange={(e) => { pick(e.target.files?.[0] ?? null); }} />
         <div className="admin-media__thumb" aria-hidden="true">
           {!picked && value && kind === "image" ? <img src={value} alt="" /> : <Icon name={kind ? KIND_ICON[kind] : "image"} />}
         </div>
@@ -236,13 +276,13 @@ export function MediaField({
         <div className="admin-media__actions">
           <label htmlFor={id} className={`admin-btn admin-media__btn${busy ? " admin-media__btn--off" : ""}`} aria-label={`Choose ${label} file`}>{value || picked ? "Replace" : "Choose"}</label>
           {backup && !picked && <button type="button" className="admin-btn admin-media__btn" onClick={restore} disabled={busy} aria-label={`Restore previous ${label} file`}>Restore previous</button>}
-          <button type="button" className="admin-btn admin-btn--accent admin-media__btn" onClick={upload} disabled={!picked || busy} aria-busy={busy} aria-label={`Upload ${label}`}>{busy ? "Uploading…" : "Upload"}</button>
+          {!deferred && <button type="button" className="admin-btn admin-btn--accent admin-media__btn" onClick={upload} disabled={!picked || busy} aria-busy={busy} aria-label={`Upload ${label}`}>{busy ? "Uploading…" : "Upload"}</button>}
           {(value || picked) && <IconBtn icon="x" label={picked ? `Discard chosen ${label} file` : `Remove ${label}`} onClick={remove} danger disabled={busy} />}
         </div>
       </div>
       {!hide_url && (
         <div className="admin-field-row">
-          <input type="text" value={value} placeholder={placeholder} aria-label={`${label} URL`} onChange={(e) => onChange(e.target.value)} />
+          <input type="text" value={value} placeholder={placeholder} aria-label={`${label} URL`} onChange={(e) => { if (deferred && picked) setPicked(null); onChange(e.target.value); }} />
           {trailing}
         </div>
       )}

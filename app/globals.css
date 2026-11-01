@@ -37,6 +37,7 @@
   --color-muted:   rgba(245,245,245,0.38);
   --color-border:  rgba(245,245,245,0.07);
   --color-surface: rgba(245,245,245,0.03);
+  --color-cell-edge: rgba(245,245,245,0.035);
 
   --cta-ink:       #ffffff;
 
@@ -95,6 +96,8 @@ img, video {
   display: block;
   max-width: 100%;
 }
+
+img, video, iframe { background-color: #000; }
 
 #c-dot {
   position: fixed;
@@ -545,7 +548,7 @@ html[data-intro-seen] #preloader { display: none !important; }
   position: relative;
   overflow: hidden;
   cursor: none;
-  background: #060606;
+  background: #000;
 }
 
 .p-card__bg {
@@ -798,7 +801,7 @@ html[data-intro-seen] #preloader { display: none !important; }
 .cta-deco-c { --w: 170; --z: -60; --ry: 8deg; --fade-dir: to right; left: 17%; bottom: 5%; }
 .cta-deco-d { --w: 160; --z: -90; --ry: -8deg; --fade-dir: to left; right: 19%; top: 6%; }
 
-.cta-deco--media { border: 0; }
+.cta-deco--media { border: 0; background: #000; }
 
 .cta-deco__media { position: absolute; inset: 0; overflow: hidden; }
 .cta-deco__media img,

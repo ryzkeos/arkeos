@@ -7,7 +7,7 @@ Creative web and motion studio website, built with Next.js.
 Arkeos Web is the public website and admin panel for a creative studio. Every project, service, team member and statistic is real content loaded from the studio's database. Nothing is hardcoded, and sections with no content stay hidden.
 
 - Pages: home, projects, services, about, contact, privacy, and a custom 404
-- Admin panel at `/admin`: read inquiries, manage projects and services, edit the studio identity, fonts and site settings, set availability, view basic analytics
+- Admin panel at `/admin`: read inquiries, manage projects and services, edit website info, fonts and site settings, set availability, view basic analytics
 - Animation: GSAP and Lenis
 
 ## Installation
@@ -31,7 +31,7 @@ Set these in `.env.local`:
 | `NEXT_PUBLIC_STORAGE_BUCKET` | optional. Bucket name, defaults to `media` |
 | `NEXT_PUBLIC_SITE_URL` | the public site url, used for share previews |
 
-Run `db/schema.sql` on the database before first use. It creates the tables and the `url`, `price` and `featured` fields. Run it again after updating, since it is safe to repeat.
+Run `db/schema.sql` on the database before first use. It creates the tables and the `url`, `price` and `featured` fields, and reloads the api schema cache. Run it again after updating, since it is safe to repeat. If saving a project says a column or table is not found in the schema cache, run it again.
 
 ## Usage
 
@@ -58,7 +58,7 @@ public/assets/   images and fonts
 
 ### Media
 
-Project cards play video and render `.html` media (sandboxed) automatically, and show images as is. Service cards show their image all the time and play video or render html on hover. Media is stored in the storage bucket, not in the repo. Uploads are named after where they are used (for example `projects/project-my-title.mp4`, `hero/hero-background.mp4`). Uploading again replaces the file. Replaced or removed files are deleted from storage only after the form is saved, files uploaded and then cancelled are deleted, and deleting a project or service deletes its files. Each upload slot keeps one backup of its previous file under `backups/` in the same bucket, and the Restore previous button brings it back. Static files that ship with the site (fonts, og image) live in `public/assets/`.
+Project cards play video and render `.html` media (sandboxed) automatically, and show images as is. Service cards show their image all the time and play video or render html on hover. Media is stored in the storage bucket, not in the repo. Uploads are named after where they are used (for example `projects/project-my-title.mp4`, `hero/hero-background.mp4`). Uploading again replaces the file. In the project and service forms, a chosen file is uploaded only after the row is saved, so a failed save (for example an outdated schema) uploads nothing. Replaced or removed files are deleted from storage only after the form is saved, files uploaded and then cancelled are deleted, and deleting a project or service deletes its files. Each upload slot keeps one backup of its previous file under `backups/` in the same bucket, and the Restore previous button brings it back. HTML media is fetched and shown through `srcdoc` in a sandboxed frame, because Supabase storage serves `.html` files as plain text. Keep html files self contained (inline css, js and images), since relative files are not loaded and scripts follow the site security policy. Static files that ship with the site (fonts, og image) live in `public/assets/`.
 
 ### Content
 
@@ -96,6 +96,7 @@ Check this list before creating a new helper or component.
 - `lib/cache.ts`: versioned localStorage helpers (`cache_read`, `cache_write`, `cache_clear`).
 - `lib/content_store.ts`: stale-while-revalidate stores for `settings_store`, `projects_store`, `services_store` and `warm_content`.
 - `lib/use_store.ts`: `use_store(store)` hook and `use_isomorphic_layout_effect`.
+- `components/HtmlFrame.tsx`: sandboxed frame that renders an `.html` media file, used by `ProjectMedia` and `CinemaBg`.
 - `components/Btn.tsx`, `SectionH2.tsx`, `SocialIcons.tsx`, `CinemaMedia.tsx`, `SiteSettings.tsx` (`useSiteSettings`): kept as is.
 - `lib/media_type.ts` (`media_kind`): the single place that decides image, video or html from the file extension. `CinemaBg`, `ProjectMedia` and the admin media field all use it, so no media type is picked by hand.
 - `components/admin/copy/copy_schema.ts`: `CopyField`, `COPY_SCHEMA`, `PAGE_LABELS`.
@@ -103,6 +104,8 @@ Check this list before creating a new helper or component.
 - `components/admin/copy/CopyEditor.tsx`: generic admin form built from the schema.
 - `components/admin/copy/schema/settings.ts`: copy fields edited in Site Settings. Both screens merge into the stored copy JSON and only change their own paths.
 - `components/admin/WebsiteInfoPanel.tsx`: the Website Info tab.
+- `components/admin/shared.tsx`: `MediaField` (pass `staged` and `on_stage` to hold the file until the form is saved), `upload_media` (backup, upload and track one file), `media_slot` (the storage file name for a slot).
+- `lib/db/adapter.ts`: `dbSaveProject` and `dbSaveService` return the row id, so a file can be attached right after the row exists.
 
 ### Admin configuration map
 
@@ -118,7 +121,7 @@ Check this list before creating a new helper or component.
 | copy_contact (labels, placeholders, option lists, success, errors) | Website Info, Contact |
 | copy_privacy | Website Info, Privacy |
 | copy_not_found | Website Info, Not Found |
-| studio_name, tagline, contact_email, response_time, founded_year, hero_headline, hero_deco, cta_text, what_intro, work_intro, about_story, about_stats, about_values, process_steps, team, about_image, about_image_wide (legacy keys, used as fallback under copy_*) | Website Info, same fields as above; Identity points there |
+| studio_name, tagline, contact_email, response_time, founded_year, hero_headline, hero_deco, cta_text, what_intro, work_intro, about_story, about_stats, about_values, process_steps, team, about_image, about_image_wide (legacy keys, used as fallback under copy_*) | Website Info, same fields as above |
 | accent_color, hero_video, social_github, social_instagram, social_facebook, social_linkedin, social_telegram, social_threads, social_discord (shown in the footer and the menu) | Site Settings |
 | hero_video | Site Settings, Hero Background Video |
 | availability | Availability |
@@ -162,3 +165,4 @@ Deploy to Vercel (or any Node host) and add the same environment variables there
 - v0.1 (2026-10-31): first Next.js and React version with all pages and the admin panel.
 - v0.2 (2026-10-31): content loaded from the database, no placeholder content, provider neutral data layer, privacy page.
 - v0.3 (2026-11-01): projects page featured carousel and cards or list view, services media rows and animated process flow, project cards reveal details on a timer, full width section header media.
+- v0.3.1 (2026-11-01): project and service files upload only after the row is saved, saving state and right aligned buttons in the service form, delete confirm centered on the admin content area, Identity tab removed, card grids draw their divider lines on the cards so no gray block shows before they animate in, black behind images, video and frames while they download, html media renders through a sandboxed `srcdoc` frame, video elements forced muted with a first frame, schema cache reload added to `db/schema.sql`.
