@@ -45,6 +45,7 @@ function toProject(v: unknown): Project | null {
     color: strOrNull(v.color),
     url: strOrNull(v.url),
     visible: v.visible !== false,
+    featured: v.featured === true,
     sort_order: typeof v.sort_order === "number" ? v.sort_order : undefined,
   };
 }
