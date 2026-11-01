@@ -77,7 +77,8 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 - Reduced the Projects page to a single section with the featured carousel on top.
 - Added a full data reset script and removed unused tables and fields from the schema.
 
-### v0.5.1 (2026-11-01)
+### v1.0 (2026-11-01)
 
+- First stable release.
 - Rewrote the README and added the Pinterest credit.
 - Removed the dependency update config.
