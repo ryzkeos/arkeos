@@ -254,13 +254,23 @@ export const dbGetInquiries = (status?: string) =>
 export const dbMarkInquiry = (id: string, status: string) => dbUpdate("inquiries", `id=eq.${id}`, { status });
 export const dbDeleteInquiry = (id: string) => dbDelete("inquiries", `id=eq.${id}`);
 
+async function save_row(table: string, id: string | null, payload: unknown): Promise<string> {
+  if (id) {
+    await dbUpdate(table, `id=eq.${id}`, payload);
+    return id;
+  }
+  const res = await dbInsert(table, payload, "return=representation");
+  const rows = (await res.json()) as { id?: string | number }[];
+  const created = rows?.[0]?.id;
+  if (created === undefined || created === null) throw new Error("Saved, but the new row id could not be read.");
+  return String(created);
+}
+
 export const dbGetProjects = () => dbGet<Project[]>("projects", "select=*&order=sort_order.asc");
-export const dbSaveProject = (id: string | null, payload: Partial<Project>) =>
-  id ? dbUpdate("projects", `id=eq.${id}`, payload) : dbInsert("projects", payload);
+export const dbSaveProject = (id: string | null, payload: Partial<Project>) => save_row("projects", id, payload);
 export const dbDeleteProject = (id: string) => dbDelete("projects", `id=eq.${id}`);
 
 export const dbGetServices = () => dbGet<Service[]>("services", "select=*&order=sort_order.asc");
-export const dbSaveService = (id: string | null, payload: Partial<Service>) =>
-  id ? dbUpdate("services", `id=eq.${id}`, payload) : dbInsert("services", payload);
+export const dbSaveService = (id: string | null, payload: Partial<Service>) => save_row("services", id, payload);
 export const dbDeleteService = (id: string) => dbDelete("services", `id=eq.${id}`);
 

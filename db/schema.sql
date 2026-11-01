@@ -108,3 +108,5 @@ alter table services add column if not exists icon_url text;
 alter table services add column if not exists cinema_url text;
 
 alter table projects add column if not exists featured boolean not null default false;
+
+notify pgrst, 'reload schema';
