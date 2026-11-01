@@ -261,7 +261,7 @@ export default function CopyEditor({ items, toast, title, sub, saved_label, save
         <span className="copy-list__title" id={title_id}>{label}</span>
         <span className="copy-list__side">
           <span className={`copy-list__badge${n === 0 ? "" : " copy-list__badge--custom"}`}>{n === 0 ? "Using default" : `Custom, ${n} ${n === 1 ? "row" : "rows"}`}</span>
-          {n > 0 && actions}
+          {actions}
         </span>
       </div>
     );
@@ -285,7 +285,6 @@ export default function CopyEditor({ items, toast, title, sub, saved_label, save
               <RowActions label={label} index={i} count={list.length} onUp={() => set(it, swap(list, i, i - 1))} onDown={() => set(it, swap(list, i, i + 1))} onRemove={() => set(it, list.filter((_, j) => j !== i))} />
             </div>
           ))}
-          {list.length === 0 && list_actions("", default_arr.map(as_text))}
         </fieldset>
       );
     }
@@ -335,7 +334,6 @@ export default function CopyEditor({ items, toast, title, sub, saved_label, save
             <RowActions label={`${label} row`} index={i} count={list.length} onUp={() => set(it, swap(list, i, i - 1))} onDown={() => set(it, swap(list, i, i + 1))} onRemove={() => set(it, list.filter((_, j) => j !== i))} />
           </div>
         ))}
-        {list.length === 0 && list_actions(to_row(fields_of, {}), default_arr.map((x) => to_row(fields_of, x)))}
       </fieldset>
     );
   };
