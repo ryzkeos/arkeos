@@ -130,7 +130,7 @@ Check this list before creating a new helper or component.
 
 Not editable by design: null cta values in page defaults (hero cta on inner pages, section cta on services and about), because overrides must match the default type. Fallback project and service lists in defaults are edited in Projects and Services.
 
-`db/cleanup.sql` removes what the app no longer reads: the unused pillars table (only if empty), `services.cinema_type`, the old counter settings, and stale media type keys inside `copy_home` and `copy_shared`. Run it once in the database sql editor. It is safe to run again.
+`db/reset.sql` resets the database to the start: it empties `projects`, `services`, `inquiries`, `analytics` and `site_settings` (the site then shows the built in defaults), drops the unused `pillars` table and `services.cinema_type`. It never touches user accounts (the `auth` schema), table structure, policies, or files in the `media` storage bucket. Run it in the database sql editor. It cannot be undone, so back up first.
 
 ### Data layer
 
