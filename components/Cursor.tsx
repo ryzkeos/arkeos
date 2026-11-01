@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react";
 import { prefersReducedMotion, isFinePointer } from "@/lib/gsap";
 
 const HOVER =
-  'a, button, .btn, .pillar, .p-card, [role="button"], label, select, textarea, input, .svc-row, .val-item, .team-card, .why-item';
+  'a, button, .btn, .svc-card, .p-card, [role="button"], label, select, textarea, input, .svc-row, .val-item, .team-card, .why-item';
 
 export default function Cursor() {
   const dot = useRef<HTMLDivElement>(null);
