@@ -15,6 +15,7 @@ import ProjectGrid from "./ProjectGrid";
 import SectionHeader from "./SectionHeader";
 
 const MAX_CARDS = 24;
+const HOME_PROJECTS_MAX = 5;
 const clamp_count = (n: number) => Math.min(MAX_CARDS, Math.max(0, Math.floor(n)));
 
 const ICONS = [
@@ -33,7 +34,10 @@ export default function HomeView() {
   const { brand } = useCopy("shared");
   const vars = useCopyVars();
 
-  const projects = allProjects ? allProjects.slice(0, clamp_count(copy.work_count)) : [];
+  const work_n = Math.min(HOME_PROJECTS_MAX, clamp_count(copy.work_count));
+  const projects = allProjects
+    ? [...allProjects.filter((p) => p.featured), ...allProjects.filter((p) => !p.featured)].slice(0, work_n)
+    : [];
   const services = allServices ? allServices.slice(0, clamp_count(copy.what_count)) : [];
   const contentReady = settingsLoaded && allProjects !== null && allServices !== null;
 

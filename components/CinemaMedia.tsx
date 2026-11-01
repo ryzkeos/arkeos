@@ -2,6 +2,7 @@
 import { useEffect, useRef } from "react";
 import { safeUrl } from "@/lib/gsap";
 import { media_kind } from "@/lib/media_type";
+import { use_video_keepalive } from "@/hooks/use_video_keepalive";
 import HtmlFrame from "./HtmlFrame";
 
 export function CinemaBg({ url, active = false }: { url: string; active?: boolean }) {
@@ -20,6 +21,8 @@ export function CinemaBg({ url, active = false }: { url: string; active?: boolea
       el.currentTime = 0;
     }
   }, [active]);
+
+  use_video_keepalive(video, active, src);
 
   if (!src) return null;
   const kind = media_kind(src);
