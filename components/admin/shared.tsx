@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
 import * as db from "@/lib/db";
 import { media_ext, media_kind } from "@/lib/media_type";
 import { media_backup, media_released, media_uploaded } from "./media_tx";
@@ -490,3 +490,28 @@ export function ToggleField({
   );
 }
 
+
+export function SlideText({ children }: { children: string }) {
+  const box = useRef<HTMLSpanElement>(null);
+  const inner = useRef<HTMLSpanElement>(null);
+  const [dist, setDist] = useState(0);
+
+  useEffect(() => {
+    const measure = () => {
+      if (!box.current || !inner.current) return;
+      setDist(Math.max(0, Math.ceil(inner.current.offsetWidth - box.current.clientWidth)));
+    };
+    measure();
+    const watcher = new ResizeObserver(measure);
+    if (box.current) watcher.observe(box.current);
+    return () => watcher.disconnect();
+  }, [children]);
+
+  const vars = { "--slide-distance": `${dist}px`, "--slide-time": `${Math.max(4, dist / 25 + 3)}s` } as CSSProperties;
+
+  return (
+    <span ref={box} className={`slide-text${dist > 0 ? " is-sliding" : ""}`} style={vars}>
+      <span ref={inner} className="slide-text__inner">{children}</span>
+    </span>
+  );
+}

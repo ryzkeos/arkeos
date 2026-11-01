@@ -39,6 +39,6 @@
 .copy-list__side .copy-list__actions { width:auto; padding-top:0; }
 
 @media (max-width: 600px) {
-  .copy-save { justify-content:flex-end; }
-  .copy-save .admin-btn { flex:0 0 auto; }
+  .copy-save { justify-content:center; }
+  .copy-save .admin-btn { flex:0 0 auto; width:min(100%,20rem); }
 }
