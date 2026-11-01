@@ -219,7 +219,7 @@
 .pg-contact .btn-submit:hover .btn-label,
 .pg-contact .btn-submit:focus-visible .btn-label { color: #000; }
 .pg-contact .btn-submit:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; border-color: var(--color-accent); }
-.pg-contact .btn-submit:focus-visible::before { transform: translateY(0); }
+.pg-contact .btn-submit:focus-visible::before { transform: scaleX(1); }
 .pg-contact .btn-submit:focus-visible .btn-arrow { color: #000; }
 .pg-contact .btn-submit[aria-disabled="true"] { opacity: 0.55; pointer-events: none; }
 
