@@ -243,9 +243,13 @@ export default function CopyEditor({ items, toast, title, sub, saved_label, save
     const fields_of = row_fields(f);
     const default_arr = (get_path(DEFAULTS[it.page], f.path) as unknown[] | undefined) ?? [];
     const label = f.label;
-    const list_title = it.section
-      ? <legend className="copy-sr">{`${it.section}: ${label}`}</legend>
-      : <legend>{label}</legend>;
+    const title_id = `${id_of(it)}-title`;
+    const list_title = (n: number) => (
+      <div className="copy-list__head">
+        <span className="copy-list__title" id={title_id}>{label}</span>
+        <span className={`copy-list__badge${n === 0 ? "" : " copy-list__badge--custom"}`}>{n === 0 ? "Using default" : `Custom, ${n} ${n === 1 ? "row" : "rows"}`}</span>
+      </div>
+    );
     const reset_btn = (
       <button type="button" className="admin-btn admin-btn--sm admin-btn--danger" aria-label={`Reset ${label} to default`} onClick={() => set(it, [])}>
         Reset
@@ -261,9 +265,9 @@ export default function CopyEditor({ items, toast, title, sub, saved_label, save
     if (!fields_of) {
       const list = rows as string[];
       return (
-        <fieldset className="copy-list" key={key_of(it)}>
-          {list_title}
-          {list.length === 0 && <p className="copy-empty">Using default list.</p>}
+        <fieldset className="copy-list" key={key_of(it)} aria-labelledby={title_id}>
+          {list_title(list.length)}
+          {list.length === 0 && <p className="copy-empty">Nothing saved yet. The site shows the default list. Add a row or load the defaults to edit it.</p>}
           {list.map((item, i) => (
             <div className="copy-row copy-row--plain" key={i}>
               <span className="copy-row__index" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
@@ -284,9 +288,9 @@ export default function CopyEditor({ items, toast, title, sub, saved_label, save
     }
     const list = rows as Row[];
     return (
-      <fieldset className="copy-list" key={key_of(it)}>
-        {list_title}
-        {list.length === 0 && <p className="copy-empty">Using default list.</p>}
+      <fieldset className="copy-list" key={key_of(it)} aria-labelledby={title_id}>
+        {list_title(list.length)}
+        {list.length === 0 && <p className="copy-empty">Nothing saved yet. The site shows the default list. Add a row or load the defaults to edit it.</p>}
         {list.map((row, i) => (
           <div className="copy-row" key={i}>
             <span className="copy-row__index" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
