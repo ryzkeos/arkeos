@@ -3,10 +3,10 @@ import "@/styles/about.css";
 import AboutView from "@/components/AboutView";
 
 export const metadata: Metadata = {
-  title: { absolute: "About — ARKEOS" },
+  title: "About",
   description: "The story, values and people behind the studio.",
   openGraph: {
-    title: "About — ARKEOS",
+    title: "About | ARKEOS",
     description: "The story, values and people behind the studio.",
   },
 };

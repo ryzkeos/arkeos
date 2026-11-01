@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import ProjectsView from "@/components/ProjectsView";
 
 export const metadata: Metadata = {
-  title: { absolute: "Work | ARKEOS" },
+  title: "Projects",
   description: "Selected projects by ARKEOS.",
   openGraph: {
-    title: "Work | ARKEOS",
+    title: "Projects | ARKEOS",
     description: "Selected projects by ARKEOS.",
   },
 };

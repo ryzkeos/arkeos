@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "Privacy Policy",
   description: "What this website collects, why, and how to contact the owner about your data.",
   openGraph: {
-    title: "Privacy Policy",
+    title: "Privacy Policy | ARKEOS",
     description: "What this website collects, why, and how to contact the owner about your data.",
   },
 };
