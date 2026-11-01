@@ -15,6 +15,10 @@ const tx_for = (scope: string): Tx => {
   return tx;
 };
 
+export async function media_backup(scope: string, url: string) {
+  if (url && !tx_for(scope).uploaded.has(url)) await db.dbBackupFile(url);
+}
+
 export function media_uploaded(scope: string, next: string, previous: string) {
   const tx = tx_for(scope);
   tx.uploaded.add(next);
@@ -25,6 +29,7 @@ export function media_released(scope: string, url: string) {
   if (!url) return;
   const tx = tx_for(scope);
   if (!tx.uploaded.has(url)) {
+    db.dbBackupFile(url);
     tx.released.add(url);
     return;
   }

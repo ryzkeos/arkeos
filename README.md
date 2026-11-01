@@ -58,7 +58,7 @@ public/assets/   images and fonts
 
 ### Media
 
-Project cards play video and render `.html` media (sandboxed) automatically, and show images as is. Service cards show their image all the time and play video or render html on hover. Media is stored in the storage bucket, not in the repo. Uploads are named after where they are used (for example `projects/project-my-title.mp4`, `hero/hero-background.mp4`). Uploading again replaces the file. Replaced or removed files are deleted from storage only after the form is saved, files uploaded and then cancelled are deleted, and deleting a project or service deletes its files. Static files that ship with the site (fonts, og image) live in `public/assets/`.
+Project cards play video and render `.html` media (sandboxed) automatically, and show images as is. Service cards show their image all the time and play video or render html on hover. Media is stored in the storage bucket, not in the repo. Uploads are named after where they are used (for example `projects/project-my-title.mp4`, `hero/hero-background.mp4`). Uploading again replaces the file. Replaced or removed files are deleted from storage only after the form is saved, files uploaded and then cancelled are deleted, and deleting a project or service deletes its files. Each upload slot keeps one backup of its previous file under `backups/` in the same bucket, and the Restore previous button brings it back. Static files that ship with the site (fonts, og image) live in `public/assets/`.
 
 ### Content
 

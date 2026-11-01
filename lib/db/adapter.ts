@@ -154,6 +154,64 @@ export async function dbDeleteFile(url: string) {
   } catch {}
 }
 
+const STORAGE_PREFIX = `${STORAGE_URL}/storage/v1/object/public/${STORAGE_BUCKET}/`;
+const BACKUP_DIR = "backups";
+
+function storage_path(url: string): string | null {
+  if (!url.startsWith(STORAGE_PREFIX)) return null;
+  let path = url.slice(STORAGE_PREFIX.length).split("?")[0];
+  try { path = decodeURIComponent(path); } catch {}
+  return path || null;
+}
+
+const storage_headers = () => ({ Authorization: `Bearer ${session?.access_token ?? API_KEY}`, apikey: API_KEY });
+
+async function list_backups(folder: string, base: string): Promise<string[]> {
+  try {
+    const res = await fetch(`${STORAGE_URL}/storage/v1/object/list/${STORAGE_BUCKET}`, {
+      method: "POST",
+      headers: { ...storage_headers(), "Content-Type": "application/json" },
+      body: JSON.stringify({ prefix: `${BACKUP_DIR}/${folder}`, search: base, limit: 100 }),
+    });
+    if (!res.ok) return [];
+    const rows = (await res.json()) as { name?: string }[];
+    return rows.map((r) => r.name ?? "").filter((n) => n.startsWith(`${base}.`));
+  } catch {
+    return [];
+  }
+}
+
+const split_slot = (path: string) => {
+  const cut = path.lastIndexOf("/");
+  const folder = path.slice(0, cut);
+  const name = path.slice(cut + 1);
+  return { folder, name, base: name.replace(/\.[^.]+$/, "") };
+};
+
+export async function dbBackupFile(url: string) {
+  const path = storage_path(url);
+  if (!path || path.startsWith(`${BACKUP_DIR}/`)) return;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return;
+    const blob = await res.blob();
+    const { folder, name, base } = split_slot(path);
+    for (const old of await list_backups(folder, base)) {
+      await fetch(`${STORAGE_URL}/storage/v1/object/${STORAGE_BUCKET}/${BACKUP_DIR}/${folder}/${old}`, { method: "DELETE", headers: storage_headers() });
+    }
+    await fetch(`${STORAGE_URL}/storage/v1/object/${STORAGE_BUCKET}/${BACKUP_DIR}/${folder}/${name}`, {
+      method: "POST",
+      headers: { ...storage_headers(), "Content-Type": blob.type || "application/octet-stream", "x-upsert": "true" },
+      body: blob,
+    });
+  } catch {}
+}
+
+export async function dbFindBackup(folder: string, base: string): Promise<string | null> {
+  const [name] = await list_backups(folder, base);
+  return name ? `${STORAGE_PREFIX}${BACKUP_DIR}/${folder}/${name}` : null;
+}
+
 export const dbPublicUrl = (_bucket: string, path: string) =>
   `${STORAGE_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${path}`;
 
