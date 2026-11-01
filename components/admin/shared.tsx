@@ -297,7 +297,7 @@ export function MediaField({
 }
 
 const HEX_FULL = /^#[0-9a-f]{6}$/i;
-const COLOR_PRESETS = ["#C8FF00", "#FF6B6B", "#FFB800", "#00D1FF", "#7C5CFF", "#F5F5F5"];
+const COLOR_PRESETS = ["#FF3B3B", "#C8FF00", "#FF6B6B", "#FFB800", "#00D1FF", "#7C5CFF", "#F5F5F5"];
 
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
 
@@ -341,7 +341,7 @@ export function ColorField({
 }: {
   id: string; label: string; value: string; onChange: (v: string) => void; wide?: boolean;
 }) {
-  const safe = HEX_FULL.test(value) ? value.toLowerCase() : "#c8ff00";
+  const safe = HEX_FULL.test(value) ? value.toLowerCase() : "#ff3b3b";
   const [open, setOpen] = useState(false);
   const [hsv, setHsv] = useState<Hsv>(() => hex_to_hsv(safe));
   const [draft, setDraft] = useState(safe);
