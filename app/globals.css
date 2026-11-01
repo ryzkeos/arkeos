@@ -1051,7 +1051,7 @@ footer {
   .team-card { cursor: auto; }
 
   
-  .pillar { cursor: pointer; }
+  .svc-card { cursor: pointer; }
 }
 
 @media (max-width: 768px) {
