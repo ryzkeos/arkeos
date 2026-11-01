@@ -6,6 +6,7 @@ import { DEFAULTS } from "@/defaults";
 import type { Inquiry, Project, Service, SiteSettings } from "@/lib/types";
 import { applyAccent } from "@/components/SiteSettings";
 import { SOCIAL_LINKS } from "@/components/SocialIcons";
+import { use_touch_reorder } from "./use_touch_reorder";
 import { media_commit, media_discard } from "./media_tx";
 import WebsiteInfoPanel from "./WebsiteInfoPanel";
 import CopyEditor from "./copy/CopyEditor";
@@ -326,7 +327,7 @@ function Inquiries({ toast, ask, onUnread }: PanelProps & { onUnread: (n: number
                   <td className="cell-trunc" title={i.project_type || undefined}>{i.project_type || "—"}</td>
                   <td className="cell-trunc" title={i.budget || undefined}>{i.budget || "—"}</td>
                   <td className="cell-trunc" title={i.timeline || undefined}>{i.timeline || "—"}</td>
-                  <td>{i.created_at ? new Date(i.created_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "—"}</td>
+                  <td className="cell-date">{i.created_at ? new Date(i.created_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "—"}</td>
                   <td className="cell-center"><span className={`status-badge status-${i.status || "unread"}`}>{i.status || "unread"}</span></td>
                   <td className="cell-center">
                     <div className="admin-actions admin-actions--center">
@@ -353,6 +354,7 @@ function Projects({ toast, ask }: PanelProps) {
   const [staged, setStaged] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const dragSrc = useRef<number | null>(null);
+  const touch = use_touch_reorder((from, to) => { dragSrc.current = from; drop(to); });
   useEffect(() => () => media_discard("project"), []);
 
   const load = useCallback(() => {
@@ -465,8 +467,8 @@ function Projects({ toast, ask }: PanelProps) {
         ) : list.map((p, i) => {
           const vis = p.visible !== false;
           return (
-            <div key={p.id} className="project-row" draggable onDragStart={() => { dragSrc.current = i; }} onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); drop(i); }} aria-label={`Project: ${p.title}`}>
-              <div className="project-row__drag" aria-hidden="true">⠿</div>
+            <div key={p.id} className={`project-row${touch.row_class(i)}`} data-reorder-index={i} draggable onDragStart={() => { dragSrc.current = i; }} onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); drop(i); }} aria-label={`Project: ${p.title}`}>
+              <div className="project-row__drag" aria-hidden="true" {...touch.handle_props(i)}>⠿</div>
               <div className="project-row__info"><strong>{p.title || "Untitled"}</strong><span className="project-row__tags">{(p.tags ?? []).join(", ")}</span></div>
               <div className="admin-actions">
                 <IconBtn icon="star" active={!!p.featured} label={p.featured ? `Unfeature ${p.title}` : `Feature ${p.title}`} onClick={() => feature(p)} />
@@ -490,6 +492,7 @@ function Services({ toast, ask }: PanelProps) {
   const [staged, setStaged] = useState<Partial<Record<"icon_url" | "cinema_url", File | null>>>({});
   const [saving, setSaving] = useState(false);
   const dragSrc = useRef<number | null>(null);
+  const touch = use_touch_reorder((from, to) => { dragSrc.current = from; drop(to); });
   useEffect(() => () => media_discard("service"), []);
 
   const load = useCallback(() => {
@@ -596,8 +599,8 @@ function Services({ toast, ask }: PanelProps) {
         ) : list.map((s, i) => {
           const vis = s.visible !== false;
           return (
-            <div key={s.id} className="project-row" draggable onDragStart={() => { dragSrc.current = i; }} onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); drop(i); }} aria-label={`Service: ${s.title}`}>
-              <div className="project-row__drag" aria-hidden="true">⠿</div>
+            <div key={s.id} className={`project-row${touch.row_class(i)}`} data-reorder-index={i} draggable onDragStart={() => { dragSrc.current = i; }} onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); drop(i); }} aria-label={`Service: ${s.title}`}>
+              <div className="project-row__drag" aria-hidden="true" {...touch.handle_props(i)}>⠿</div>
               <div className="project-row__info"><strong>{s.title || "Untitled"}</strong><span className="project-row__tags">{s.description ? s.description.slice(0, 60) + "…" : ""}</span></div>
               <div className="admin-actions">
                 <IconBtn icon="edit" label={`Edit ${s.title}`} onClick={() => open(i)} />
@@ -843,7 +846,7 @@ function Analytics() {
     Promise.all(
       NAV.map((n) => {
         const page = n.href === "/" ? "index.html" : `${n.href.replace(/^\//, "")}.html`;
-        return db.dbCount("analytics", `page=eq.${encodeURIComponent(page)}`).then((count) => ({ page, count }));
+        return db.dbCount("analytics", `page=eq.${encodeURIComponent(page)}`).then((count) => ({ page: n.label, count }));
       }),
     )
       .then((rows) => {
