@@ -37,11 +37,6 @@
   transform: translateY(14px);
 }
 
-.pg-projects #featured {
-  padding: 7rem 3.5rem 5rem;
-  border-top: 1px solid var(--color-border);
-}
-
 .pg-projects #work {
   padding: 7rem 3.5rem 9rem;
   border-top: 1px solid var(--color-border);
@@ -59,19 +54,17 @@
 
 @media (max-width: 768px) {
   .pg-projects .page-hero { padding: 7rem 1.5rem 4rem; }
-  .pg-projects #featured { padding: 4rem 1.5rem 3rem; }
   .pg-projects #work { padding: 4rem 1.5rem 6rem; }
 }
 @media (max-width: 480px) {
   .pg-projects .page-hero { padding: 6rem 1.2rem 3rem; }
-  .pg-projects #featured { padding: 3rem 1.2rem 2.5rem; }
   .pg-projects #work { padding: 3rem 1.2rem 5rem; }
 }
 
 /* featured carousel */
 .pg-projects .feat__view { position: relative; overflow: hidden; background: #000; touch-action: pan-y; }
 .pg-projects .feat__track { display: flex; transition: transform .95s var(--ease-inout); will-change: transform; }
-.pg-projects .feat__slide { position: relative; flex: 0 0 100%; min-width: 0; aspect-ratio: 21 / 9; min-height: 24rem; overflow: hidden; }
+.pg-projects .feat__slide { position: relative; flex: 0 0 100%; min-width: 0; aspect-ratio: 2 / 1; overflow: hidden; }
 .pg-projects .feat__media { position: absolute; inset: 0; background: #000; }
 .pg-projects .feat__media img,
 .pg-projects .feat__media video,
@@ -123,6 +116,7 @@
 .pg-projects .feat__arrow:hover { border-color: var(--color-accent); background: var(--color-accent); color: #000; }
 
 /* cards and list switch */
+.pg-projects .pj-featured { margin-top: 4rem; margin-bottom: 4.5rem; }
 .pg-projects .pj-toolbar { display: flex; justify-content: flex-end; margin-bottom: 1.6rem; }
 .pg-projects .pj-toggle { display: inline-flex; border: 1px solid var(--color-border); }
 .pg-projects .pj-toggle__btn {

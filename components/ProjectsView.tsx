@@ -29,17 +29,15 @@ export default function ProjectsView() {
     <main className="pg-projects">
       <HeroLayout variant="page" ariaLabel={aria_hero} copy={copy.hero} />
 
-      {featured.length > 0 && (
-        <section id="featured" aria-label={copy.featured.label}>
-          <SectionHeader copy={copy.featured} />
-          <ProjectFeatured projects={featured} label={copy.featured.label} />
-        </section>
-      )}
-
-      {others.length > 0 && (
+      {(featured.length > 0 || others.length > 0) && (
         <section id="work" aria-label={copy.more.label}>
           <SectionHeader copy={copy.more} />
-          <ProjectsMore projects={others} start_index={featured.length} />
+          {featured.length > 0 && (
+            <div className="pj-featured">
+              <ProjectFeatured projects={featured} label={copy.featured.label} />
+            </div>
+          )}
+          {others.length > 0 && <ProjectsMore projects={others} start_index={featured.length} />}
         </section>
       )}
 
