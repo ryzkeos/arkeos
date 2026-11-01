@@ -106,22 +106,5 @@ create policy media_auth_delete on storage.objects for delete to authenticated u
 
 alter table services add column if not exists icon_url text;
 alter table services add column if not exists cinema_url text;
-alter table services add column if not exists cinema_type text default 'video';
-
-create table if not exists pillars (
-  id uuid primary key default gen_random_uuid(),
-  title text not null,
-  description text not null default '',
-  icon_url text,
-  cinema_url text,
-  cinema_type text not null default 'video',
-  sort_order integer not null default 0,
-  created_at timestamptz not null default now()
-);
-alter table pillars enable row level security;
-drop policy if exists pillars_anon_select on pillars;
-create policy pillars_anon_select on pillars for select to anon using (true);
-drop policy if exists pillars_auth_all on pillars;
-create policy pillars_auth_all on pillars for all to authenticated using (true) with check (true);
 
 alter table projects add column if not exists featured boolean not null default false;
