@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
 import * as db from "@/lib/db";
-import { media_released, media_uploaded } from "./media_tx";
+import { media_backup, media_released, media_uploaded } from "./media_tx";
 
 export const MEDIA_BUCKET = "media";
 
@@ -150,30 +150,59 @@ export function MediaField({
     if (input.current) input.current.value = "";
   };
 
-  const upload = async () => {
-    if (!picked) return toast("Choose a file first.", true);
-    const problem = validate ? await validate(picked) : null;
+  const slot_base = slug(base_name ?? "") || slug(label) || "file";
+  const [backup, setBackup] = useState<string | null>(null);
+  const [backup_tick, setBackupTick] = useState(0);
+
+  useEffect(() => {
+    let live = true;
+    db.dbFindBackup(folder, slot_base).then((u) => { if (live) setBackup(u); }).catch(() => {});
+    return () => { live = false; };
+  }, [folder, slot_base, backup_tick]);
+
+  const send = async (file: File) => {
+    const problem = validate ? await validate(file) : null;
     if (problem) {
       setFailed(true);
       return toast(problem, true);
     }
-    const ext = (picked.name.split(".").pop() ?? "bin").toLowerCase().replace(/[^a-z0-9]/g, "") || "bin";
-    const path = `${folder}/${slug(base_name ?? "") || slug(label) || "file"}.${ext}`;
+    const ext = (file.name.split(".").pop() ?? "bin").toLowerCase().replace(/[^a-z0-9]/g, "") || "bin";
+    const path = `${folder}/${slot_base}.${ext}`;
     setBusy(true);
     setFailed(false);
     try {
-      await db.dbUpload(MEDIA_BUCKET, path, prepare ? prepare(picked) : picked);
+      await media_backup(scope, value);
+      await db.dbUpload(MEDIA_BUCKET, path, prepare ? prepare(file) : file);
       const next = `${db.dbPublicUrl(MEDIA_BUCKET, path)}?v=${Date.now()}`;
       media_uploaded(scope, next, value);
       onChange(next);
       setPicked(null);
       reset_input();
+      setBackupTick((n) => n + 1);
       toast("File uploaded.");
     } catch (e) {
       setFailed(true);
       toast(msg(e, "Upload failed."), true);
     } finally {
       setBusy(false);
+    }
+  };
+
+  const upload = () => (picked ? send(picked) : toast("Choose a file first.", true));
+
+  const restore = async () => {
+    if (!backup) return;
+    setBusy(true);
+    try {
+      const res = await fetch(backup);
+      if (!res.ok) throw new Error("Backup could not be read.");
+      const blob = await res.blob();
+      const name = decodeURIComponent(backup.split("?")[0].split("/").pop() ?? "backup");
+      setBusy(false);
+      await send(new File([blob], name, { type: blob.type }));
+    } catch (e) {
+      setBusy(false);
+      toast(msg(e, "Restore failed."), true);
     }
   };
 
@@ -210,6 +239,7 @@ export function MediaField({
         </div>
         <div className="admin-media__actions">
           <label htmlFor={id} className={`admin-btn admin-media__btn${busy ? " admin-media__btn--off" : ""}`} aria-label={`Choose ${label} file`}>{value || picked ? "Replace" : "Choose"}</label>
+          {backup && !picked && <button type="button" className="admin-btn admin-media__btn" onClick={restore} disabled={busy} aria-label={`Restore previous ${label} file`}>Restore previous</button>}
           <button type="button" className="admin-btn admin-btn--accent admin-media__btn" onClick={upload} disabled={!picked || busy} aria-busy={busy} aria-label={`Upload ${label}`}>{busy ? "Uploading…" : "Upload"}</button>
           {(value || picked) && <IconBtn icon="x" label={picked ? `Discard chosen ${label} file` : `Remove ${label}`} onClick={remove} danger disabled={busy} />}
         </div>
