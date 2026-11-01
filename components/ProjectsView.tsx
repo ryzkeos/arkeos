@@ -1,45 +1,51 @@
 "use client";
 import "@/styles/projects.css";
-import { useEffect, useState } from "react";
-import { FALLBACK_PROJECTS } from "@/lib/data";
-import { sbLoadProjects } from "@/lib/supabase";
 import { useArkeosAnimations } from "@/hooks/useArkeosAnimations";
-import type { Project } from "@/lib/types";
+import { useProjects } from "@/lib/useContent";
+import { useCopy } from "@/lib/use_copy";
 import CtaSection from "./CtaSection";
-import PageHero from "./PageHero";
-import ProjectCard from "./ProjectCard";
+import HeroLayout from "./hero/HeroLayout";
+import ProjectFeatured from "./ProjectFeatured";
+import ProjectsMore from "./ProjectsMore";
+import SectionHeader from "./SectionHeader";
+
+const FEATURED_MAX = 5;
 
 export default function ProjectsView() {
-  const [projects, setProjects] = useState<Project[] | null>(null);
+  const projects = useProjects();
+  const copy = useCopy("projects");
+  const { work_count } = useCopy("home");
+  const aria_hero = copy.hero.eyebrow || copy.hero.lines.join(" ");
 
-  useEffect(() => {
-    let alive = true;
-    sbLoadProjects(FALLBACK_PROJECTS).then((p) => alive && setProjects(p));
-    return () => { alive = false; };
-  }, []);
-
-  /* animations wait for cards to exist */
   useArkeosAnimations({ pageHero: true, ready: projects !== null });
+
+  const list = projects ?? [];
+  const featured_n = Math.min(FEATURED_MAX, Math.max(0, Math.floor(work_count)));
+  const flagged = list.filter((p) => p.featured);
+  const featured = flagged.length > 0 ? flagged.slice(0, FEATURED_MAX) : list.slice(0, featured_n);
+  const others = list.filter((p) => !featured.includes(p));
 
   return (
     <main className="pg-projects">
-      <PageHero
-        ariaLabel="Work page hero"
-        ghost="WORK"
-        label="Selected Work"
-        lines={["THE", "FULL", "PICTURE."]}
-        sub="Six years of refusing to ship anything less than a category benchmark. Every project below is the evidence."
-      />
+      <HeroLayout variant="page" ariaLabel={aria_hero} copy={copy.hero} />
 
-      <section id="work" aria-label="All projects">
-        <div className="work-grid proj-grid" id="projects-grid" role="list" aria-busy={projects === null}>
-          {projects === null ? null : projects.length === 0 ? (
-            <p className="work-empty">No projects to display.</p>
-          ) : (
-            projects.map((p, i) => <ProjectCard key={p.id ?? p.title} project={p} index={i} variant="grid" />)
+      {(featured.length > 0 || others.length > 0) && (
+        <section id="work" aria-label={copy.more.label}>
+          <SectionHeader copy={copy.more} />
+          {featured.length > 0 && (
+            <div className="pj-featured">
+              <ProjectFeatured projects={featured} label={copy.featured.label} />
+            </div>
           )}
-        </div>
-      </section>
+          {others.length > 0 && <ProjectsMore projects={others} start_index={featured.length} />}
+        </section>
+      )}
+
+      {projects !== null && projects.length === 0 && copy.empty_text && (
+        <section id="work" aria-label={aria_hero}>
+          <p className="work-empty" role="status">{copy.empty_text}</p>
+        </section>
+      )}
 
       <CtaSection />
     </main>
