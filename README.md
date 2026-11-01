@@ -7,7 +7,7 @@ Creative web and motion studio website, built with Next.js.
 Arkeos Web is the public website and admin panel for a creative studio. Every project, service, team member and statistic is real content loaded from the studio's database. Nothing is hardcoded, and sections with no content stay hidden.
 
 - Pages: home, projects, services, about, contact, privacy, and a custom 404
-- Admin panel at `/admin`: read inquiries, manage projects and services, edit the studio identity, fonts and site settings, set availability, view basic analytics
+- Admin panel at `/admin`: read inquiries, manage projects and services, edit website info, fonts and site settings, set availability, view basic analytics
 - Animation: GSAP and Lenis
 
 ## Installation
@@ -121,7 +121,7 @@ Check this list before creating a new helper or component.
 | copy_contact (labels, placeholders, option lists, success, errors) | Website Info, Contact |
 | copy_privacy | Website Info, Privacy |
 | copy_not_found | Website Info, Not Found |
-| studio_name, tagline, contact_email, response_time, founded_year, hero_headline, hero_deco, cta_text, what_intro, work_intro, about_story, about_stats, about_values, process_steps, team, about_image, about_image_wide (legacy keys, used as fallback under copy_*) | Website Info, same fields as above; Identity points there |
+| studio_name, tagline, contact_email, response_time, founded_year, hero_headline, hero_deco, cta_text, what_intro, work_intro, about_story, about_stats, about_values, process_steps, team, about_image, about_image_wide (legacy keys, used as fallback under copy_*) | Website Info, same fields as above |
 | accent_color, hero_video, social_github, social_instagram, social_facebook, social_linkedin, social_telegram, social_threads, social_discord (shown in the footer and the menu) | Site Settings |
 | hero_video | Site Settings, Hero Background Video |
 | availability | Availability |
@@ -165,4 +165,4 @@ Deploy to Vercel (or any Node host) and add the same environment variables there
 - v0.1 (2026-10-31): first Next.js and React version with all pages and the admin panel.
 - v0.2 (2026-10-31): content loaded from the database, no placeholder content, provider neutral data layer, privacy page.
 - v0.3 (2026-11-01): projects page featured carousel and cards or list view, services media rows and animated process flow, project cards reveal details on a timer, full width section header media.
-- v0.3.1 (2026-11-01): project and service files upload only after the row is saved, saving state and right aligned buttons in the service form, html media renders through a sandboxed `srcdoc` frame, video elements forced muted with a first frame, schema cache reload added to `db/schema.sql`.
+- v0.3.1 (2026-11-01): project and service files upload only after the row is saved, saving state and right aligned buttons in the service form, delete confirm centered on the admin content area, Identity tab removed, html media renders through a sandboxed `srcdoc` frame, video elements forced muted with a first frame, schema cache reload added to `db/schema.sql`.

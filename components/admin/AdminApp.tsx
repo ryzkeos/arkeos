@@ -7,20 +7,19 @@ import type { Inquiry, Project, Service, SiteSettings } from "@/lib/types";
 import { applyAccent } from "@/components/SiteSettings";
 import { SOCIAL_LINKS } from "@/components/SocialIcons";
 import { media_commit, media_discard } from "./media_tx";
-import IdentityPanel from "./IdentityPanel";
 import WebsiteInfoPanel from "./WebsiteInfoPanel";
 import CopyEditor from "./copy/CopyEditor";
 import { SETTINGS_COPY_ITEMS } from "./copy/schema/settings";
 import { ColorField, IconBtn, MediaField, PanelHead, ToggleField, isHttpUrl, media_slot, msg, slug, upload_media, type PanelProps } from "./shared";
 
-type Section = "inquiries" | "projects" | "services" | "settings" | "website_info" | "identity" | "fonts" | "analytics";
+type Section = "inquiries" | "projects" | "services" | "settings" | "website_info" | "fonts" | "analytics";
 
 const FEATURED_LIMIT = 5;
 const splitTags = (s: string) => s.split(",").map((t) => t.trim()).filter(Boolean);
 
 const NAV_GROUPS: { label: string; items: [Section, string][] }[] = [
   { label: "Content", items: [["inquiries", "Inquiries"], ["projects", "Projects"], ["services", "Services"]] },
-  { label: "Studio", items: [["settings", "Site Settings"], ["website_info", "Website Info"], ["identity", "Identity"], ["fonts", "Font Settings"], ["analytics", "Analytics"]] },
+  { label: "Studio", items: [["settings", "Site Settings"], ["website_info", "Website Info"], ["fonts", "Font Settings"], ["analytics", "Analytics"]] },
 ];
 
 export default function AdminApp() {
@@ -174,7 +173,6 @@ export default function AdminApp() {
             {section === "services" && <Services toast={showToast} ask={ask} />}
             {section === "settings" && <Settings toast={showToast} />}
             {section === "website_info" && <WebsiteInfoPanel toast={showToast} />}
-            {section === "identity" && <IdentityPanel onOpenWebsiteInfo={() => setSection("website_info")} />}
             {section === "fonts" && <Fonts toast={showToast} />}
             {section === "analytics" && <Analytics />}
           </main>
