@@ -100,7 +100,7 @@ export default function ProjectFeatured({ projects, label }: Props) {
                 <div className="feat__body">
                   <div className="feat__main">
                     <h3 className="feat__name">{p.title.toUpperCase()}</h3>
-                    {p.description && <p className="feat__desc">{p.description}</p>}
+                    {p.description && <p className="feat__desc" data-lenis-prevent>{p.description}</p>}
                     <div className="feat__foot">
                       {(p.tags ?? []).map((t) => <span key={t} className="tag">{t}</span>)}
                       {link && (

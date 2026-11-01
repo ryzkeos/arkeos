@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
 import * as db from "@/lib/db";
 import { media_ext, media_kind } from "@/lib/media_type";
 import { media_backup, media_released, media_uploaded } from "./media_tx";
@@ -46,6 +46,8 @@ const ICON_PATHS: Record<string, ReactNode> = {
   image: <><rect x="3" y="4" width="18" height="16" /><circle cx="9" cy="10" r="2" /><path d="M21 16l-5-5-9 9" /></>,
   film: <><rect x="3" y="5" width="18" height="14" /><path d="M10 9l5 3-5 3z" /></>,
   code: <path d="M8 8l-5 4 5 4M16 8l5 4-5 4M14 5l-4 14" />,
+  upload: <path d="M12 16V4M6 10l6-6 6 6M4 20h16" />,
+  undo: <path d="M9 14L4 9l5-5M4 9h10a6 6 0 010 12h-3" />,
   star: <path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z" />,
 };
 
@@ -190,6 +192,7 @@ export function MediaField({
     const problem = validate ? await validate(file) : null;
     if (problem) {
       setFailed(true);
+      reset_input();
       return toast(problem, true);
     }
     setBusy(true);
@@ -206,10 +209,9 @@ export function MediaField({
       toast(msg(e, "Upload failed."), true);
     } finally {
       setBusy(false);
+      reset_input();
     }
   };
-
-  const upload = () => (picked ? send(picked) : toast("Choose a file first.", true));
 
   const pick = async (file: File | null) => {
     setFailed(false);
@@ -255,14 +257,19 @@ export function MediaField({
 
   const name = picked ? picked.name : value ? file_name(value) : "";
   const kind = name ? file_kind(name) : null;
-  const meta = busy ? "Uploading…" : failed ? "Upload failed" : picked ? `${file_size(picked.size)} · ${deferred ? "uploads when you save" : "ready to upload"}` : value ? "Uploaded" : hide_url ? "Choose a file to upload" : "Choose a file or paste a link below";
+  const meta = busy ? "Uploading…" : failed ? "Upload failed" : picked ? `${file_size(picked.size)} · uploads when you save` : value ? "Uploaded" : hide_url ? "Choose a file to upload" : "Choose a file or paste a link below";
   const state = failed ? "error" : busy ? "busy" : picked ? "ready" : value ? "done" : "empty";
 
   return (
     <div className={`form-group${wide ? " admin-form-full" : ""}`}>
       <span className="admin-field-label">{label}</span>
       <div className={`admin-media admin-media--${state}`}>
-        <input id={id} ref={input} type="file" className="admin-media__input" accept={accept} disabled={busy} onChange={(e) => { pick(e.target.files?.[0] ?? null); }} />
+        <input id={id} ref={input} type="file" className="admin-media__input" accept={accept} disabled={busy} onChange={(e) => {
+          const file = e.target.files?.[0] ?? null;
+          if (!file) return;
+          if (deferred) pick(file);
+          else send(file);
+        }} />
         <div className="admin-media__thumb" aria-hidden="true">
           {!picked && value && kind === "image" ? <img src={value} alt="" /> : <Icon name={kind ? KIND_ICON[kind] : "image"} />}
         </div>
@@ -274,9 +281,8 @@ export function MediaField({
           </span>
         </div>
         <div className="admin-media__actions">
-          <label htmlFor={id} className={`admin-btn admin-media__btn${busy ? " admin-media__btn--off" : ""}`} aria-label={`Choose ${label} file`}>{value || picked ? "Replace" : "Choose"}</label>
-          {backup && !picked && <button type="button" className="admin-btn admin-media__btn" onClick={restore} disabled={busy} aria-label={`Restore previous ${label} file`}>Restore previous</button>}
-          {!deferred && <button type="button" className="admin-btn admin-btn--accent admin-media__btn" onClick={upload} disabled={!picked || busy} aria-busy={busy} aria-label={`Upload ${label}`}>{busy ? "Uploading…" : "Upload"}</button>}
+          <label htmlFor={id} className={`admin-icon-btn${busy ? " admin-media__btn--off" : ""}`} title={`${value || picked ? "Replace" : "Upload"} ${label} file`} aria-label={`${value || picked ? "Replace" : "Upload"} ${label} file`}><Icon name="upload" /></label>
+          {backup && !picked && <IconBtn icon="undo" label={`Restore previous ${label} file`} onClick={restore} disabled={busy} />}
           {(value || picked) && <IconBtn icon="x" label={picked ? `Discard chosen ${label} file` : `Remove ${label}`} onClick={remove} danger disabled={busy} />}
         </div>
       </div>
@@ -484,3 +490,28 @@ export function ToggleField({
   );
 }
 
+
+export function SlideText({ children }: { children: string }) {
+  const box = useRef<HTMLSpanElement>(null);
+  const inner = useRef<HTMLSpanElement>(null);
+  const [dist, setDist] = useState(0);
+
+  useEffect(() => {
+    const measure = () => {
+      if (!box.current || !inner.current) return;
+      setDist(Math.max(0, Math.ceil(inner.current.offsetWidth - box.current.clientWidth)));
+    };
+    measure();
+    const watcher = new ResizeObserver(measure);
+    if (box.current) watcher.observe(box.current);
+    return () => watcher.disconnect();
+  }, [children]);
+
+  const vars = { "--slide-distance": `${dist}px`, "--slide-time": `${Math.max(4, dist / 25 + 3)}s` } as CSSProperties;
+
+  return (
+    <span ref={box} className={`slide-text${dist > 0 ? " is-sliding" : ""}`} style={vars}>
+      <span ref={inner} className="slide-text__inner">{children}</span>
+    </span>
+  );
+}
