@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "Contact",
   description: "Send a project inquiry with your scope, budget and timeline.",
   openGraph: {
-    title: "Contact | ARKEOS",
+    title: "Arkeos | Contact",
     description: "Send a project inquiry with your scope, budget and timeline.",
   },
 };

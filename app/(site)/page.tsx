@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import HomeView from "@/components/HomeView";
 
-const TITLE = "ARKEOS | Web and Motion Studio";
-const DESCRIPTION = "ARKEOS is a small studio that builds websites, apps and motion work. See our projects and services.";
+const TITLE = "Arkeos | Home";
+const DESCRIPTION = "Arkeos is a small studio that builds websites, apps and motion work. See our projects and services.";
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },

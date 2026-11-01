@@ -3,10 +3,10 @@ import ServicesView from "@/components/ServicesView";
 
 export const metadata: Metadata = {
   title: "Services",
-  description: "Services offered by ARKEOS and how we work.",
+  description: "Services offered by Arkeos and how we work.",
   openGraph: {
-    title: "Services | ARKEOS",
-    description: "Services offered by ARKEOS and how we work.",
+    title: "Arkeos | Services",
+    description: "Services offered by Arkeos and how we work.",
   },
 };
 

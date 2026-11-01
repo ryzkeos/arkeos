@@ -13,12 +13,12 @@ function siteUrl(): URL {
 
 export const metadata: Metadata = {
   metadataBase: siteUrl(),
-  title: { default: "ARKEOS", template: "%s | ARKEOS" },
-  description: "ARKEOS official website.",
+  title: { default: "Arkeos", template: "Arkeos | %s" },
+  description: "Arkeos official website.",
   openGraph: {
     type: "website",
-    siteName: "ARKEOS",
-    title: "ARKEOS",
+    siteName: "Arkeos",
+    title: "Arkeos",
     images: ["/assets/img/og.webp"],
   },
   twitter: { card: "summary_large_image" },
