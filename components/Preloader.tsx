@@ -62,8 +62,8 @@ export default function Preloader() {
     const reduced = prefersReducedMotion();
 
     const render = () => {
-      const v = Math.round(shown.current.v);
-      bar.style.width = `${shown.current.v}%`;
+      const v = Math.min(100, Math.round(shown.current.v));
+      bar.style.width = `${Math.min(100, shown.current.v)}%`;
       if (pctEl) pctEl.textContent = `${v}%`;
       if (statusEl) statusEl.textContent = status_for(statuses.current, v);
     };
