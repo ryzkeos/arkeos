@@ -1,34 +1,17 @@
 import { NextResponse } from "next/server";
 import { dbInsert } from "@/lib/db";
+import { is_limited } from "@/lib/rate_limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const WINDOW_MS = 10 * 60 * 1000;
-const MAX_PER_WINDOW = 5;
 const MAX_BODY_CHARS = 20000;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-const hits = new Map<string, { count: number; reset: number }>();
 
 function clientIp(req: Request): string {
   const fwd = req.headers.get("x-forwarded-for");
   if (fwd) return fwd.split(",")[0].trim() || "unknown";
   return req.headers.get("x-real-ip")?.trim() || "unknown";
-}
-
-function limited(ip: string): boolean {
-  const now = Date.now();
-  if (hits.size > 5000) {
-    for (const [key, entry] of hits) if (entry.reset <= now) hits.delete(key);
-  }
-  const entry = hits.get(ip);
-  if (!entry || entry.reset <= now) {
-    hits.set(ip, { count: 1, reset: now + WINDOW_MS });
-    return false;
-  }
-  entry.count += 1;
-  return entry.count > MAX_PER_WINDOW;
 }
 
 const fail = (error: string, status: number) => NextResponse.json({ error }, { status });
@@ -57,7 +40,7 @@ export async function POST(req: Request) {
 
   if (clean(data.website)) return NextResponse.json({ ok: true });
 
-  if (limited(clientIp(req))) return fail("Too many requests. Please try again later.", 429);
+  if (await is_limited(clientIp(req))) return fail("Too many requests. Please try again later.", 429);
 
   const name = clean(data.name);
   const email = clean(data.email);
