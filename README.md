@@ -103,17 +103,16 @@ Check this list before creating a new helper or component.
 | --- | --- |
 | copy_shared: brand, availability texts, cta text, buttons, hero labels | Website Info, Shared |
 | copy_shared: nav links, preloader statuses, cta four corridor wall media, section header media | Site Settings |
-| copy_home (hero, what, work, why, what_count, work_count, why_stats) | Website Info, Home |
+| copy_home (hero, what, work, why, what_count, work_count) | Website Info, Home |
 | copy_projects (hero, featured, more, controls, empty_text) | Website Info, Projects |
 | copy_services (hero, sections, process_steps) | Website Info, Services |
-| copy_about (hero, story, stats, values, team) | Website Info, About |
+| copy_about (hero, story, stats, values, team). `stats_items` is the one source for the numbers on Home and About; a number of 0 is counted automatically | Website Info, About |
 | copy_about: about_image, about_image_wide | Site Settings, Media |
 | copy_contact (labels, placeholders, option lists, success, errors) | Website Info, Contact |
 | copy_privacy | Website Info, Privacy |
 | copy_not_found | Website Info, Not Found |
 | studio_name, tagline, contact_email, response_time, founded_year, hero_headline, hero_deco, cta_text, what_intro, work_intro, about_story, about_stats, about_values, process_steps, team, about_image, about_image_wide (legacy keys, used as fallback under copy_*) | Website Info, same fields as above; Identity points there |
-| projects_count, years_active, clients_count | Site Settings, Home Counters |
-| accent_color, social_github, social_instagram, social_facebook | Site Settings |
+| accent_color, hero_video, social_github, social_instagram, social_facebook, social_linkedin, social_telegram, social_threads, social_discord (shown in the footer and the menu) | Site Settings |
 | hero_video | Site Settings, Hero Background Video |
 | availability | Availability |
 | font_display, font_ui_regular, font_ui_medium, font_label | Font Settings |
@@ -132,7 +131,7 @@ The app only imports from `lib/db`. `lib/db/adapter.ts` is the current adapter. 
 
 Tables: `projects`, `services`, `site_settings`, `inquiries`, `analytics`.
 
-`site_settings` keys: `copy_<page>` (see Copy system), `studio_name`, `founded_year`, `contact_email`, `response_time`, `tagline`, `cta_text`, `about_story`, `hero_headline`, `hero_deco`, `about_image`, `about_image_wide`, `about_stats`, `about_values`, `process_steps`, `team`, `social_github`, `social_instagram`, `social_facebook`, `hero_video`, `accent_color`, `availability`, `font_display`, `font_ui_regular`, `font_ui_medium`, `font_label`.
+`site_settings` keys: `copy_<page>` (see Copy system), `studio_name`, `founded_year`, `contact_email`, `response_time`, `tagline`, `cta_text`, `about_story`, `hero_headline`, `hero_deco`, `about_image`, `about_image_wide`, `about_stats`, `about_values`, `process_steps`, `team`, `social_github`, `social_instagram`, `social_facebook`, `social_linkedin`, `social_telegram`, `social_threads`, `social_discord`, `hero_video`, `accent_color`, `availability`, `font_display`, `font_ui_regular`, `font_ui_medium`, `font_label`.
 
 ### Fonts
 

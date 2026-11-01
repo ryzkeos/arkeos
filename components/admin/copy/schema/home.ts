@@ -24,14 +24,4 @@ export const home_schema: CopyField[] = [
   ...section_fields("work", "Selected work", true),
   { path: "work_count", label: "Projects shown on home", type: "text", max: 2 },
   ...section_fields("why", "Why us. Label can use {name}", true),
-  {
-    path: "why_stats",
-    label: "Why us numbers (a number of 0 is counted automatically)",
-    type: "list",
-    item_fields: [
-      { path: "n", label: "Number", type: "text", max: 6 },
-      { path: "label", label: "Label", type: "text", max: 60 },
-      { path: "desc", label: "Text", type: "textarea", max: 300 },
-    ],
-  },
 ];
