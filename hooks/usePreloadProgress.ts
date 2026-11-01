@@ -5,20 +5,25 @@ const MIN_VISIBLE_MS = 700;
 const MAX_WAIT_MS = 15000;
 
 function watchMedia(el: Element, onDone: () => void): boolean {
+  let fired = false;
+  const done = () => {
+    if (fired) return;
+    fired = true;
+    onDone();
+  };
   if (el instanceof HTMLImageElement) {
     if (el.loading === "lazy") el.loading = "eager";
     if (el.complete) return false;
-    el.addEventListener("load", onDone, { once: true });
-    el.addEventListener("error", onDone, { once: true });
+    el.addEventListener("load", done, { once: true });
+    el.addEventListener("error", done, { once: true });
     return true;
   }
   if (el instanceof HTMLVideoElement) {
     if (el.readyState >= 3) return false;
-    const done = () => onDone();
+    el.preload = "auto";
     el.addEventListener("canplay", done, { once: true });
     el.addEventListener("loadeddata", done, { once: true });
     el.addEventListener("error", done, { once: true });
-    el.load();
     return true;
   }
   return false;
@@ -38,10 +43,10 @@ export function usePreloadProgress(
     if (!enabled) return;
     const s = state.current;
     recompute.current = () => {
-      const raw = s.forced ? 100 : Math.floor((s.done / s.total) * 100);
+      const raw = s.forced ? 100 : Math.min(100, Math.floor((s.done / Math.max(1, s.total)) * 100));
       const capped = s.minPassed || s.forced ? raw : Math.min(raw, 99);
       s.best = Math.max(s.best, capped);
-      setValue(s.best);
+      setValue(Math.min(100, s.best));
     };
     const finishOne = () => {
       s.done += 1;
