@@ -23,7 +23,7 @@ export default function ServiceRow({ service, index }: Props) {
     >
       {service.cinema_url && (
         <div className="svc-cinema-bg" aria-hidden="true">
-          <CinemaBg url={service.cinema_url} type={service.cinema_type ?? "video"} active={active} />
+          <CinemaBg url={service.cinema_url} active={active} />
         </div>
       )}
       <div className="svc-ico" aria-hidden="true">
