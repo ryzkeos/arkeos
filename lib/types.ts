@@ -9,6 +9,7 @@ export type Project = {
   color: string | null;
   url?: string | null;
   visible: boolean;
+  featured?: boolean;
   sort_order?: number;
 };
 

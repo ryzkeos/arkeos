@@ -123,3 +123,5 @@ drop policy if exists pillars_anon_select on pillars;
 create policy pillars_anon_select on pillars for select to anon using (true);
 drop policy if exists pillars_auth_all on pillars;
 create policy pillars_auth_all on pillars for all to authenticated using (true) with check (true);
+
+alter table projects add column if not exists featured boolean not null default false;
