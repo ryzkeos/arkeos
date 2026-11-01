@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./admin.css";
+import { SiteSettingsProvider } from "@/components/SiteSettings";
 
 export const metadata: Metadata = {
   title: { absolute: "Admin — ARKEOS Control Center" },
@@ -7,5 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return <SiteSettingsProvider track={false}>{children}</SiteSettingsProvider>;
 }

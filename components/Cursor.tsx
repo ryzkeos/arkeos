@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react";
 import { prefersReducedMotion, isFinePointer } from "@/lib/gsap";
 
 const HOVER =
-  'a, button, .btn, .pillar, .p-card, [role="button"], label, select, textarea, input, .svc-row, .val-item, .team-card, .why-item';
+  'a, button, .btn, .svc-card, .p-card, [role="button"], label, select, textarea, input, .svc-row, .val-item, .team-card, .why-item';
 
 export default function Cursor() {
   const dot = useRef<HTMLDivElement>(null);
@@ -34,6 +34,8 @@ export default function Cursor() {
     const out = (e: MouseEvent) => {
       if ((e.target as Element).closest?.(HOVER)) { d.classList.remove("big"); r.classList.remove("big"); }
     };
+    const press = () => r.classList.add("down");
+    const release = () => r.classList.remove("down");
     const hide = () => { d.style.opacity = r.style.opacity = "0"; };
     const show = () => { d.style.opacity = r.style.opacity = "1"; };
 
@@ -42,6 +44,8 @@ export default function Cursor() {
     document.addEventListener("mouseout", out);
     document.addEventListener("mouseleave", hide);
     document.addEventListener("mouseenter", show);
+    document.addEventListener("mousedown", press);
+    document.addEventListener("mouseup", release);
     raf = requestAnimationFrame(tick);
     return () => {
       cancelAnimationFrame(raf);
@@ -50,6 +54,8 @@ export default function Cursor() {
       document.removeEventListener("mouseout", out);
       document.removeEventListener("mouseleave", hide);
       document.removeEventListener("mouseenter", show);
+      document.removeEventListener("mousedown", press);
+      document.removeEventListener("mouseup", release);
     };
   }, []);
 

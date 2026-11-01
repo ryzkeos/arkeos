@@ -4,18 +4,15 @@ Creative web and motion studio website, built with Next.js.
 
 ## About
 
-Arkeos Web is the public website and admin panel for the Arkeos studio. It shows the studio's work, services, story and a contact form, with a dark, motion heavy design (smooth scroll, page transitions, custom cursor, scroll animations).
+Arkeos Web is the public website and admin panel for a creative studio. Every project, service, team member and statistic is real content loaded from the studio's database. Nothing is hardcoded, and sections with no content stay hidden.
 
-It started as a static HTML site and was rebuilt in Next.js and React with TypeScript.
-
-- Pages: home, projects, services, about, contact, and a custom 404
-- Admin panel at `/admin`: read inquiries, manage projects and services, set studio availability, edit site settings, view basic analytics
-- Data: Supabase (database, auth and file storage)
-- Animation: GSAP, Lenis and vanilla-tilt
+- Pages: home, projects, services, about, contact, privacy, and a custom 404
+- Admin panel at `/admin`: read inquiries, manage projects and services, edit website info, fonts and site settings, set availability, view basic analytics
+- Animation: GSAP and Lenis
 
 ## Installation
 
-Requirements: Node.js 20 or newer and a Supabase project.
+Requirements: Node.js 20 or newer and a database with a PostgREST style REST api.
 
 ```bash
 git clone https://github.com/arkeos-kzenon/arkeos-web.git
@@ -24,15 +21,17 @@ npm install
 cp .env.example .env.local
 ```
 
-Open `.env.local` and set:
+Set these in `.env.local`:
 
 | Variable | Meaning |
 |---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | your Supabase project url |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | the publishable (anon) key. Never use a service role key here |
+| `NEXT_PUBLIC_DATA_API_URL` | base url of the data api |
+| `NEXT_PUBLIC_DATA_API_KEY` | the public anon key only. Never a secret key or a connection string |
+| `NEXT_PUBLIC_STORAGE_URL` | optional. Storage base url, defaults to the data api url |
+| `NEXT_PUBLIC_STORAGE_BUCKET` | optional. Bucket name, defaults to `media` |
 | `NEXT_PUBLIC_SITE_URL` | the public site url, used for share previews |
 
-Expected Supabase tables: `site_settings`, `projects`, `services`, `inquiries`, `analytics`, and a storage bucket named `media`. Turn on row level security for all of them.
+Run `db/schema.sql` on the database before first use. It creates the tables and the `url`, `price` and `featured` fields, and reloads the api schema cache. Run it again after updating, since it is safe to repeat. If saving a project says a column or table is not found in the schema cache, run it again.
 
 ## Usage
 
@@ -46,13 +45,111 @@ Project layout:
 
 ```
 app/(site)/      public pages and shared layout
-app/admin/       admin page and its own styles
+app/admin/       admin page
+app/api/inquiry/ inquiry route used by the contact form
 components/      UI pieces, animation and admin panels
+defaults/        default text and fallback content, one file per page
+db/              schema.sql
 hooks/           scroll and page animations
-lib/             supabase client, data and helpers
+lib/             data layer, content helpers, types
 styles/          page styles, scoped per page
 public/assets/   images and fonts
 ```
+
+### Media
+
+Project cards play video and render `.html` media (sandboxed) automatically, and show images as is. Service cards show their image all the time and play video or render html on hover. Media is stored in the storage bucket, not in the repo. Uploads are named after where they are used (for example `projects/project-my-title.mp4`, `hero/hero-background.mp4`). Uploading again replaces the file. In the project and service forms, a chosen file is uploaded only after the row is saved, so a failed save (for example an outdated schema) uploads nothing. Replaced or removed files are deleted from storage only after the form is saved, files uploaded and then cancelled are deleted, and deleting a project or service deletes its files. Each upload slot keeps one backup of its previous file under `backups/` in the same bucket, and the Restore previous button brings it back. HTML media is fetched and shown through `srcdoc` in a sandboxed frame, because Supabase storage serves `.html` files as plain text. Keep html files self contained (inline css, js and images), since relative files are not loaded and scripts follow the site security policy. Static files that ship with the site (fonts, og image) live in `public/assets/`.
+
+### Content
+
+The database is the source of truth for projects, services and settings. The `defaults/` folder holds the default text and fallback lists. When the database has content it wins, otherwise `defaults/` is used. If both are empty the section is hidden or shows a short empty state.
+
+Content cache: settings, projects and services are stored in `localStorage` (keys `arkeos_cache_v1:*`) after every successful fetch. On the next visit the cached data renders before the first paint, then the database is fetched in the background and the page updates only if the data changed. Fetches start when the app loads, are shared between components, and are skipped for 15 seconds after a success. If the database cannot be reached, cached data stays and, with no cache, the defaults are shown. Admin edits show on the next load after the background refresh.
+
+### Copy system
+
+Every text on the site comes from `defaults/` (one file per page, plus `shared.ts`) and can be overridden in the admin under Website Info.
+
+- Storage: one `site_settings` row per page, key `copy_<page>` (`copy_shared`, `copy_home`, `copy_projects`, `copy_services`, `copy_about`, `copy_contact`, `copy_privacy`, `copy_not_found`). The value is JSON with the shape of that page's defaults, holding only the changed fields.
+- Resolution order: `copy_<page>` override, then the legacy key (`studio_name`, `tagline`, `contact_email`, `response_time`, `founded_year`, `hero_headline`, `hero_deco`, `cta_text`, `what_intro`, `work_intro`, `about_story`, `about_stats`, `about_values`, `process_steps`, `team`, `about_image`, `about_image_wide`), then the default. Empty string, empty list and null count as not set.
+- Overrides are validated against the defaults: wrong types and unknown keys are dropped, links must be relative, http(s), mailto or tel, and text is rendered as text only.
+- Tokens: `{name}`, `{year}`, `{founded_year}` are replaced by `fill_vars`.
+- In a component: `const copy = useCopy("home")`. Do not hardcode visible text.
+
+### Shared resources
+
+Check this list before creating a new helper or component.
+
+- `defaults/index.ts`: `DEFAULTS`, `PAGE_KEYS`, and the copy types.
+- `defaults/types.ts`: `LinkCopy`, `HeroCopy`, `SectionCopy`, `PageKey`, `Defaults` and one type per page.
+- `defaults/<page>.ts`: default text for each page (`shared`, `home`, `projects`, `services`, `about`, `contact`, `privacy`, `not_found`).
+- `lib/copy.ts`: `COPY_SETTING_KEY`, `mergeCopy`, `getCopy`, `fill_vars`, `get_vars`, `safe_href`.
+- `lib/use_copy.ts`: `useCopy(page)` and `useCopyVars()`.
+- `components/hero/HeroLayout.tsx`: the shared hero for every page (`variant` "full" or "page").
+- `components/hero/use_hero_intro.ts`: the hero intro animation.
+- `styles/hero.css`: all hero css (`.hero-*` classes).
+- `components/PageHero.tsx`: thin wrapper over `HeroLayout` for older call sites.
+- `components/SectionHeader.tsx`: section label, title lines, intro and right aligned button.
+- `styles/section_header.css`: css for `SectionHeader`.
+- `components/ServiceCard.tsx` and `styles/service_card.css`: the home "What We Do" card, built from a service (number, icon, title, text, tags, price, image always visible, video or html plays on hover).
+- `components/ServiceRow.tsx`: the row used on the services page, same look as the card.
+- `lib/cache.ts`: versioned localStorage helpers (`cache_read`, `cache_write`, `cache_clear`).
+- `lib/content_store.ts`: stale-while-revalidate stores for `settings_store`, `projects_store`, `services_store` and `warm_content`.
+- `lib/use_store.ts`: `use_store(store)` hook and `use_isomorphic_layout_effect`.
+- `components/HtmlFrame.tsx`: sandboxed frame that renders an `.html` media file, used by `ProjectMedia` and `CinemaBg`.
+- `components/Btn.tsx`, `SectionH2.tsx`, `SocialIcons.tsx`, `CinemaMedia.tsx`, `SiteSettings.tsx` (`useSiteSettings`): kept as is.
+- `lib/media_type.ts` (`media_kind`): the single place that decides image, video or html from the file extension. `CinemaBg`, `ProjectMedia` and the admin media field all use it, so no media type is picked by hand.
+- `components/admin/copy/copy_schema.ts`: `CopyField`, `COPY_SCHEMA`, `PAGE_LABELS`.
+- `components/admin/copy/schema/<page>.ts`: editable fields for each page.
+- `components/admin/copy/CopyEditor.tsx`: generic admin form built from the schema.
+- `components/admin/copy/schema/settings.ts`: copy fields edited in Site Settings. Both screens merge into the stored copy JSON and only change their own paths.
+- `components/admin/WebsiteInfoPanel.tsx`: the Website Info tab.
+- `components/admin/shared.tsx`: `MediaField` (pass `staged` and `on_stage` to hold the file until the form is saved), `upload_media` (backup, upload and track one file), `media_slot` (the storage file name for a slot).
+- `lib/db/adapter.ts`: `dbSaveProject` and `dbSaveService` return the row id, so a file can be attached right after the row exists.
+
+### Admin configuration map
+
+| key or page | admin location |
+| --- | --- |
+| copy_shared: brand, availability texts, cta text, buttons, hero labels | Website Info, General |
+| copy_shared: nav links, preloader statuses, cta four corridor wall media, section header media | Site Settings |
+| copy_home (hero, what, work, why, what_count, work_count) | Website Info, Home |
+| copy_projects (hero, featured, more, controls, empty_text) | Website Info, Projects |
+| copy_services (hero, sections, process_steps) | Website Info, Services |
+| copy_about (hero, story, stats, values, team). `stats_items` is the one source for the counters on Home and About and is edited only in Site Settings, Counters; a number of 0 is counted automatically | Website Info, About (text), Site Settings (counters) |
+| copy_about: about_image, about_image_wide | Site Settings, Media |
+| copy_contact (labels, placeholders, option lists, success, errors) | Website Info, Contact |
+| copy_privacy | Website Info, Privacy |
+| copy_not_found | Website Info, Not Found |
+| studio_name, tagline, contact_email, response_time, founded_year, hero_headline, hero_deco, cta_text, what_intro, work_intro, about_story, about_stats, about_values, process_steps, team, about_image, about_image_wide (legacy keys, used as fallback under copy_*) | Website Info, same fields as above |
+| accent_color, hero_video, social_github, social_instagram, social_facebook, social_linkedin, social_telegram, social_threads, social_discord (shown in the footer and the menu) | Site Settings |
+| hero_video | Site Settings, Hero Background Video |
+| availability | Availability |
+| font_display, font_ui_regular, font_ui_medium, font_label | Font Settings |
+| projects table | Projects |
+| services table | Services |
+| inquiries table | Inquiries |
+| analytics | Analytics |
+
+Not editable by design: null cta values in page defaults (hero cta on inner pages, section cta on services and about), because overrides must match the default type. Fallback project and service lists in defaults are edited in Projects and Services.
+
+`db/reset.sql` resets the database to the start: it empties `projects`, `services`, `inquiries`, `analytics` and `site_settings` (the site then shows the built in defaults), drops the unused `pillars` table and `services.cinema_type`. It never touches user accounts (the `auth` schema), table structure, policies, or files in the `media` storage bucket. Run it in the database sql editor. It cannot be undone, so back up first.
+
+### Data layer
+
+The app only imports from `lib/db`. `lib/db/adapter.ts` is the current adapter. It talks to a PostgREST style REST api with token auth and object storage (currently Supabase). To use another backend, add a new adapter file with the same exports and switch the re-export in `lib/db/index.ts`.
+
+Tables: `projects`, `services`, `site_settings`, `inquiries`, `analytics`.
+
+`site_settings` keys: `copy_<page>` (see Copy system), `studio_name`, `founded_year`, `contact_email`, `response_time`, `tagline`, `cta_text`, `about_story`, `hero_headline`, `hero_deco`, `about_image`, `about_image_wide`, `about_stats`, `about_values`, `process_steps`, `team`, `social_github`, `social_instagram`, `social_facebook`, `social_linkedin`, `social_telegram`, `social_threads`, `social_discord`, `hero_video`, `accent_color`, `availability`, `font_display`, `font_ui_regular`, `font_ui_medium`, `font_label`.
+
+### Fonts
+
+Bundled fonts live in `public/assets/fonts`: Zentry, Robert (regular and medium) and General Sans. Each font slot can be overridden by an uploaded `.woff2` in the admin font panel.
+
+### Privacy
+
+The `/privacy` page describes the data the site collects: inquiry form fields and page view logging.
 
 Deploy to Vercel (or any Node host) and add the same environment variables there.
 
@@ -60,10 +157,12 @@ Deploy to Vercel (or any Node host) and add the same environment variables there
 
 - Author: Arkeos (arkeos-kzenon)
 - Published: October 31, 2026
-- Ported from the original static site in the `web-projects` repository
-- Fonts: Bebas Neue and DM Sans (Google Fonts)
-- Libraries: Next.js, React, GSAP, Lenis, vanilla-tilt, Supabase
+- Fonts: Zentry, Robert, General Sans
+- Libraries: Next.js, React, GSAP, Lenis
 
 ## Version history
 
-- v0.1 (2026-10-31): first Next.js and React version. All pages, admin panel and Supabase integration ported from the static site.
+- v0.1 (2026-10-31): first Next.js and React version with all pages and the admin panel.
+- v0.2 (2026-10-31): content loaded from the database, no placeholder content, provider neutral data layer, privacy page.
+- v0.3 (2026-11-01): projects page featured carousel and cards or list view, services media rows and animated process flow, project cards reveal details on a timer, full width section header media.
+- v0.3.1 (2026-11-01): project and service files upload only after the row is saved, saving state and right aligned buttons in the service form, delete confirm centered on the admin content area, Identity tab removed, card grids draw their divider lines on the cards so no gray block shows before they animate in, black behind images, video and frames while they download, html media renders through a sandboxed `srcdoc` frame, video elements forced muted with a first frame, schema cache reload added to `db/schema.sql`.
