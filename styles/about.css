@@ -316,6 +316,7 @@
 }
 
 @media (max-width: 768px) {
+  .pg-about .story-grid .about-img-wrap { display: none; }
   .pg-about .story-grid--solo { grid-template-columns: 1fr; }
   .pg-about .page-hero { padding: 7rem 1.5rem 4rem; }
   .pg-about .page-hero__body { grid-template-columns: 1fr; gap: 2rem; }
