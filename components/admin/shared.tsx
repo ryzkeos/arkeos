@@ -102,6 +102,8 @@ function file_name(url: string) {
   }
 }
 
+export const slug = (v: string) => v.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40);
+
 function file_size(n: number) {
   return n < 1048576 ? `${Math.max(1, Math.round(n / 1024))} KB` : `${(n / 1048576).toFixed(1)} MB`;
 }
@@ -110,6 +112,7 @@ export function MediaField({
   label,
   accept,
   folder,
+  file_name: base_name,
   value,
   onChange,
   toast,
@@ -123,6 +126,7 @@ export function MediaField({
   label: string;
   accept: string;
   folder: string;
+  file_name?: string;
   value: string;
   onChange: (v: string) => void;
   toast: PanelProps["toast"];
@@ -150,13 +154,16 @@ export function MediaField({
       setFailed(true);
       return toast(problem, true);
     }
-    const ext = picked.name.split(".").pop() ?? "bin";
-    const path = `${folder}/${Date.now()}.${ext}`;
+    const ext = (picked.name.split(".").pop() ?? "bin").toLowerCase().replace(/[^a-z0-9]/g, "") || "bin";
+    const path = `${folder}/${slug(base_name ?? "") || slug(label) || "file"}.${ext}`;
     setBusy(true);
     setFailed(false);
     try {
       await db.dbUpload(MEDIA_BUCKET, path, prepare ? prepare(picked) : picked);
-      onChange(db.dbPublicUrl(MEDIA_BUCKET, path));
+      const next = `${db.dbPublicUrl(MEDIA_BUCKET, path)}?v=${Date.now()}`;
+      const old = value;
+      onChange(next);
+      if (old && old.split("?")[0] !== next.split("?")[0]) db.dbDeleteFile(old);
       setPicked(null);
       reset_input();
       toast("File uploaded.");
@@ -390,16 +397,16 @@ export function ColorField({
 }
 
 export function ToggleField({
-  id, label, checked, onChange, wide,
+  id, label, checked, onChange, wide, disabled, on_text = "On", off_text = "Off",
 }: {
-  id: string; label: string; checked: boolean; onChange: (v: boolean) => void; wide?: boolean;
+  id: string; label: string; checked: boolean; onChange: (v: boolean) => void; wide?: boolean; disabled?: boolean; on_text?: string; off_text?: string;
 }) {
   return (
     <div className={`form-group${wide ? " admin-form-full" : ""}`}>
       <span className="admin-field-label">{label}</span>
       <label className="admin-toggle" htmlFor={id}>
-        <input id={id} type="checkbox" role="switch" className="admin-toggle__input" checked={checked} onChange={(e) => onChange(e.target.checked)} />
-        <span className="admin-toggle__text">{checked ? "On" : "Off"}</span>
+        <input id={id} type="checkbox" role="switch" className="admin-toggle__input" disabled={disabled} checked={checked} onChange={(e) => onChange(e.target.checked)} />
+        <span className="admin-toggle__text">{checked ? on_text : off_text}</span>
         <span className="admin-toggle__track" aria-hidden="true"><span className="admin-toggle__thumb" /></span>
       </label>
     </div>

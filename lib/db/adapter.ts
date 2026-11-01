@@ -142,6 +142,18 @@ export async function dbUpload(_bucket: string, path: string, file: File) {
   await check(res);
 }
 
+export async function dbDeleteFile(url: string) {
+  const prefix = `${STORAGE_URL}/storage/v1/object/public/${STORAGE_BUCKET}/`;
+  if (!url.startsWith(prefix)) return;
+  let path = url.slice(prefix.length).split("?")[0];
+  try { path = decodeURIComponent(path); } catch {}
+  if (!path) return;
+  const token = session?.access_token ?? API_KEY;
+  try {
+    await fetch(`${STORAGE_URL}/storage/v1/object/${STORAGE_BUCKET}/${path}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}`, apikey: API_KEY } });
+  } catch {}
+}
+
 export const dbPublicUrl = (_bucket: string, path: string) =>
   `${STORAGE_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${path}`;
 

@@ -5,7 +5,7 @@ import { DEFAULTS, type PageKey } from "@/defaults";
 import * as db from "@/lib/db";
 import { COPY_SETTING_KEY } from "@/lib/copy";
 import SelectModal from "@/components/SelectModal";
-import { Checkbox, IconBtn, MediaField, PanelHead, msg, type PanelProps } from "../shared";
+import { Checkbox, IconBtn, MediaField, PanelHead, msg, slug, type PanelProps } from "../shared";
 import { LINK_FIELDS, type CopyField, type CopyItem } from "./copy_schema";
 
 type Row = Record<string, string>;
@@ -146,6 +146,9 @@ function RowActions({ label, index, count, onUp, onDown, onRemove }: { label: st
   );
 }
 
+const default_val = (it: CopyItem): Val => to_val(it.field, get_path(DEFAULTS[it.page], it.field.path));
+const is_default = (it: CopyItem, v: Val | undefined) => v !== undefined && JSON.stringify(v) === JSON.stringify(default_val(it));
+
 const swap = <T,>(arr: T[], i: number, j: number): T[] => {
   if (j < 0 || j >= arr.length) return arr;
   const next = arr.slice();
@@ -195,7 +198,12 @@ export default function CopyEditor({ items, toast, title, sub, saved_label, save
         for (const it of items) {
           if (!stored[it.page]) stored[it.page] = parse_stored(s[COPY_SETTING_KEY[it.page]]);
         }
-        setVals(Object.fromEntries(items.map((it) => [key_of(it), to_val(it.field, get_path(stored[it.page], it.field.path))])));
+        setVals(Object.fromEntries(items.map((it) => {
+          const saved = get_path(stored[it.page], it.field.path);
+          const is_list = it.field.type === "list" || it.field.type === "links";
+          const raw = is_list && !(Array.isArray(saved) && saved.length) ? get_path(DEFAULTS[it.page], it.field.path) : saved;
+          return [key_of(it), to_val(it.field, raw)];
+        })));
       })
       .catch((e) => {
         if (live) setError(msg(e, "Failed to load saved text."));
@@ -224,7 +232,8 @@ export default function CopyEditor({ items, toast, title, sub, saved_label, save
         const out = parse_stored(latest[COPY_SETTING_KEY[page]]);
         for (const it of items.filter((x) => x.page === page)) {
           const sample = (get_path(DEFAULTS[page], it.field.path) as unknown[] | undefined)?.[0];
-          const v = from_val(it.field, vals[key_of(it)], sample);
+          const is_list = it.field.type === "list" || it.field.type === "links";
+          const v = is_list && is_default(it, vals[key_of(it)]) ? undefined : from_val(it.field, vals[key_of(it)], sample);
           if (v !== undefined) set_path(out, it.field.path, v);
           else unset_path(out, it.field.path);
         }
@@ -244,15 +253,15 @@ export default function CopyEditor({ items, toast, title, sub, saved_label, save
     const default_arr = (get_path(DEFAULTS[it.page], f.path) as unknown[] | undefined) ?? [];
     const label = f.label;
     const title_id = `${id_of(it)}-title`;
+    const at_default = is_default(it, rows);
     const reset_btn = (
-      <button type="button" className="admin-btn admin-btn--sm admin-btn--danger" aria-label={`Reset ${label} to default`} onClick={() => set(it, [])}>
+      <button type="button" className="admin-btn admin-btn--sm admin-btn--danger" aria-label={`Reset ${label} to default`} disabled={at_default} onClick={() => set(it, default_val(it))}>
         Reset
       </button>
     );
-    const list_actions = (blank: Val[number], load: Val) => (
+    const list_actions = (blank: Val[number]) => (
       <div className="admin-actions copy-list__actions">
         <button type="button" className="admin-btn admin-btn--sm" onClick={() => set(it, [...(rows as Val[number][]), blank] as Val)}>Add row</button>
-        {default_arr.length > 0 && <button type="button" className="admin-btn admin-btn--sm" onClick={() => set(it, load)}>Load defaults</button>}
         {reset_btn}
       </div>
     );
@@ -260,7 +269,7 @@ export default function CopyEditor({ items, toast, title, sub, saved_label, save
       <div className="copy-list__head">
         <span className="copy-list__title" id={title_id}>{label}</span>
         <span className="copy-list__side">
-          <span className={`copy-list__badge${n === 0 ? "" : " copy-list__badge--custom"}`}>{n === 0 ? "Using default" : `Custom, ${n} ${n === 1 ? "row" : "rows"}`}</span>
+          <span className={`copy-list__badge${at_default ? "" : " copy-list__badge--custom"}`}>{at_default ? "Default" : `Custom, ${n} ${n === 1 ? "row" : "rows"}`}</span>
           {actions}
         </span>
       </div>
@@ -269,8 +278,8 @@ export default function CopyEditor({ items, toast, title, sub, saved_label, save
       const list = rows as string[];
       return (
         <fieldset className="copy-list" key={key_of(it)} aria-labelledby={title_id}>
-          {list_title(list.length, list_actions("", default_arr.map(as_text)))}
-          {list.length === 0 && <p className="copy-empty">Nothing saved yet. The site shows the default list. Add a row or load the defaults to edit it.</p>}
+          {list_title(list.length, list_actions(""))}
+          {list.length === 0 && <p className="copy-empty">No rows. Add one, or reset to bring back the default list.</p>}
           {list.map((item, i) => (
             <div className="copy-row copy-row--plain" key={i}>
               <span className="copy-row__index" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
@@ -291,8 +300,8 @@ export default function CopyEditor({ items, toast, title, sub, saved_label, save
     const list = rows as Row[];
     return (
       <fieldset className="copy-list" key={key_of(it)} aria-labelledby={title_id}>
-        {list_title(list.length, list_actions(to_row(fields_of, {}), default_arr.map((x) => to_row(fields_of, x))))}
-        {list.length === 0 && <p className="copy-empty">Nothing saved yet. The site shows the default list. Add a row or load the defaults to edit it.</p>}
+        {list_title(list.length, list_actions(to_row(fields_of, {})))}
+        {list.length === 0 && <p className="copy-empty">No rows. Add one, or reset to bring back the default list.</p>}
         {list.map((row, i) => (
           <div className="copy-row" key={i}>
             <span className="copy-row__index" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
@@ -312,6 +321,7 @@ export default function CopyEditor({ items, toast, title, sub, saved_label, save
                     label={`Photo (${i + 1}). Required while the photo is on`}
                     accept="image/*"
                     folder={`copy/${it.page}/team`}
+                    file_name={`${f.path.replace(/\./g, "-")}-${slug(row.name ?? "") || i + 1}`}
                     value={row[sf.path] ?? ""}
                     placeholder="https://"
                     toast={toast}
@@ -375,6 +385,7 @@ export default function CopyEditor({ items, toast, title, sub, saved_label, save
             label={f.label}
             accept={f.type === "media" ? "video/*,image/*,.html,.htm" : "image/*"}
             folder={`copy/${it.page}`}
+            file_name={`${it.page}-${f.path.replace(/\./g, "-")}`}
             value={text}
             placeholder={placeholder_of(it) || "https://"}
             toast={toast}
