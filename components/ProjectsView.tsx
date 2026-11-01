@@ -23,13 +23,12 @@ export default function ProjectsView() {
   const featured_n = Math.min(FEATURED_MAX, Math.max(0, Math.floor(work_count)));
   const flagged = list.filter((p) => p.featured);
   const featured = flagged.length > 0 ? flagged.slice(0, FEATURED_MAX) : list.slice(0, featured_n);
-  const others = list.filter((p) => !featured.includes(p));
 
   return (
     <main className="pg-projects">
       <HeroLayout variant="page" ariaLabel={aria_hero} copy={copy.hero} />
 
-      {(featured.length > 0 || others.length > 0) && (
+      {list.length > 0 && (
         <section id="work" aria-label={copy.more.label}>
           <SectionHeader copy={copy.more} />
           {featured.length > 0 && (
@@ -37,7 +36,7 @@ export default function ProjectsView() {
               <ProjectFeatured projects={featured} label={copy.featured.label} />
             </div>
           )}
-          {others.length > 0 && <ProjectsMore projects={others} start_index={featured.length} />}
+          <ProjectsMore projects={list} start_index={0} />
         </section>
       )}
 
