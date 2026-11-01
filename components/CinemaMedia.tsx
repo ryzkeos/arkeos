@@ -2,6 +2,7 @@
 import { useEffect, useRef } from "react";
 import { safeUrl } from "@/lib/gsap";
 import { media_kind } from "@/lib/media_type";
+import HtmlFrame from "./HtmlFrame";
 
 export function CinemaBg({ url, active = false }: { url: string; active?: boolean }) {
   const src = safeUrl(url);
@@ -10,6 +11,8 @@ export function CinemaBg({ url, active = false }: { url: string; active?: boolea
   useEffect(() => {
     const el = video.current;
     if (!el) return;
+    el.muted = true;
+    el.defaultMuted = true;
     if (active) {
       el.play().catch(() => {});
     } else {
@@ -21,7 +24,7 @@ export function CinemaBg({ url, active = false }: { url: string; active?: boolea
   if (!src) return null;
   const kind = media_kind(src);
   if (kind === "video") return <video ref={video} src={src.includes("#") ? src : `${src}#t=0.001`} muted loop playsInline preload="metadata" aria-hidden="true" />;
-  if (kind === "html") return active ? <iframe src={src} tabIndex={-1} title="" sandbox="allow-scripts" aria-hidden="true" /> : null;
+  if (kind === "html") return active ? <HtmlFrame src={src} /> : null;
   // eslint-disable-next-line @next/next/no-img-element
   return <img src={src} alt="" aria-hidden="true" draggable={false} />;
 }
