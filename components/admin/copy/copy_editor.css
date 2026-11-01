@@ -29,3 +29,7 @@
 .copy-row__index { align-self:end; }
 .copy-row--plain .copy-row__index,
 .copy-row--plain .copy-row__actions { align-self:center; }
+.copy-list__head { display:flex; align-items:center; justify-content:space-between; gap:0.8rem; flex-wrap:wrap; padding-bottom:0.8rem; border-bottom:1px solid var(--color-border); }
+.copy-list__title { font-family:var(--font-label); font-size:0.62rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--color-accent); }
+.copy-list__badge { font-family:var(--font-label); font-size:0.55rem; letter-spacing:0.16em; text-transform:uppercase; padding:0.2rem 0.55rem; border:1px solid var(--color-border); color:var(--color-muted); }
+.copy-list__badge--custom { color:var(--color-accent); border-color:color-mix(in srgb, var(--color-accent) 30%, transparent); }
