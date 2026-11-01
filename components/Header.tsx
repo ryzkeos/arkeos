@@ -1,4 +1,5 @@
 "use client";
+import LogoMark from "./LogoMark";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
@@ -82,7 +83,7 @@ export default function Header() {
       </div>
 
       <header id="header" className={stuck ? "stuck" : ""} role="banner">
-        <Link href="/" className="hdr-logo" aria-label={name}>{name}</Link>
+        <Link href="/" className="hdr-logo" aria-label={name}><LogoMark className="hdr-logo__mark" /><span>{name}</span></Link>
 
         <nav className="hdr-nav" role="navigation" aria-label={menu.open_label}>
           {nav.map((n) => (

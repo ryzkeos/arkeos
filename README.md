@@ -93,3 +93,4 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 - Page titles now follow the Arkeos | Page format.
 - Added the Arkeos logo as the browser tab icon and the phone home screen icon.
 - Added the animated logo SVG.
+- Added the logo mark beside the name in the header.
