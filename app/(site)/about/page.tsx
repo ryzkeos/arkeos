@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: "About",
   description: "The story, values and people behind the studio.",
   openGraph: {
-    title: "About | ARKEOS",
+    title: "Arkeos | About",
     description: "The story, values and people behind the studio.",
   },
 };

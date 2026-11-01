@@ -3,7 +3,7 @@ import "./admin.css";
 import { SiteSettingsProvider } from "@/components/SiteSettings";
 
 export const metadata: Metadata = {
-  title: { absolute: "Admin — ARKEOS Control Center" },
+  title: "Admin",
   robots: { index: false, follow: false },
 };
 
