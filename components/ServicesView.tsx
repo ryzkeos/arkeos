@@ -4,7 +4,6 @@ import { useCopy } from "@/lib/use_copy";
 import { useServices } from "@/lib/useContent";
 import { useArkeosAnimations } from "@/hooks/useArkeosAnimations";
 import CtaSection from "./CtaSection";
-import PageEffects from "./PageEffects";
 import HeroLayout from "./hero/HeroLayout";
 import ProcessFlow from "./ProcessFlow";
 import SectionHeader from "./SectionHeader";
@@ -21,7 +20,6 @@ export default function ServicesView() {
 
   return (
     <main className="pg-services">
-      <PageEffects />
       <HeroLayout variant="page" ariaLabel={copy.hero.lines.join(" ")} copy={copy.hero} />
 
       <section id="services" aria-label={copy.capabilities.label}>
