@@ -66,19 +66,19 @@ export default function HomeView() {
     <main className="pg-home">
       <HeroLayout copy={hero_copy} ariaLabel={brand.name} variant="full" />
 
+      {projects.length > 0 && (
+        <section id="projects" className="section" aria-label={copy.work.label}>
+          <SectionHeader cta_id="btn-all" copy={section(copy.work)} />
+          <ProjectGrid projects={projects} variant="home" />
+        </section>
+      )}
+
       {services.length > 0 && (
         <section id="what" className="section" aria-label={copy.what.label}>
           <SectionHeader cta_id="btn-svc" copy={section(copy.what)} />
           <div className="svc-cards" role="list">
             {services.map((s, i) => <ServiceCard key={s.id} service={s} icon={ICONS[i % ICONS.length]} index={i} />)}
           </div>
-        </section>
-      )}
-
-      {projects.length > 0 && (
-        <section id="projects" className="section" aria-label={copy.work.label}>
-          <SectionHeader cta_id="btn-all" copy={section(copy.work)} />
-          <ProjectGrid projects={projects} variant="home" />
         </section>
       )}
 
