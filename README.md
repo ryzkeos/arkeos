@@ -1,12 +1,12 @@
 # Arkeos Web
 
-Portfolio site for my studio, with an admin panel to run it.
+Company website and project portfolio of Arkeos.
 
 ## About
 
-This is the website for Arkeos, a small studio that builds websites, apps and motion work. I made it to show what we do, list our projects and services, and give people an easy way to reach out when they want to start something.
+This is the website for Arkeos, my small studio that builds websites, apps and motion work. It does two jobs. It's the company site where people can see what we offer and get in touch, and it's my portfolio, a place to show my projects and what I can do when building a website.
 
-Everything on the site is managed from an admin page: projects, services, page text, colors, fonts and social links. That way I don't have to touch the code every time something changes. It also shows if I'm taking new projects or fully booked, and if a section has no content yet, it just stays hidden.
+The site uses real content only, no placeholders. Projects, services and page text come from a database, so I can update them without changing code, and any section with nothing in it stays hidden. It also shows whether I'm taking new projects.
 
 Pages: home, projects, services, about, contact and privacy.
 
@@ -33,7 +33,7 @@ Then run `db/schema.sql` in your database's sql editor. You can run it again aft
 npm run dev
 ```
 
-The site runs on `http://localhost:3000` and the admin is at `/admin`.
+The site runs on `http://localhost:3000`.
 
 For production, run `npm run build` then `npm run start`. It works on Vercel or any Node host, just add the same environment variables there.
 
@@ -47,8 +47,9 @@ For production, run `npm run build` then `npm run start`. It works on Vercel or 
 
 ## Version history
 
-- v0.1 (2026-10-31): first version with all pages and the admin panel.
-- v0.2 (2026-10-31): content now comes from the database, removed the placeholder content, added the privacy page.
-- v0.3 (2026-11-01): new projects page with a featured carousel and card or list view, services page with media rows and process flow, full width section header media.
-- v0.3.1 (2026-11-01): files upload only after saving, smoother loading for cards and media, safer html media, a few admin form fixes.
-- v0.3.2 (2026-11-01): rewrote the README and added the Pinterest credit.
+- v0.1 (2026-10-30): first version. Moved the project to Next.js and React, built the home, projects, about, services and contact pages, added the privacy page, and made the content data driven.
+- v0.2 (2026-10-31): content now loads from the database and the sample projects and team are gone. Added custom fonts, the database schema with access rules, security headers, and a protected contact form with spam and rate limiting. Added the hero video, a preloader based on real loading, a new cursor and a full screen mobile menu.
+- v0.3 (2026-10-31): all site text moved into editable defaults with a shared hero and section header. New bento project cards, a featured carousel with card and list view on the projects page, media rows and an animated process flow on the services page, and a contact call to action with media shapes behind the headline.
+- v0.4 (2026-11-01): reworked the call to action into a four wall corridor with entry drift and scroll parallax. Database content is cached in the browser and refreshed in the background. Redesigned the service cards, core value cards and button hover sweep, polished the contact page, and moved projects above services on the home page.
+- v0.5 (2026-11-01): image, video and html media are now detected from the file extension everywhere. Files upload only after saving, replaced files are cleaned up, html media renders in a sandboxed frame, and loading no longer flashes gray blocks. Fixed the projects page layout with the featured carousel on top.
+- v0.5.1 (2026-11-01): rewrote the README, added the Pinterest credit and removed the dependabot config.
