@@ -4,7 +4,7 @@ Company website and project portfolio of Arkeos.
 
 ## About
 
-This is the website for Arkeos, my small studio that builds websites, apps and motion work. It is our company site and my portfolio in one place. Visitors can look through our projects and services, read about the studio, and get in touch to start a project.
+This is the website for Arkeos, my small studio that builds websites, apps and systems. It is our company site and my portfolio in one place. Visitors can look through our projects and services, read about the studio, and get in touch to start a project.
 
 It also shows what I can do as a web developer. Every page is custom built, with its own layouts, animations and media, from the Home page to the Contact form.
 
@@ -167,3 +167,8 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 - The sitemap now lists priority and update frequency, and the sitemap, robots file and page links all use one site address from NEXT_PUBLIC_SITE_URL. If it is not set, https://arkeos.me is used.
 - Added the optional NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION setting for the Google Search Console verification code.
 - The default contact email is now ryzkeos@arkeos.me. An email saved in the admin panel still takes priority.
+
+### v1.13 (2026-11-02)
+
+- Home title is "Arkeos | Web & System Development Studio". Every other page uses "Arkeos | {Page} — Web & System Works", for example "Arkeos | Services — Web & System Works". Share titles match. Page descriptions now stress quality output, rich visuals and animations, lightweight builds and flexibility on any device. The hero tagline, structured data and About text no longer center on motion work.
+- New share image (og.webp) with the site fonts and the Web & System Development Studio line.
