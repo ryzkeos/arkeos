@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 
 export const DEFAULT_SITE_URL = "https://arkeos.me";
 export const SITE_NAME = "Arkeos";
-export const SITE_TAGLINE = "Web and System Development Studio";
 export const SITE_DESCRIPTION =
   "Arkeos is a small studio offering web and system development: websites, web apps, custom software and motion design built with privacy first.";
 export const SITE_KEYWORDS = [

@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
-import { OG_IMAGE, SITE_DESCRIPTION, SITE_KEYWORDS, SITE_NAME, SITE_TAGLINE, site_url } from "@/lib/site";
+import { OG_IMAGE, SITE_DESCRIPTION, SITE_KEYWORDS, SITE_NAME, site_url } from "@/lib/site";
 
 const STORAGE_ORIGIN = (() => {
   try {
@@ -12,7 +12,7 @@ const STORAGE_ORIGIN = (() => {
 })();
 
 const GOOGLE_VERIFICATION = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION?.trim();
-const DEFAULT_TITLE = `${SITE_NAME} | ${SITE_TAGLINE}`;
+const DEFAULT_TITLE = SITE_NAME;
 
 export const metadata: Metadata = {
   metadataBase: new URL(site_url()),

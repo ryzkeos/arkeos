@@ -167,3 +167,7 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 - The sitemap now lists priority and update frequency, and the sitemap, robots file and page links all use one site address from NEXT_PUBLIC_SITE_URL. If it is not set, https://arkeos.me is used.
 - Added the optional NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION setting for the Google Search Console verification code.
 - The default contact email is now ryzkeos@arkeos.me. An email saved in the admin panel still takes priority.
+
+### v1.13 (2026-11-02)
+
+- Page titles are now short again: Arkeos | Home, Arkeos | Services, Arkeos | About, Arkeos | Projects, Arkeos | Contact and Arkeos | Privacy Policy. The keyword descriptions and structured data stay.
