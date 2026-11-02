@@ -5,24 +5,7 @@ import type { VideoSlot } from "@/lib/video_pool";
 const STALL_MS = 3000;
 const RETRY_MS = 1000;
 
-function release(el: HTMLVideoElement) {
-  try {
-    el.pause();
-    el.removeAttribute("src");
-    el.load();
-  } catch {}
-}
-
 export function use_video_keepalive(ref: RefObject<HTMLVideoElement | null>, active: boolean, src?: string | null, slot?: VideoSlot | null) {
-  useEffect(() => {
-    const el = ref.current;
-    return () => {
-      if (!el) return;
-      el.pause();
-      queueMicrotask(() => { if (!el.isConnected) release(el); });
-    };
-  }, [ref]);
-
   useEffect(() => {
     const el = ref.current;
     if (!el || !active) return;

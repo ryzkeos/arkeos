@@ -164,7 +164,7 @@ function run_pass() {
     if (!holder) return;
     if (!pinned && shared.edge > unload_screens * vh) {
       if (shared.loaded) unload(shared);
-    } else if (!shared.loaded) reload(shared);
+    } else if (!shared.loaded || !shared.el.getAttribute("src")) reload(shared);
   });
 
   const ranked = [...pool.values()]
