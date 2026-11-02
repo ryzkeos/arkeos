@@ -142,3 +142,17 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 ### v1.8 (2026-11-02)
 
 - Fixed videos turning black with an endless loading ring after going from Projects to Services and back. A shared video was being emptied when a page closed, so the next page received a video with no file. Pages no longer empty shared videos, and a shared video that lost its file is reloaded automatically.
+
+### v1.9 (2026-11-02)
+
+- New access rules: only the site owner account can change content, read inquiries and analytics, or upload media. Any other signed in account has the same access as a visitor.
+- Sign in now checks the account type and shows the normal invalid login message for accounts without access.
+- Access rules for the contact form and page view tracking now check every field at the database, so direct requests with oversized, malformed or unexpected values are rejected.
+- Fixed a high severity PostCSS issue in the build tools by pinning PostCSS to the patched version. No change to how the site looks or works.
+
+### v1.10 (2026-11-02)
+
+- Every media upload now shows a short note in the confirmation message: whether the file was compressed or resized, the size before and after, or the reason it was not, plus the final uploaded size. This covers videos, images and other files.
+- Video compression now loads its worker from the site's own files instead of the bundled copy, to stop the "module not found" error. The build also stops with a clear error if the compressor files are missing.
+- Compression and upload labels, result notes, placeholders and default text now use capital first letters on every word.
+- Default site text now uses Title Case. Phrases keep short words such as to, of and the in lowercase, and one sentence lines, including the footer rights line, capitalize every word. Text with two sentences or more keeps standard sentence format. Saved text edited in the admin panel is not changed.

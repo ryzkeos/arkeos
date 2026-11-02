@@ -1,5 +1,6 @@
 import { compress_video, is_video_file } from "@/lib/video_compress";
 import { resize_image } from "@/lib/image_compress";
+import { size_label } from "@/lib/size_label";
 import { capture_poster } from "@/lib/video_poster";
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
 import * as db from "@/lib/db";
@@ -120,8 +121,12 @@ export async function upload_media(
   previous: string,
   prepare?: (file: File) => File,
   on_status?: (text: string) => void,
+  on_report?: (note: string) => void,
 ) {
-  const ready = await resize_image(await compress_video(prepare ? prepare(file) : file, on_status));
+  const packed = await compress_video(prepare ? prepare(file) : file, on_status);
+  const sized = await resize_image(packed.file);
+  const ready = sized.file;
+  const note = packed.note || sized.note || "No Compression For This File Type.";
   const ext = (ready.name.split(".").pop() ?? "bin").toLowerCase().replace(/[^a-z0-9]/g, "") || "bin";
   const path = `${folder}/${slot}.${ext}`;
   on_status?.("Uploading…");
@@ -135,6 +140,7 @@ export async function upload_media(
   }
   const next = `${db.dbPublicUrl(MEDIA_BUCKET, path)}?v=${Date.now()}`;
   media_uploaded(scope, next, previous);
+  on_report?.(`${note} Uploaded ${size_label(ready.size)}.`);
   return next;
 }
 
@@ -212,16 +218,17 @@ export function MediaField({
     setBusy(true);
     setFailed(false);
     setStatus("");
+    let report = "";
     try {
-      const next = await upload_media(scope, folder, slot_base, file, value, prepare, setStatus);
+      const next = await upload_media(scope, folder, slot_base, file, value, prepare, setStatus, (note) => { report = note; });
       onChange(next);
       setPicked(null);
       reset_input();
       setBackupTick((n) => n + 1);
-      toast("File uploaded.");
+      toast(report ? `File uploaded. ${report}` : "File uploaded.");
     } catch (e) {
       setFailed(true);
-      toast(msg(e, "Upload failed."), true);
+      toast(msg(e, "Upload Failed."), true);
     } finally {
       setBusy(false);
       reset_input();
@@ -272,7 +279,7 @@ export function MediaField({
 
   const name = picked ? picked.name : value ? file_name(value) : "";
   const kind = name ? file_kind(name) : null;
-  const meta = busy ? status || "Uploading…" : failed ? "Upload failed" : picked ? `${file_size(picked.size)} · uploads when you save` : value ? "Uploaded" : hide_url ? "Choose a file to upload" : "Choose a file or paste a link below";
+  const meta = busy ? status || "Uploading…" : failed ? "Upload Failed" : picked ? `${file_size(picked.size)} · Uploads When You Save` : value ? "Uploaded" : hide_url ? "Choose A File To Upload" : "Choose A File Or Paste A Link Below";
   const state = failed ? "error" : busy ? "busy" : picked ? "ready" : value ? "done" : "empty";
 
   return (
@@ -289,7 +296,7 @@ export function MediaField({
           {!picked && value && kind === "image" ? <img src={value} alt="" /> : <Icon name={kind ? KIND_ICON[kind] : "image"} />}
         </div>
         <div className="admin-media__info">
-          <span className="admin-media__name" title={name || undefined}>{name || "No file selected"}</span>
+          <span className="admin-media__name" title={name || undefined}>{name || "No File Selected"}</span>
           <span className="admin-media__meta" role="status">
             {kind && <span className={`admin-media__kind admin-media__kind--${kind}`}>{kind}</span>}
             <span className="admin-media__text">{meta}</span>

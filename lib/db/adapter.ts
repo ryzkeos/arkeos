@@ -108,6 +108,18 @@ export function dbSetSession(s: Session) {
   try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(s)); } catch {}
 }
 
+export function dbSessionRole(): string {
+  try {
+    const part = session?.access_token.split(".")[1];
+    if (!part) return "";
+    const json = atob(part.replace(/-/g, "+").replace(/_/g, "/"));
+    const role = JSON.parse(json)?.app_metadata?.role;
+    return typeof role === "string" ? role : "";
+  } catch {
+    return "";
+  }
+}
+
 export function dbRestoreSession(): Session | null {
   try {
     const raw = sessionStorage.getItem(SESSION_KEY);
