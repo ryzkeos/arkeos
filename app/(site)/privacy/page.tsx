@@ -1,12 +1,8 @@
 import { page_meta } from "@/lib/site";
 import PrivacyView from "./PrivacyView";
 
-export const metadata = page_meta({
-  path: "/privacy",
-  title: "Privacy Policy",
-  share_title: "Arkeos | Privacy Policy",
-  description: "What this website collects, why, and how to contact the owner about your data.",
-});
+export const metadata = page_meta({ path: "/privacy", description:
+  "What this website collects, why, and how to contact the owner about your data." });
 
 const updated = new Date().toLocaleDateString("en-US", {
   year: "numeric",
