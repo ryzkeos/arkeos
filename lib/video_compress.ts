@@ -1,9 +1,13 @@
+import { saved_label, size_label } from "./size_label";
+
 const MIN_BYTES = 1.5 * 1024 * 1024;
 const MAX_BYTES = 400 * 1024 * 1024;
 const KEEP_RATIO = 0.92;
 const CORE_BASE = "/ffmpeg";
 
 type Status = (text: string) => void;
+
+export type CompressResult = { file: File; note: string };
 
 export const is_video_file = (file: File) => file.type.startsWith("video/") || /\.(mp4|mov|m4v|webm|ogv|ogg)$/i.test(file.name);
 
@@ -25,8 +29,10 @@ async function engine() {
   return loading;
 }
 
-export async function compress_video(file: File, on_status?: Status): Promise<File> {
-  if (!is_video_file(file) || file.size < MIN_BYTES || file.size > MAX_BYTES) return file;
+export async function compress_video(file: File, on_status?: Status): Promise<CompressResult> {
+  if (!is_video_file(file)) return { file, note: "" };
+  if (file.size < MIN_BYTES) return { file, note: `Video not compressed: ${size_label(file.size)} is under the 1.5 MB minimum.` };
+  if (file.size > MAX_BYTES) return { file, note: `Video not compressed: ${size_label(file.size)} is over the 400 MB limit.` };
   let ff: import("@ffmpeg/ffmpeg").FFmpeg | null = null;
   let on_progress: ((e: { progress: number }) => void) | null = null;
   try {
@@ -57,17 +63,23 @@ export async function compress_video(file: File, on_status?: Status): Promise<Fi
       "-movflags", "+faststart",
       "out.mp4",
     ]);
-    if (code !== 0) return file;
+    if (code !== 0) return { file, note: `Video not compressed: compressor failed with code ${code}. Original kept.` };
     const data = await ff.readFile("out.mp4");
-    if (typeof data === "string" || data.byteLength === 0) return file;
+    if (typeof data === "string" || data.byteLength === 0) return { file, note: "Video not compressed: compressor made no output. Original kept." };
     const bytes = new Uint8Array(data.byteLength);
     bytes.set(data);
-    if (bytes.byteLength >= file.size * KEEP_RATIO) return file;
+    if (bytes.byteLength >= file.size * KEEP_RATIO) {
+      return { file, note: `Video not compressed: result ${size_label(bytes.byteLength)} was not 8% smaller than ${size_label(file.size)}. Original kept.` };
+    }
     const base = file.name.replace(/\.[^.]+$/, "") || "video";
-    return new File([bytes], `${base}.mp4`, { type: "video/mp4", lastModified: Date.now() });
-  } catch {
+    return {
+      file: new File([bytes], `${base}.mp4`, { type: "video/mp4", lastModified: Date.now() }),
+      note: `Video compressed ${saved_label(file.size, bytes.byteLength)}.`,
+    };
+  } catch (e) {
     loading = null;
-    return file;
+    const why = e instanceof Error && e.message ? e.message.slice(0, 80) : "compressor could not run";
+    return { file, note: `Video not compressed: ${why}. Original kept.` };
   } finally {
     if (ff && on_progress) ff.off("progress", on_progress);
     try { await ff?.deleteFile("out.mp4"); } catch {}
