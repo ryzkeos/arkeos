@@ -16,7 +16,7 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 
 - Videos are compressed in the browser when uploaded from the admin: capped at 1280 px wide, audio removed, h264 with fast start, saved as mp4. If the result is not clearly smaller, or compression fails, the original is uploaded. The compressor files are copied to `public/ffmpeg` on install and loaded only when a video is chosen.
 - Uploads are stored with a one year cache header. Links carry a `?v=` stamp, so a reupload always shows the new file.
-- Videos load lazily: they play only while on screen and in an active tab, pause when scrolled away, and are released when you leave the page. Html media follows the same rule.
+- Videos play while the tab is active, even when scrolled out of view, and are released when you leave the page. They start with only their metadata loaded. Html media is the exception: it runs only while visible.
 - Run `db/storage_config.sql` once in the Supabase SQL editor to set the bucket size limit and allowed file types. On other hosts, serve videos with range requests, long cache headers and a CDN in front.
 
 ## Credits
@@ -109,10 +109,20 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 
 ### v1.4 (2026-11-02)
 
+- Mobile layout pass: fixed height card descriptions that scroll, one row footer social icons that shrink to fit, project list buttons beside the tags, and service price and icon at the top right of each card.
+- Moved the mobile menu availability to the top, made the social icons span the full width and kept the header visible while the menu is open.
+- Services and Contact heroes now fill the screen, all projects show in the Projects page cards and list, and the section buttons are hidden on mobile in Services and About.
+- Home shows featured projects first, then fills the rest with other projects.
+- The preloader can no longer go past 100 percent, and videos now retry when they stall or pause.
+- Fixed zoom on the Contact inputs and the admin height on mobile browser toolbars.
+- Reworked the admin on mobile: media field, lists, tabs, fonts, analytics, topbar and save buttons.
+- Hid the featured block unless a project is marked featured, and removed the unused featured title and intro fields.
+- The hero video is skipped on Data Saver or reduced motion.
 - After the intro finishes, the site prefetches the other pages and warms up their images and videos in the background. It skips media on slow connections and Data Saver.
 
-### v1.5 (optimization)
+### v1.5 (2026-11-02)
 
-- Lighter menu, header and page grain, smoother cursor, and shorter reveal delays on every page.
-- Videos and html media play only while visible and stop when leaving a page.
-- Video uploads are compressed and cached, with storage config added.
+- Lighter menu, header and page grain, smoother cursor, and shorter reveal delays on every page, including the About team photos.
+- Videos keep playing while scrolled out of view, pause in hidden tabs and are released when leaving a page. Html media runs only while visible.
+- Videos load lazily and the preloader waits only for media near the first screen.
+- Video uploads are compressed in the browser and cached for a year, with a storage config script for Supabase.
