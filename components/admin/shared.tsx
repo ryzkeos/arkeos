@@ -279,7 +279,7 @@ export function MediaField({
 
   const name = picked ? picked.name : value ? file_name(value) : "";
   const kind = name ? file_kind(name) : null;
-  const meta = busy ? status || "Uploading…" : failed ? "Upload failed" : picked ? `${file_size(picked.size)} · Uploads When You Save` : value ? "Uploaded" : hide_url ? "Choose a file to upload" : "Choose a file or paste a link below";
+  const meta = busy ? status || "Uploading…" : failed ? "Upload Failed" : picked ? `${file_size(picked.size)} · Uploads When You Save` : value ? "Uploaded" : hide_url ? "Choose A File To Upload" : "Choose A File Or Paste A Link Below";
   const state = failed ? "error" : busy ? "busy" : picked ? "ready" : value ? "done" : "empty";
 
   return (

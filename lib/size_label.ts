@@ -3,5 +3,5 @@ export function size_label(bytes: number): string {
 }
 
 export function saved_label(before: number, after: number): string {
-  return `${size_label(before)} to ${size_label(after)}, ${Math.max(0, Math.round((1 - after / before) * 100))}% smaller`;
+  return `${size_label(before)} To ${size_label(after)}, ${Math.max(0, Math.round((1 - after / before) * 100))}% Smaller`;
 }
