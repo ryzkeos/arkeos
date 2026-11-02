@@ -160,3 +160,9 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 ### v1.11 (2026-11-02)
 
 - Video compression now keeps more quality. The long side is limited to 1920 px instead of a 1280 px width, so 1080p and portrait videos keep their size and only larger videos are scaled down. Quality is raised from CRF 27 to 22 with a higher bitrate cap. Videos are never scaled up. Results can be larger, so a video is still kept as the original when it is not at least 8% smaller.
+
+### v1.12 (2026-11-02)
+
+- Better search visibility for web and system development. Every page now has a keyword title, a clear description, a canonical link and a share image. The home page adds structured data (organization, website and service) so search engines can match the site name Arkeos and the web and system development services.
+- The sitemap now lists priority and update frequency, and the sitemap, robots file and page links all use one site address from NEXT_PUBLIC_SITE_URL. If it is not set, https://arkeos.me is used.
+- Added the optional NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION setting for the Google Search Console verification code.
