@@ -18,7 +18,13 @@ export const SITE_KEYWORDS = [
   "software development",
   "soft tech development",
 ];
-export const OG_IMAGE = "/assets/img/og.webp";
+export const OG_IMAGE = {
+  url: "/assets/img/og.png",
+  width: 1200,
+  height: 630,
+  type: "image/png",
+  alt: `${SITE_NAME} | ${SITE_TAGLINE}`,
+};
 
 export function site_url(): string {
   const raw = process.env.NEXT_PUBLIC_SITE_URL?.trim();

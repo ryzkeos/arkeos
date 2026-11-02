@@ -335,7 +335,7 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 
 ### v1.37 (2026-11-02) Share Image
 
-- New og.webp that follows the Home hero: glowing headline, ghost name, logo and EST. 2026 line in the site fonts, in black and white with arkeos.me.
+- New og image that follows the Home hero: glowing headline, ghost name, logo and EST. 2026 line in the site fonts, in black and white with arkeos.me.
 
 ### v1.38 (2026-11-02) White Default Accent
 
@@ -350,3 +350,21 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 
 - JsonLd.tsx no longer uses the local business type, which needs a street address. Arkeos is an online studio serving clients worldwide, with a contact point and the saved social links.
 - Moved the social link list to lib/socials.ts so the server can use it.
+
+### v1.41 (2026-11-02) Transparent Header Logo
+
+- LogoMark uses a transparent png of the mark (arkeos_logo_mark.png) so the header logo has no black box on any browser. The animated svg is no longer used in the header.
+
+### v1.42 (2026-11-03) Header Logo Black Box Fix
+
+- The header logo still showed a black box because a global rule gave every image a black background. The header and admin logo marks now have a transparent background, so the header color shows behind the white mark.
+
+### v1.43 (2026-11-03) Share Image Format
+
+- The share image (og) is now a png instead of webp, so LinkedIn and chat apps show it. Added its size, type and alt text to the page tags so scrapers show it on the first share.
+
+### v1.44 (2026-11-03) Card Tooltips, Year and Hero Lines
+
+- Removed the browser hover tooltip that showed the full description on project and service cards and rows (Home, Projects and Services pages). The description text on the cards is unchanged.
+- Default founded year is now 2027, so the Home eyebrow reads "Est. 2027".
+- All page hero headers now have three lines: About (ABOUT / THE / STUDIO.), Contact (LET'S / START / TALKING.) and Services (OUR / CORE / SERVICES.). Home and Projects already had three. Admin labels now say max 3 lines.

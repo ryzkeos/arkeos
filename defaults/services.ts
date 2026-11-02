@@ -3,7 +3,7 @@ import type { ServicesCopy } from "./types";
 export const services: ServicesCopy = {
   hero: {
     eyebrow: "What We Offer",
-    lines: ["OUR", "SERVICES."],
+    lines: ["OUR", "CORE", "SERVICES."],
     sub: "What We Do And How We Work With Clients.",
     ghost: "SERVICES",
     cta: null,
