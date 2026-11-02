@@ -3,7 +3,7 @@ import type { AboutCopy } from "./types";
 export const about: AboutCopy = {
   hero: {
     eyebrow: "The Studio",
-    lines: ["ABOUT", "THE STUDIO."],
+    lines: ["ABOUT", "THE", "STUDIO."],
     sub: "The Story, Values And People Behind {name}.",
     ghost: "STUDIO",
     cta: null,

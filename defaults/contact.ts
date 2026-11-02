@@ -3,7 +3,7 @@ import type { ContactCopy } from "./types";
 export const contact: ContactCopy = {
   hero: {
     eyebrow: "Start a Project",
-    lines: ["LET'S", "TALK."],
+    lines: ["LET'S", "START", "TALKING."],
     sub: "Fill In The Brief Below And Tell Us What You Are Building.",
     ghost: "CONTACT",
     cta: null,
