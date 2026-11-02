@@ -8,8 +8,6 @@ export const projects_schema: CopyField[] = [
   { path: "hero.cta.label", label: "Hero button label", type: "text", max: 40 },
   { path: "hero.cta.href", label: "Hero button link", type: "text", max: 300 },
   { path: "featured.label", label: "Featured label", type: "text", max: 60 },
-  { path: "featured.lines", label: "Featured title lines (separate lines with |)", type: "lines", max: 200 },
-  { path: "featured.intro", label: "Featured intro text", type: "textarea", max: 500 },
   { path: "more.label", label: "More projects label", type: "text", max: 60 },
   { path: "more.lines", label: "More projects title lines (separate lines with |)", type: "lines", max: 200 },
   { path: "more.intro", label: "More projects intro text", type: "textarea", max: 500 },

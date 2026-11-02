@@ -43,7 +43,7 @@ export type HomeCopy = {
 
 export type ProjectsCopy = {
   hero: HeroCopy;
-  featured: SectionCopy;
+  featured: { label: string };
   more: SectionCopy;
   controls: { view_label: string; cards: string; list: string; previous: string; next: string; go_to: string };
   empty_text: string;
