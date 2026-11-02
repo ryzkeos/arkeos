@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { gsap, prefersReducedMotion } from "@/lib/gsap";
 import { lenisRef } from "@/lib/lenis";
+import { useIntroDone } from "@/lib/preloader";
 import { useCopy } from "@/lib/use_copy";
 import { useSiteSettings } from "./SiteSettings";
 import { SocialIcon, getSocials } from "./SocialIcons";
@@ -14,6 +15,7 @@ export default function Header() {
   const settings = useSiteSettings();
   const { brand, nav, availability, menu } = useCopy("shared");
   const name = brand.name;
+  const intro_done = useIntroDone();
   const [stuck, setStuck] = useState(false);
   const [open, setOpen] = useState(false);
   const drawer = useRef<HTMLDivElement>(null);
@@ -87,7 +89,7 @@ export default function Header() {
       </div>
 
       <header id="header" className={[stuck ? "stuck" : "", open ? "menu-open" : ""].filter(Boolean).join(" ")} role="banner">
-        <Link href="/" className="hdr-logo" aria-label={name}><LogoMark className="hdr-logo__mark" /><span>{name}</span></Link>
+        <Link href="/" className="hdr-logo" aria-label={name}><LogoMark className="hdr-logo__mark" wait={!intro_done} /><span>{name}</span></Link>
 
         <nav className="hdr-nav" role="navigation" aria-label={menu.open_label}>
           {nav.map((n) => (

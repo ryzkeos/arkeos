@@ -122,6 +122,6 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 ### v1.6 (2026-11-02)
 
 - Smoother mobile menu: the header glass fades instead of switching off, the page grain hides while the menu is open and mobile toolbar resizes no longer refresh scroll animations.
-- The header logo now uses the animated logo mark.
+- The header logo now uses the animated logo mark. It plays once after the intro, then stays still.
 - The hero title glow is no longer cut off at the edges of each line once the intro finishes.
 - Added a small loading ring on videos, html media and images, so a stalled or returning video shows why it stopped.

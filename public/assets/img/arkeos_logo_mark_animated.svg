@@ -7,12 +7,11 @@
 <stop offset="1" stop-color="#fff" stop-opacity="0"/>
 </linearGradient>
 <style>
-.stage{animation:stage 7s ease-in-out infinite}
-.outline path{fill:none;stroke:#f9f9f7;stroke-width:2;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1;animation:draw 7s cubic-bezier(.65,0,.35,1) infinite}
-.fill{fill:#f9f9f7;opacity:0;transform-origin:360px 360px;animation:fill 7s ease-in-out infinite}
-.sheen{transform:translateX(-120px) skewX(-20deg);animation:sweep 7s ease-in-out infinite}
+.outline path{fill:none;stroke:#f9f9f7;stroke-width:2;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1;animation:draw 7s cubic-bezier(.65,0,.35,1) 1 forwards}
+.fill{fill:#f9f9f7;opacity:0;transform-origin:360px 360px;animation:fill 7s ease-in-out 1 forwards}
+.sheen{transform:translateX(-120px) skewX(-20deg);animation:sweep 7s ease-in-out 1 forwards}
 @keyframes draw{0%{stroke-dashoffset:1;opacity:1}38%{stroke-dashoffset:0;opacity:1}52%{stroke-dashoffset:0;opacity:0}100%{stroke-dashoffset:0;opacity:0}}
-@keyframes fill{0%,30%{opacity:0;transform:scale(.97)}50%{opacity:1;transform:scale(1)}92%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1)}}
+@keyframes fill{0%,30%{opacity:0;transform:scale(.97)}50%{opacity:1;transform:scale(1)}100%{opacity:1;transform:scale(1)}}
 @keyframes sweep{0%,56%{transform:translateX(230px) skewX(-20deg)}78%,100%{transform:translateX(670px) skewX(-20deg)}}
 @media (prefers-reduced-motion:reduce){.outline path,.fill,.sheen{animation:none}.fill{opacity:1}.outline,.sheen{display:none}}
 </style>
