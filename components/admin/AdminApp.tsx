@@ -8,6 +8,7 @@ import { applyAccent } from "@/components/SiteSettings";
 import { SOCIAL_LINKS } from "@/components/SocialIcons";
 import LogoMark from "@/components/LogoMark";
 import { use_touch_reorder } from "./use_touch_reorder";
+import { backfill_posters } from "./poster_backfill";
 import { delete_media, media_commit, media_discard } from "./media_tx";
 import WebsiteInfoPanel from "./WebsiteInfoPanel";
 import CopyEditor from "./copy/CopyEditor";
@@ -355,6 +356,7 @@ function Projects({ toast, ask }: PanelProps) {
   const [f, setF] = useState({ title: "", description: "", tags: "", url: "", color: "#C8FF00", visible: true, featured: false, media: "" });
   const [staged, setStaged] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
+  const [posters_busy, setPostersBusy] = useState(false);
   const dragSrc = useRef<number | null>(null);
   const touch = use_touch_reorder((from, to) => { dragSrc.current = from; drop(to); });
   useEffect(() => () => media_discard("project"), []);
@@ -432,6 +434,18 @@ function Projects({ toast, ask }: PanelProps) {
       <PanelHead title="PROJECTS" sub="Manage portfolio projects. Drag to reorder. Changes reflect live." error={error} />
       <div className="admin-actions" style={{ marginBottom: "1.2rem" }}>
         <button className="admin-btn admin-btn--accent" onClick={() => open(null)} aria-label="Add a new project">+ Add Project</button>
+        <button
+          className="admin-btn"
+          disabled={posters_busy || !list?.length}
+          aria-busy={posters_busy}
+          onClick={() => {
+            setPostersBusy(true);
+            backfill_posters((list ?? []).map((p) => p.media ?? "").filter(Boolean), () => {})
+              .then((r) => toast(r.total === 0 ? "No project videos found." : `Posters ready: ${r.made} created, ${r.missed} failed, ${r.total - r.made - r.missed} already had one.`, r.missed > 0))
+              .catch(() => toast("Could not create posters.", true))
+              .finally(() => setPostersBusy(false));
+          }}
+        >{posters_busy ? "Creating posters…" : "Create Missing Posters"}</button>
       </div>
 
       <div className="admin-form" id="project-form" aria-label="Project editor" style={{ display: editing ? "block" : "none" }}>
