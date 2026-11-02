@@ -4,7 +4,7 @@ export const shared: SharedCopy = {
   brand: {
     name: "ARKEOS",
     tagline: "Crafting Web Experiences And Motion Work That Demand Attention And Refuse To Be Forgotten.",
-    email: "hello@arkeos.studio",
+    email: "ryzkeos@arkeos.me",
     response_time: "Within 48 Hours",
     founded_year: 2026,
   },
