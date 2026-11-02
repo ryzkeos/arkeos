@@ -3,11 +3,13 @@ import "@/styles/hero.css";
 import { useRef } from "react";
 import { use_motion_allowed } from "@/hooks/use_motion_allowed";
 import { use_video_keepalive } from "@/hooks/use_video_keepalive";
+import { use_video_loading } from "@/hooks/use_video_loading";
 import type { HeroCopy } from "@/defaults";
 import { safeUrl } from "@/lib/gsap";
 import { useIntroDone } from "@/lib/preloader";
 import { useCopy } from "@/lib/use_copy";
 import Btn from "../Btn";
+import MediaLoader from "../MediaLoader";
 import { useSiteSettings, useSiteSettingsLoaded } from "../SiteSettings";
 import { use_hero_intro } from "./use_hero_intro";
 
@@ -33,6 +35,7 @@ export default function HeroLayout({ copy, ariaLabel, variant = "full" }: Props)
   const motion_allowed = use_motion_allowed();
   const show_video = !!video_src && motion_allowed;
   use_video_keepalive(hero_video, show_video, video_src);
+  const hero_loading = use_video_loading(hero_video, show_video, video_src);
   const lines = loaded ? copy.lines : [];
   const deco = deco_copy.deco.slice(0, HERO_DECO_MAX);
 
@@ -40,6 +43,7 @@ export default function HeroLayout({ copy, ariaLabel, variant = "full" }: Props)
     <section id="hero" ref={root} className={`hero hero--${variant}`} aria-label={ariaLabel}>
       <div className="hero-video" aria-hidden="true">
         {show_video && <video ref={hero_video} src={video_src} autoPlay muted loop playsInline preload="auto" aria-hidden="true" />}
+        {show_video && hero_loading && <MediaLoader />}
       </div>
       <div className="hero-veil" aria-hidden="true" />
       {copy.ghost && <div className="hero-ghost" aria-hidden="true">{copy.ghost}</div>}
