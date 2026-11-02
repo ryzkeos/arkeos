@@ -12,6 +12,21 @@ Projects, services and page text are stored in a database, so updates don't need
 
 Pages: Home, Projects, Services, About, Contact and Privacy.
 
+## Installation
+
+Requires Node.js 20 or newer and a Supabase compatible backend for the database, sign in and file storage.
+
+1. Install packages with `npm install`. This also copies the video tools into `public/ffmpeg`.
+2. Copy `.env.example` to `.env.local` and fill it in. Use only the public anon key for `NEXT_PUBLIC_DATA_API_KEY`. `NEXT_PUBLIC_SITE_URL` is the live address and falls back to https://arkeos.me. The Upstash values are optional and only add a shared rate limit to the contact form.
+3. In the backend SQL editor, run `db/schema.sql`, then `db/storage_config.sql`. `db/reset.sql` wipes the data and is only for starting over.
+4. Create an admin user and set `app_metadata.role` to `admin` for that user.
+
+## Usage
+
+- `npm run dev` starts the site at http://localhost:3000.
+- `npm run build` then `npm start` runs the production build. Pages are rendered on the server and refreshed every minute.
+- Open `/admin` and sign in to edit projects, services, page text, social links, accent color and fonts, to read inquiries, and to upload media. Changes appear on the site within about a minute.
+
 ## Credits
 
 - Author: Arkeos (ryzkeos)
