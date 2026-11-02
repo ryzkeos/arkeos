@@ -8,7 +8,8 @@ import { lenisRef } from "@/lib/lenis";
 import { useIntroDone } from "@/lib/preloader";
 import { useCopy } from "@/lib/use_copy";
 import { useSiteSettings } from "./SiteSettings";
-import { SocialIcon, getSocials } from "./SocialIcons";
+import { getSocials } from "@/lib/socials";
+import { SocialIcon } from "./SocialIcons";
 
 export default function Header() {
   const pathname = usePathname();

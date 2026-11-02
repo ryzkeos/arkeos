@@ -14,9 +14,11 @@ import type { Project, Service, SiteSettings } from "./types";
 export type StoreState<T> = { data: T | null; ready: boolean };
 
 export type Store<T> = {
+  key: string;
   get: () => StoreState<T>;
   subscribe: (fn: () => void) => () => void;
   refresh: () => Promise<void>;
+  seed: (data: T) => void;
 };
 
 const FRESH_MS = 15_000;
@@ -60,6 +62,15 @@ function create_store<T>(opts: Options<T>): Store<T> {
     };
   };
 
+  const seed = (data: T) => {
+    if (typeof window === "undefined") return;
+    hydrate();
+    if (fetched_at > 0) return;
+    fetched_at = Date.now();
+    if (!state.ready || JSON.stringify(state.data) !== JSON.stringify(data)) set({ data, ready: true });
+    cache_write(opts.key, data);
+  };
+
   const refresh = () => {
     if (typeof window === "undefined") return Promise.resolve();
     hydrate();
@@ -84,7 +95,7 @@ function create_store<T>(opts: Options<T>): Store<T> {
     return in_flight;
   };
 
-  return { get, subscribe, refresh };
+  return { key: opts.key, get, subscribe, refresh, seed };
 }
 
 export const settings_store = create_store<SiteSettings>({

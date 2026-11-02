@@ -5,7 +5,7 @@ import { NAV } from "@/lib/data";
 import { DEFAULTS } from "@/defaults";
 import type { Inquiry, Project, Service, SiteSettings } from "@/lib/types";
 import { applyAccent } from "@/components/SiteSettings";
-import { SOCIAL_LINKS } from "@/components/SocialIcons";
+import { SOCIAL_LINKS } from "@/lib/socials";
 import LogoMark from "@/components/LogoMark";
 import { use_touch_reorder } from "./use_touch_reorder";
 import { backfill_posters, collect_video_urls } from "./poster_backfill";
