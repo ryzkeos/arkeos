@@ -3,9 +3,9 @@ import type { SharedCopy } from "./types";
 export const shared: SharedCopy = {
   brand: {
     name: "ARKEOS",
-    tagline: "Crafting web experiences and motion work that demand attention and refuse to be forgotten.",
+    tagline: "Crafting Web Experiences and Motion Work That Demand Attention and Refuse to Be Forgotten.",
     email: "hello@arkeos.studio",
-    response_time: "Within 48 hours",
+    response_time: "Within 48 Hours",
     founded_year: 2026,
   },
   nav: [
@@ -27,6 +27,6 @@ export const shared: SharedCopy = {
     back_home: "Back to Home",
   },
   preloader: { statuses: ["Loading", "Preparing", "Almost Ready", "Welcome"] },
-  hero: { deco: "ARKEOS", hover_word: "LEGACY", scroll_label: "Scroll down" },
+  hero: { deco: "ARKEOS", hover_word: "LEGACY", scroll_label: "Scroll Down" },
   section_media: { url: "" },
 };
