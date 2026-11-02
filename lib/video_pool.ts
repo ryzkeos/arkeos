@@ -2,6 +2,8 @@ import { poster_url } from "./video_poster";
 
 const MIN_PLAY_MS = 500;
 const PASS_MS = 120;
+const TICK_MS = 500;
+const RETRY_MS = 3000;
 const IDLE_MS = 30000;
 const LIMIT_DESKTOP = 10;
 const LIMIT_TOUCH = 6;
@@ -32,6 +34,7 @@ type Shared = {
   edge: number;
   distance: number;
   idle: number;
+  retry_at: number;
   on_playing: () => void;
 };
 
@@ -41,6 +44,7 @@ let profile: Profile | null = null;
 let timer = 0;
 let pending = false;
 let listening = false;
+let tick = 0;
 const pool = new Map<string, Shared>();
 
 function get_profile(): Profile {
@@ -74,7 +78,7 @@ function create(src: string): Shared {
   if (poster) el.poster = poster;
   const attr = with_start(src);
   el.src = attr;
-  const shared: Shared = { src, attr, el, users: new Set(), holder: null, loaded: true, allowed: false, played_at: 0, edge: 0, distance: Infinity, idle: 0, on_playing: () => {} };
+  const shared: Shared = { src, attr, el, users: new Set(), holder: null, loaded: true, allowed: false, played_at: 0, edge: 0, distance: Infinity, idle: 0, retry_at: 0, on_playing: () => {} };
   shared.on_playing = () => { shared.played_at = performance.now(); };
   el.addEventListener("playing", shared.on_playing);
   pool.set(src, shared);
@@ -175,6 +179,11 @@ function run_pass() {
     const { el } = shared;
     el.preload = next ? "auto" : el.poster ? "none" : "metadata";
     if (next) {
+      const stuck = shared.loaded && (el.error || (el.readyState === 0 && el.networkState === HTMLMediaElement.NETWORK_NO_SOURCE));
+      if (stuck && now >= shared.retry_at) {
+        shared.retry_at = now + RETRY_MS;
+        try { el.load(); } catch {}
+      }
       if (el.paused && !document.hidden && !el.ended && el.isConnected) el.play().catch(() => {});
       return;
     }
@@ -205,6 +214,7 @@ function start_listening() {
   listening = true;
   window.addEventListener("scroll", schedule, { passive: true });
   window.addEventListener("resize", schedule, { passive: true });
+  tick = window.setInterval(() => { if (!document.hidden) run_pass(); }, TICK_MS);
 }
 
 function stop_listening() {
@@ -212,6 +222,8 @@ function stop_listening() {
   listening = false;
   window.removeEventListener("scroll", schedule);
   window.removeEventListener("resize", schedule);
+  window.clearInterval(tick);
+  tick = 0;
   window.clearTimeout(timer);
   timer = 0;
 }
