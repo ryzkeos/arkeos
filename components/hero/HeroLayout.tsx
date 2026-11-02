@@ -1,6 +1,7 @@
 "use client";
 import "@/styles/hero.css";
 import { useRef } from "react";
+import { use_motion_allowed } from "@/hooks/use_motion_allowed";
 import { use_video_keepalive } from "@/hooks/use_video_keepalive";
 import type { HeroCopy } from "@/defaults";
 import { safeUrl } from "@/lib/gsap";
@@ -29,14 +30,16 @@ export default function HeroLayout({ copy, ariaLabel, variant = "full" }: Props)
 
   const video_src = safeUrl(settings.hero_video);
   const hero_video = useRef<HTMLVideoElement>(null);
-  use_video_keepalive(hero_video, !!video_src, video_src);
+  const motion_allowed = use_motion_allowed();
+  const show_video = !!video_src && motion_allowed;
+  use_video_keepalive(hero_video, show_video, video_src);
   const lines = loaded ? copy.lines : [];
   const deco = deco_copy.deco.slice(0, HERO_DECO_MAX);
 
   return (
     <section id="hero" ref={root} className={`hero hero--${variant}`} aria-label={ariaLabel}>
       <div className="hero-video" aria-hidden="true">
-        {video_src && <video ref={hero_video} src={video_src} autoPlay muted loop playsInline preload="auto" aria-hidden="true" />}
+        {show_video && <video ref={hero_video} src={video_src} autoPlay muted loop playsInline preload="auto" aria-hidden="true" />}
       </div>
       <div className="hero-veil" aria-hidden="true" />
       {copy.ghost && <div className="hero-ghost" aria-hidden="true">{copy.ghost}</div>}
