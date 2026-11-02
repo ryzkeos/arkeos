@@ -147,3 +147,7 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 
 - New access rules: only the site owner account can change content, read inquiries and analytics, or upload media. Any other signed in account has the same access as a visitor.
 - Sign in now checks the account type and shows the normal invalid login message for accounts without access.
+
+### v1.10 (2026-11-02)
+
+- Access rules for the contact form and page view tracking now check every field at the database, so direct requests with oversized, malformed or unexpected values are rejected.
