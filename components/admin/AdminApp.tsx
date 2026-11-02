@@ -8,7 +8,7 @@ import { applyAccent } from "@/components/SiteSettings";
 import { SOCIAL_LINKS } from "@/components/SocialIcons";
 import LogoMark from "@/components/LogoMark";
 import { use_touch_reorder } from "./use_touch_reorder";
-import { backfill_posters } from "./poster_backfill";
+import { backfill_posters, collect_video_urls } from "./poster_backfill";
 import { delete_media, media_commit, media_discard } from "./media_tx";
 import WebsiteInfoPanel from "./WebsiteInfoPanel";
 import CopyEditor from "./copy/CopyEditor";
@@ -436,12 +436,12 @@ function Projects({ toast, ask }: PanelProps) {
         <button className="admin-btn admin-btn--accent" onClick={() => open(null)} aria-label="Add a new project">+ Add Project</button>
         <button
           className="admin-btn"
-          disabled={posters_busy || !list?.length}
+          disabled={posters_busy}
           aria-busy={posters_busy}
           onClick={() => {
             setPostersBusy(true);
-            backfill_posters((list ?? []).map((p) => p.media ?? "").filter(Boolean), () => {})
-              .then((r) => toast(r.total === 0 ? "No project videos found." : `Posters ready: ${r.made} created, ${r.missed} failed, ${r.total - r.made - r.missed} already had one.`, r.missed > 0))
+            collect_video_urls().then((urls) => backfill_posters(urls, () => {}))
+              .then((r) => toast(r.total === 0 ? "No videos found." : `Posters ready: ${r.made} created, ${r.missed} failed, ${r.total - r.made - r.missed} already had one.`, r.missed > 0))
               .catch(() => toast("Could not create posters.", true))
               .finally(() => setPostersBusy(false));
           }}
