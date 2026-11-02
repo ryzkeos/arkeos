@@ -12,6 +12,13 @@ Projects, services and page text are stored in a database, so updates don't need
 
 Pages: Home, Projects, Services, About, Contact and Privacy.
 
+## Media and performance
+
+- Videos are compressed in the browser when uploaded from the admin: capped at 1280 px wide, audio removed, h264 with fast start, saved as mp4. If the result is not clearly smaller, or compression fails, the original is uploaded. The compressor files are copied to `public/ffmpeg` on install and loaded only when a video is chosen.
+- Uploads are stored with a one year cache header. Links carry a `?v=` stamp, so a reupload always shows the new file.
+- Videos load lazily: they play only while on screen and in an active tab, pause when scrolled away, and are released when you leave the page. Html media follows the same rule.
+- Run `db/storage_config.sql` once in the Supabase SQL editor to set the bucket size limit and allowed file types. On other hosts, serve videos with range requests, long cache headers and a CDN in front.
+
 ## Credits
 
 - Author: Arkeos (arkeos-kzenon)
@@ -103,3 +110,9 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 ### v1.4 (2026-11-02)
 
 - After the intro finishes, the site prefetches the other pages and warms up their images and videos in the background. It skips media on slow connections and Data Saver.
+
+### v1.5 (optimization)
+
+- Lighter menu, header and page grain, smoother cursor, and shorter reveal delays on every page.
+- Videos and html media play only while visible and stop when leaving a page.
+- Video uploads are compressed and cached, with storage config added.

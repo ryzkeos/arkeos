@@ -390,7 +390,7 @@ function Projects({ toast, ask }: PanelProps) {
       id = await db.dbSaveProject(id, payload);
       saved = true;
       if (staged) {
-        media = await upload_media("project", "projects", media_slot(`project-${slug(f.title) || "untitled"}`), staged, f.media);
+        media = await upload_media("project", "projects", media_slot(`project-${slug(f.title) || "untitled"}`), staged, f.media, undefined, (t) => { if (!t.includes("%")) toast(t); });
         await db.dbSaveProject(id, { media });
       }
       media_commit("project", [media]);
@@ -527,7 +527,7 @@ function Services({ toast, ask }: PanelProps) {
       saved = true;
       for (const [key, part] of [["icon_url", "icon"], ["cinema_url", "cinema"]] as const) {
         const file = staged[key];
-        if (file) uploaded[key] = await upload_media("service", "services", media_slot(`service-${slug(f.title) || "untitled"}-${part}`), file, f[key]);
+        if (file) uploaded[key] = await upload_media("service", "services", media_slot(`service-${slug(f.title) || "untitled"}-${part}`), file, f[key], undefined, (t) => { if (!t.includes("%")) toast(t); });
       }
       if (Object.keys(uploaded).length) await db.dbSaveService(id, uploaded);
       media_commit("service", [uploaded.icon_url ?? f.icon_url, uploaded.cinema_url ?? f.cinema_url]);

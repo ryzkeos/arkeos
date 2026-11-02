@@ -11,12 +11,7 @@ export function CinemaBg({ url, active = false }: { url: string; active?: boolea
 
   useEffect(() => {
     const el = video.current;
-    if (!el) return;
-    el.muted = true;
-    el.defaultMuted = true;
-    if (active) {
-      el.play().catch(() => {});
-    } else {
+    if (el && !active) {
       el.pause();
       el.currentTime = 0;
     }
@@ -29,5 +24,5 @@ export function CinemaBg({ url, active = false }: { url: string; active?: boolea
   if (kind === "video") return <video ref={video} src={src.includes("#") ? src : `${src}#t=0.001`} muted loop playsInline preload="metadata" aria-hidden="true" />;
   if (kind === "html") return active ? <HtmlFrame src={src} /> : null;
   // eslint-disable-next-line @next/next/no-img-element
-  return <img src={src} alt="" aria-hidden="true" draggable={false} />;
+  return <img decoding="async" loading="lazy" src={src} alt="" aria-hidden="true" draggable={false} />;
 }

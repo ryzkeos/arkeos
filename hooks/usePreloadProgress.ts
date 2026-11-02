@@ -4,6 +4,12 @@ import { useEffect, useRef, useState, type RefObject } from "react";
 const MIN_VISIBLE_MS = 700;
 const MAX_WAIT_MS = 15000;
 
+function near_viewport(el: Element) {
+  const r = el.getBoundingClientRect();
+  const h = window.innerHeight;
+  return r.bottom > -h * 0.25 && r.top < h * 1.25;
+}
+
 function watchMedia(el: Element, onDone: () => void): boolean {
   let fired = false;
   const done = () => {
@@ -12,14 +18,14 @@ function watchMedia(el: Element, onDone: () => void): boolean {
     onDone();
   };
   if (el instanceof HTMLImageElement) {
+    if (el.complete || !near_viewport(el)) return false;
     if (el.loading === "lazy") el.loading = "eager";
-    if (el.complete) return false;
     el.addEventListener("load", done, { once: true });
     el.addEventListener("error", done, { once: true });
     return true;
   }
   if (el instanceof HTMLVideoElement) {
-    if (el.readyState >= 3) return false;
+    if (el.readyState >= 2 || !near_viewport(el)) return false;
     el.preload = "auto";
     el.addEventListener("canplay", done, { once: true });
     el.addEventListener("loadeddata", done, { once: true });
