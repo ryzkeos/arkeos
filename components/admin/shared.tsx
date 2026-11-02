@@ -1,4 +1,5 @@
 import { compress_video, is_video_file } from "@/lib/video_compress";
+import { resize_image } from "@/lib/image_compress";
 import { capture_poster } from "@/lib/video_poster";
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
 import * as db from "@/lib/db";
@@ -120,7 +121,7 @@ export async function upload_media(
   prepare?: (file: File) => File,
   on_status?: (text: string) => void,
 ) {
-  const ready = await compress_video(prepare ? prepare(file) : file, on_status);
+  const ready = await resize_image(await compress_video(prepare ? prepare(file) : file, on_status));
   const ext = (ready.name.split(".").pop() ?? "bin").toLowerCase().replace(/[^a-z0-9]/g, "") || "bin";
   const path = `${folder}/${slot}.${ext}`;
   on_status?.("Uploading…");
