@@ -335,7 +335,7 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 
 ### v1.37 (2026-11-02) Share Image
 
-- New og.webp that follows the Home hero: glowing headline, ghost name, logo and EST. 2026 line in the site fonts, in black and white with arkeos.me.
+- New og image that follows the Home hero: glowing headline, ghost name, logo and EST. 2026 line in the site fonts, in black and white with arkeos.me.
 
 ### v1.38 (2026-11-02) White Default Accent
 
@@ -358,3 +358,7 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 ### v1.42 (2026-11-03) Header Logo Black Box Fix
 
 - The header logo still showed a black box because a global rule gave every image a black background. The header and admin logo marks now have a transparent background, so the header color shows behind the white mark.
+
+### v1.43 (2026-11-03) Share Image Format
+
+- The share image (og) is now a png instead of webp, so LinkedIn and chat apps show it. Added its size, type and alt text to the page tags so scrapers show it on the first share.
