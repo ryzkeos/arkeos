@@ -1049,13 +1049,13 @@ footer {
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  transform: translate3d(0, -100%, 0);
+  clip-path: inset(0 0 100% 0);
   visibility: hidden;
   contain: layout paint;
   overscroll-behavior: contain;
-  transition: transform 0.55s var(--ease-inout), visibility 0s linear 0.55s;
+  transition: clip-path 0.55s var(--ease-inout), visibility 0s linear 0.55s;
 }
-#nav-overlay.open { pointer-events: all; transform: translate3d(0, 0, 0); visibility: visible; transition: transform 0.55s var(--ease-inout), visibility 0s; }
+#nav-overlay.open { pointer-events: all; clip-path: inset(0 0 0% 0); visibility: visible; transition: clip-path 0.55s var(--ease-inout), visibility 0s; }
 html.nav-open body::after { opacity: 0; }
 
 .nav-ov__inner { width: 100%; max-width: 960px; padding: 0 1.5rem; display: flex; flex-direction: column; }
