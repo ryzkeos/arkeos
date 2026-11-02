@@ -14,8 +14,8 @@ export const privacy: PrivacyCopy = {
     {
       heading: "Inquiry Form",
       paragraphs: [
-        "When You Send an Inquiry Through the Contact Form, the Following Details Are Stored: Name, Email Address, Project Type, Budget Range, Timeline and Your Message.",
-        "This Data Is Used to Read and Answer Your Inquiry.",
+        "When You Send An Inquiry Through The Contact Form, The Following Details Are Stored: Name, Email Address, Project Type, Budget Range, Timeline And Your Message.",
+        "This Data Is Used To Read And Answer Your Inquiry.",
       ],
     },
     {
@@ -38,7 +38,7 @@ export const privacy: PrivacyCopy = {
     },
     {
       heading: "Contact",
-      paragraphs: ["To Make a Request About Your Data, Contact the Studio:"],
+      paragraphs: ["To Make A Request About Your Data, Contact The Studio:"],
     },
   ],
 };

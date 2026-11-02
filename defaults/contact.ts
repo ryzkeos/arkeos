@@ -4,7 +4,7 @@ export const contact: ContactCopy = {
   hero: {
     eyebrow: "Start a Project",
     lines: ["LET'S", "TALK."],
-    sub: "Fill in the Brief Below and Tell Us What You Are Building.",
+    sub: "Fill In The Brief Below And Tell Us What You Are Building.",
     ghost: "CONTACT",
     cta: null,
   },
@@ -41,8 +41,8 @@ export const contact: ContactCopy = {
     back_label: "Back to Home",
   },
   errors: {
-    required: "Please Fill in All Fields Before Submitting.",
-    invalid_email: "Please Enter a Valid Email Address.",
+    required: "Please Fill In All Fields Before Submitting.",
+    invalid_email: "Please Enter A Valid Email Address.",
     network: "Network error. Please check your connection and try again.",
     server: "Something went wrong. Please try again later.",
   },
