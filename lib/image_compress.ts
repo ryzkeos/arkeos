@@ -1,3 +1,4 @@
+import { error_text } from "./error_text";
 import { saved_label, size_label } from "./size_label";
 
 const MAX_WIDTH = 1600;
@@ -37,7 +38,7 @@ export async function resize_image(file: File): Promise<ResizeResult> {
       note: `Image resized to ${MAX_WIDTH} px, ${saved_label(file.size, blob.size)}.`,
     };
   } catch (e) {
-    const why = e instanceof Error && e.message ? e.message.slice(0, 80) : "image could not be read";
+    const why = error_text(e, "image could not be read");
     return { file, note: `Image not resized: ${why}. Original kept.` };
   } finally {
     bitmap?.close();
