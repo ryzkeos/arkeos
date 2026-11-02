@@ -63,7 +63,7 @@ export default function ProjectsMore({ projects, start_index }: Props) {
           <p className="pj-more__count" role="status" aria-live="polite">{progress}</p>
           {shown < projects.length && (
             <button type="button" className="btn btn--visible pj-more__btn" onClick={() => set_count((c) => c + PAGE_SIZE)}>
-              <span className="btn-label">{controls.load_more || "Load more"}</span>
+              <span className="btn-label">{controls.load_more || "Load More"}</span>
               <span className="btn-arrow" aria-hidden="true" />
             </button>
           )}

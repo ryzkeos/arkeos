@@ -2,7 +2,7 @@ import type { HomeCopy } from "./types";
 
 export const home: HomeCopy = {
   hero: {
-    eyebrow: "est. {founded_year}",
+    eyebrow: "Est. {founded_year}",
     lines: ["WE BUILD", "DIGITAL", "LEGACIES."],
     sub: "",
     ghost: "",
