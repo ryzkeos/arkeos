@@ -136,7 +136,7 @@ export async function dbUpload(_bucket: string, path: string, file: File) {
   const token = session?.access_token ?? API_KEY;
   const res = await fetch(`${STORAGE_URL}/storage/v1/object/${STORAGE_BUCKET}/${path}`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${token}`, apikey: API_KEY, "Content-Type": file.type || "application/octet-stream", "x-upsert": "true" },
+    headers: { Authorization: `Bearer ${token}`, apikey: API_KEY, "Content-Type": file.type || "application/octet-stream", "cache-control": "max-age=31536000", "x-upsert": "true" },
     body: file,
   });
   await check(res);
