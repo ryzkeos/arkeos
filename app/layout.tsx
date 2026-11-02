@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
+import { OG_IMAGE, SITE_DESCRIPTION, SITE_KEYWORDS, SITE_NAME, SITE_TAGLINE, site_url } from "@/lib/site";
 
 const STORAGE_ORIGIN = (() => {
   try {
@@ -10,28 +11,19 @@ const STORAGE_ORIGIN = (() => {
   }
 })();
 
-const DEFAULT_SITE_URL = "http://localhost:3000";
-
-function siteUrl(): URL {
-  const raw = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-  try {
-    return new URL(raw || DEFAULT_SITE_URL);
-  } catch {
-    return new URL(DEFAULT_SITE_URL);
-  }
-}
+const GOOGLE_VERIFICATION = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION?.trim();
+const DEFAULT_TITLE = `${SITE_NAME} | ${SITE_TAGLINE}`;
 
 export const metadata: Metadata = {
-  metadataBase: siteUrl(),
-  title: { default: "Arkeos", template: "Arkeos | %s" },
-  description: "Arkeos official website.",
-  openGraph: {
-    type: "website",
-    siteName: "Arkeos",
-    title: "Arkeos",
-    images: ["/assets/img/og.webp"],
-  },
-  twitter: { card: "summary_large_image" },
+  metadataBase: new URL(site_url()),
+  applicationName: SITE_NAME,
+  title: { default: DEFAULT_TITLE, template: `${SITE_NAME} | %s` },
+  description: SITE_DESCRIPTION,
+  keywords: SITE_KEYWORDS,
+  authors: [{ name: SITE_NAME }],
+  openGraph: { type: "website", siteName: SITE_NAME, locale: "en_US", title: DEFAULT_TITLE, description: SITE_DESCRIPTION, images: [OG_IMAGE] },
+  twitter: { card: "summary_large_image", title: DEFAULT_TITLE, description: SITE_DESCRIPTION, images: [OG_IMAGE] },
+  verification: GOOGLE_VERIFICATION ? { google: GOOGLE_VERIFICATION } : undefined,
 };
 
 export const viewport: Viewport = { width: "device-width", initialScale: 1 };
