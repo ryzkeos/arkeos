@@ -1,3 +1,4 @@
+import { error_text } from "./error_text";
 import { saved_label, size_label } from "./size_label";
 
 const MIN_BYTES = 1.5 * 1024 * 1024;
@@ -78,7 +79,7 @@ export async function compress_video(file: File, on_status?: Status): Promise<Co
     };
   } catch (e) {
     loading = null;
-    const why = e instanceof Error && e.message ? e.message.slice(0, 80) : "compressor could not run";
+    const why = error_text(e, "compressor could not run");
     return { file, note: `Video not compressed: ${why}. Original kept.` };
   } finally {
     if (ff && on_progress) ff.off("progress", on_progress);
