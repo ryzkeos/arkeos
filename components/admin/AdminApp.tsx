@@ -393,15 +393,16 @@ function Projects({ toast, ask }: PanelProps) {
     let media = f.media.trim();
     let saved = false;
     setSaving(true);
+    let report = "";
     try {
       id = await db.dbSaveProject(id, payload);
       saved = true;
       if (staged) {
-        media = await upload_media("project", "projects", media_slot(`project-${slug(f.title) || "untitled"}`), staged, f.media, undefined, (t) => { if (!t.includes("%")) toast(t); });
+        media = await upload_media("project", "projects", media_slot(`project-${slug(f.title) || "untitled"}`), staged, f.media, undefined, (t) => { if (!t.includes("%")) toast(t); }, (note) => { report = note; });
         await db.dbSaveProject(id, { media });
       }
       media_commit("project", [media]);
-      setStaged(null); setEditing(null); load(); toast("Project saved.");
+      setStaged(null); setEditing(null); load(); toast(report ? `Project saved. ${report}` : "Project saved.");
     } catch (e) {
       if (id && id !== editing?.id) { setEditing({ id, hadUrl: !!url }); load(); }
       if (media !== f.media.trim()) { setF((x) => ({ ...x, media })); setStaged(null); }
@@ -474,7 +475,7 @@ function Projects({ toast, ask }: PanelProps) {
           </div>
           <ColorField id="pf-color" label="Accent Color" value={f.color} onChange={(v) => setF((x) => ({ ...x, color: v }))} />
           <ToggleField id="pf-featured" label="Featured" checked={f.featured} onChange={(v) => { if (v && featured_taken >= FEATURED_LIMIT) return toast(limit_msg, true); setF((x) => ({ ...x, featured: v })); }} />
-          <MediaField label="Media (video, image or .html)" accept="video/*,image/*,.html,.htm" folder="projects" scope="project" file_name={`project-${slug(f.title) || "untitled"}`} value={f.media} onChange={(v) => setF((x) => ({ ...x, media: v }))} staged={staged} on_stage={setStaged} toast={toast} placeholder="or paste media URL" />
+          <MediaField label="Media (video, image or .html)" accept="video/*,image/*,.html,.htm" folder="projects" scope="project" file_name={`project-${slug(f.title) || "untitled"}`} value={f.media} onChange={(v) => setF((x) => ({ ...x, media: v }))} staged={staged} on_stage={setStaged} toast={toast} placeholder="Or Paste Media URL" />
         </div>
         <div className="admin-actions admin-actions--end">
           <button className="admin-btn" onClick={() => { media_discard("project"); setStaged(null); setEditing(null); }} disabled={saving} aria-label="Cancel editing">Cancel</button>
@@ -540,17 +541,18 @@ function Services({ toast, ask }: PanelProps) {
     let id = editing?.id ?? null;
     let saved = false;
     const uploaded: Partial<Record<"icon_url" | "cinema_url", string>> = {};
+    const reports: string[] = [];
     setSaving(true);
     try {
       id = await db.dbSaveService(id, payload);
       saved = true;
       for (const [key, part] of [["icon_url", "icon"], ["cinema_url", "cinema"]] as const) {
         const file = staged[key];
-        if (file) uploaded[key] = await upload_media("service", "services", media_slot(`service-${slug(f.title) || "untitled"}-${part}`), file, f[key], undefined, (t) => { if (!t.includes("%")) toast(t); });
+        if (file) uploaded[key] = await upload_media("service", "services", media_slot(`service-${slug(f.title) || "untitled"}-${part}`), file, f[key], undefined, (t) => { if (!t.includes("%")) toast(t); }, (note) => { reports.push(`${part}: ${note}`); });
       }
       if (Object.keys(uploaded).length) await db.dbSaveService(id, uploaded);
       media_commit("service", [uploaded.icon_url ?? f.icon_url, uploaded.cinema_url ?? f.cinema_url]);
-      setStaged({}); setEditing(null); load(); toast("Service saved.");
+      setStaged({}); setEditing(null); load(); toast(reports.length ? `Service saved. ${reports.join(" ")}` : "Service saved.");
     } catch (e) {
       if (id && id !== editing?.id) { setEditing({ id, hadPrice: !!price }); load(); }
       if (Object.keys(uploaded).length) {
@@ -605,8 +607,8 @@ function Services({ toast, ask }: PanelProps) {
             <input type="text" id="sf-price" placeholder="Price text" value={f.price} onChange={(e) => setF({ ...f, price: e.target.value })} />
           </div>
           <ToggleField id="sf-visible" label="Visible on site" checked={f.visible} onChange={(v) => setF((x) => ({ ...x, visible: v }))} />
-          <MediaField label="Icon Image" accept="image/*" folder="services" scope="service" file_name={`service-${slug(f.title) || "untitled"}-icon`} value={f.icon_url} onChange={(v) => setF((x) => ({ ...x, icon_url: v }))} staged={staged.icon_url ?? null} on_stage={(file) => setStaged((x) => ({ ...x, icon_url: file }))} toast={toast} placeholder="or paste icon URL" />
-          <MediaField label="Cinema Preview" accept="video/*,image/*" folder="services" scope="service" file_name={`service-${slug(f.title) || "untitled"}-cinema`} value={f.cinema_url} onChange={(v) => setF((x) => ({ ...x, cinema_url: v }))} staged={staged.cinema_url ?? null} on_stage={(file) => setStaged((x) => ({ ...x, cinema_url: file }))} toast={toast} placeholder="or paste cinema URL" />
+          <MediaField label="Icon Image" accept="image/*" folder="services" scope="service" file_name={`service-${slug(f.title) || "untitled"}-icon`} value={f.icon_url} onChange={(v) => setF((x) => ({ ...x, icon_url: v }))} staged={staged.icon_url ?? null} on_stage={(file) => setStaged((x) => ({ ...x, icon_url: file }))} toast={toast} placeholder="Or Paste Icon URL" />
+          <MediaField label="Cinema Preview" accept="video/*,image/*" folder="services" scope="service" file_name={`service-${slug(f.title) || "untitled"}-cinema`} value={f.cinema_url} onChange={(v) => setF((x) => ({ ...x, cinema_url: v }))} staged={staged.cinema_url ?? null} on_stage={(file) => setStaged((x) => ({ ...x, cinema_url: file }))} toast={toast} placeholder="Or Paste Cinema URL" />
         </div>
         <div className="admin-actions admin-actions--end">
           <button className="admin-btn" onClick={() => { media_discard("service"); setStaged({}); setEditing(null); }} disabled={saving} aria-label="Cancel editing">Cancel</button>
@@ -751,7 +753,7 @@ function Settings({ toast }: Pick<PanelProps, "toast">) {
           <ColorField id="set-accent" label="Global Accent Color" value={accent} onChange={setAccent} wide />
         </div>
         <div className="admin-form-grid">
-          <MediaField label="Hero Background Video" accept="video/mp4,video/webm" folder="hero" scope="settings" file_name="hero-background" value={video} onChange={setVideo} toast={toast} placeholder="or paste video URL" />
+          <MediaField label="Hero Background Video" accept="video/mp4,video/webm" folder="hero" scope="settings" file_name="hero-background" value={video} onChange={setVideo} toast={toast} placeholder="Or Paste Video URL" />
         </div>
         <p className="panel-sub">Empty video shows pure black.</p>
       </div>
