@@ -13,4 +13,4 @@ if (!existsSync(core_src) || !existsSync(worker_src)) {
 
 mkdirSync(dest, { recursive: true });
 for (const file of ["ffmpeg-core.js", "ffmpeg-core.wasm"]) copyFileSync(join(core_src, file), join(dest, file));
-cpSync(worker_src, join(dest, "worker"), { recursive: true });
+cpSync(worker_src, join(dest, "worker"), { recursive: true, filter: (src) => !/\.[^.]+$/.test(src) || src.endsWith(".js") });
