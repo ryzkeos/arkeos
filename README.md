@@ -138,3 +138,7 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 - Background warming of other pages skips videos on phones, low memory devices and Data Saver, and skips videos that are already loaded.
 - Images wider than 1600 px are resized and saved as WebP on upload.
 - Html media on cards loads only when it is near the screen.
+
+### v1.8 (2026-11-02)
+
+- Fixed videos turning black with an endless loading ring after going from Projects to Services and back. A shared video was being emptied when a page closed, so the next page received a video with no file. Pages no longer empty shared videos, and a shared video that lost its file is reloaded automatically.
