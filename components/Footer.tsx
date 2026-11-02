@@ -4,7 +4,8 @@ import Link from "next/link";
 import { fill_vars } from "@/lib/copy";
 import { useCopy } from "@/lib/use_copy";
 import { useSiteSettings } from "./SiteSettings";
-import { SocialIcon, getSocials } from "./SocialIcons";
+import { getSocials } from "@/lib/socials";
+import { SocialIcon } from "./SocialIcons";
 
 export default function Footer() {
   const s = useSiteSettings();
