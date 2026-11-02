@@ -1,6 +1,6 @@
 # Arkeos Web
 
-Company website and project portfolio of Arkeos.
+Company Website and Project Portfolio of Arkeos.
 
 ## About
 
@@ -8,15 +8,15 @@ This is the website for Arkeos, my small studio that builds websites, apps and s
 
 It also shows what I can do as a web developer. Every page is custom built, with its own layouts, animations and media, from the Home page to the Contact form.
 
-Projects, services and page text are stored in a database, so updates don't need a code change, and a section with nothing to show stays hidden. The site also shows whether we are taking new projects.
+Projects, Services and Page Text are stored in a database, so updates don't need a code change, and a section with nothing to show stays hidden. The site also shows whether we are taking new projects.
 
 Pages: Home, Projects, Services, About, Contact and Privacy.
 
 ## Credits
 
-- Author: Arkeos (ryzkeos)
-- Published: October 31, 2026
-- Design inspiration: Pinterest. Credits to the original creators of the pins.
+- Author: John Ruenz (ryzkeos)
+- Published: October 31, 2027
+- Design inspiration: Pinterest. Credits to the Original Creators of Some Pins.
 - Fonts: Zentry, Robert, General Sans
 - Built with: Next.js, React, GSAP, Lenis, Upstash Redis
 
@@ -333,38 +333,25 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 - Home is "Arkeos | Web & System Development Studio". Other pages are "Arkeos | {Page} — Web & System Works". Share titles match.
 - Descriptions stress quality output, rich visuals and animations, lightweight builds and any device. The hero tagline, structured data and About text no longer center on motion work.
 
-### v1.37 (2026-11-02) Share Image
-
-- New og image that follows the Home hero: glowing headline, ghost name, logo and EST. 2026 line in the site fonts, in black and white with arkeos.me.
-
-### v1.38 (2026-11-02) White Default Accent
+### v1.37 (2026-11-02) White Default Accent
 
 - The default accent color is white in globals.css, the hero glow and the color presets.
 
-### v1.39 (2026-11-02) Server Rendered Content
+### v1.38 (2026-11-02) Server Rendered Content
 
 - lib/server_content.ts loads projects, services and settings on the server and refreshes them every minute. The site layout passes them to SiteShell through lib/content_seed.tsx.
 - content_store and use_store start from that data, so the page html holds the real content and the first load has no empty flash. The browser still checks for newer content after the page opens.
 
-### v1.40 (2026-11-02) Structured Data Without Address
+### v1.39 (2026-11-02) Structured Data Without Address
 
 - JsonLd.tsx no longer uses the local business type, which needs a street address. Arkeos is an online studio serving clients worldwide, with a contact point and the saved social links.
 - Moved the social link list to lib/socials.ts so the server can use it.
 
-### v1.41 (2026-11-02) Transparent Header Logo
-
-- LogoMark uses a transparent png of the mark (arkeos_logo_mark.png) so the header logo has no black box on any browser. The animated svg is no longer used in the header.
-
-### v1.42 (2026-11-03) Header Logo Black Box Fix
-
-- The header logo still showed a black box because a global rule gave every image a black background. The header and admin logo marks now have a transparent background, so the header color shows behind the white mark.
-
-### v1.43 (2026-11-03) Share Image Format
+### v1.40 (2026-11-03) Share Image Format
 
 - The share image (og) is now a png instead of webp, so LinkedIn and chat apps show it. Added its size, type and alt text to the page tags so scrapers show it on the first share.
 
-### v1.44 (2026-11-03) Card Tooltips, Year and Hero Lines
+### v1.41 (2026-11-03) Card Tooltips, Year and Hero Lines
 
 - Removed the browser hover tooltip that showed the full description on project and service cards and rows (Home, Projects and Services pages). The description text on the cards is unchanged.
-- Default founded year is now 2027, so the Home eyebrow reads "Est. 2027".
-- All page hero headers now have three lines: About (ABOUT / THE / STUDIO.), Contact (LET'S / START / TALKING.) and Services (OUR / CORE / SERVICES.). Home and Projects already had three. Admin labels now say max 3 lines.
+- All page hero headers now have three lines: About (ABOUT / THE / STUDIO.), Contact (LET'S / START / TALKING.) and Services (OUR / CORE / SERVICES.) for bettter visuals.
