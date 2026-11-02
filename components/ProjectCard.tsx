@@ -38,7 +38,7 @@ export default function ProjectCard({ project, index, variant, layout, reveal = 
       } as CSSProperties}
     >
       <div className="p-card__bg" aria-hidden="true">
-        <ProjectMedia src={project.media} />
+        <ProjectMedia src={project.media} budget />
       </div>
       <div className="p-card__hover" aria-hidden="true" />
       <div className="p-card__body">

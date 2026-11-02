@@ -119,6 +119,13 @@
   width: 100%;
 }
 
+@media (pointer: coarse) {
+  .pg-contact .form-field input,
+  .pg-contact .form-field textarea {
+    font-size: 1rem;
+  }
+}
+
 .pg-contact .form-field input {
   height: var(--field-h);
   padding-block: 0;

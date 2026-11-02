@@ -33,7 +33,7 @@ export default function ServiceCard({ service, icon, index }: Props) {
         <div className="svc-card__ico" aria-hidden="true">
           {icon_src ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={icon_src} alt="" />
+            <img decoding="async" loading="lazy" src={icon_src} alt="" />
           ) : (
             <svg viewBox="0 0 24 24">{icon}</svg>
           )}

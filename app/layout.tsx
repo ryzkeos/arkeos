@@ -1,6 +1,15 @@
 import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 
+const STORAGE_ORIGIN = (() => {
+  try {
+    const raw = process.env.NEXT_PUBLIC_STORAGE_URL || process.env.NEXT_PUBLIC_DATA_API_URL;
+    return raw ? new URL(raw).origin : "";
+  } catch {
+    return "";
+  }
+})();
+
 const DEFAULT_SITE_URL = "http://localhost:3000";
 
 function siteUrl(): URL {
@@ -40,6 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {STORAGE_ORIGIN && <link rel="preconnect" href={STORAGE_ORIGIN} crossOrigin="anonymous" />}
         <script dangerouslySetInnerHTML={{ __html: SKIP_SCRIPT }} />
       </head>
       <body>

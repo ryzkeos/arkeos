@@ -1,3 +1,6 @@
+import { compress_video, is_video_file } from "@/lib/video_compress";
+import { resize_image } from "@/lib/image_compress";
+import { capture_poster } from "@/lib/video_poster";
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
 import * as db from "@/lib/db";
 import { media_ext, media_kind } from "@/lib/media_type";
@@ -116,11 +119,20 @@ export async function upload_media(
   file: File,
   previous: string,
   prepare?: (file: File) => File,
+  on_status?: (text: string) => void,
 ) {
-  const ext = (file.name.split(".").pop() ?? "bin").toLowerCase().replace(/[^a-z0-9]/g, "") || "bin";
+  const ready = await resize_image(await compress_video(prepare ? prepare(file) : file, on_status));
+  const ext = (ready.name.split(".").pop() ?? "bin").toLowerCase().replace(/[^a-z0-9]/g, "") || "bin";
   const path = `${folder}/${slot}.${ext}`;
+  on_status?.("Uploading…");
   await media_backup(scope, previous);
-  await db.dbUpload(MEDIA_BUCKET, path, prepare ? prepare(file) : file);
+  await db.dbUpload(MEDIA_BUCKET, path, ready);
+  if (is_video_file(ready)) {
+    const poster = await capture_poster(ready);
+    if (poster) {
+      try { await db.dbUpload(MEDIA_BUCKET, `${folder}/${slot}.poster.jpg`, poster); } catch {}
+    }
+  }
   const next = `${db.dbPublicUrl(MEDIA_BUCKET, path)}?v=${Date.now()}`;
   media_uploaded(scope, next, previous);
   return next;
@@ -188,6 +200,8 @@ export function MediaField({
     return () => { live = false; };
   }, [folder, slot_base, backup_tick]);
 
+  const [status, setStatus] = useState("");
+
   const send = async (file: File) => {
     const problem = validate ? await validate(file) : null;
     if (problem) {
@@ -197,8 +211,9 @@ export function MediaField({
     }
     setBusy(true);
     setFailed(false);
+    setStatus("");
     try {
-      const next = await upload_media(scope, folder, slot_base, file, value, prepare);
+      const next = await upload_media(scope, folder, slot_base, file, value, prepare, setStatus);
       onChange(next);
       setPicked(null);
       reset_input();
@@ -257,7 +272,7 @@ export function MediaField({
 
   const name = picked ? picked.name : value ? file_name(value) : "";
   const kind = name ? file_kind(name) : null;
-  const meta = busy ? "Uploading…" : failed ? "Upload failed" : picked ? `${file_size(picked.size)} · uploads when you save` : value ? "Uploaded" : hide_url ? "Choose a file to upload" : "Choose a file or paste a link below";
+  const meta = busy ? status || "Uploading…" : failed ? "Upload failed" : picked ? `${file_size(picked.size)} · uploads when you save` : value ? "Uploaded" : hide_url ? "Choose a file to upload" : "Choose a file or paste a link below";
   const state = failed ? "error" : busy ? "busy" : picked ? "ready" : value ? "done" : "empty";
 
   return (

@@ -14,13 +14,13 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 
 ## Credits
 
-- Author: Arkeos (arkeos-kzenon)
+- Author: Arkeos (ryzkeos)
 - Published: October 31, 2026
 - Design inspiration: Pinterest. Credits to the original creators of the pins.
 - Fonts: Zentry, Robert, General Sans
 - Built with: Next.js, React, GSAP, Lenis, Upstash Redis
 
-## Version history
+## Version History
 
 ### v0.1 (2026-10-30)
 
@@ -71,7 +71,7 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 ### v0.5 (2026-11-01)
 
 - Image, video and html media are now detected from the file extension everywhere.
-- Files upload only after saving, and replaced, removed or cancelled files are cleaned up.
+- Media files that are replaced or removed are cleaned up from storage.
 - Html media renders in a sandboxed frame, and video is forced muted with a first frame.
 - Removed the gray block before cards animate in and put black behind media while it loads.
 - Reduced the Projects page to a single section with the featured carousel on top.
@@ -97,5 +97,48 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 
 ### v1.3 (2026-11-02)
 
-- Added robots.txt and a sitemap that list the public pages and keep admin and api out of search.
+- Added robots.txt and a sitemap that list the public pages and keep private routes out of search.
 - Added Vercel Web Analytics, which is cookieless and works with the existing content security policy.
+
+### v1.4 (2026-11-02)
+
+- Mobile layout pass: fixed height card descriptions that scroll, one row footer social icons that shrink to fit, project list buttons beside the tags, and service price and icon at the top right of each card.
+- Moved the mobile menu availability to the top, made the social icons span the full width and kept the header visible while the menu is open.
+- Services and Contact heroes now fill the screen, all projects show in the Projects page cards and list, and the section buttons are hidden on mobile in Services and About.
+- Home shows featured projects first, then fills the rest with other projects.
+- The preloader can no longer go past 100 percent, and videos now retry when they stall or pause.
+- Fixed zoom on the Contact inputs on mobile.
+- Hid the featured block unless a project is featured.
+- The hero video is skipped on Data Saver or reduced motion.
+- After the intro finishes, the site prefetches the other pages and warms up their images and videos in the background. It skips media on slow connections and Data Saver.
+
+### v1.5 (2026-11-02)
+
+- Lighter menu, header and page grain, smoother cursor, and shorter reveal delays on every page, including the About team photos.
+- Videos keep playing while scrolled out of view, pause in hidden tabs and are released when leaving a page. Html media runs only while visible.
+- Videos load lazily and the preloader waits only for media near the first screen.
+- Videos are compressed before upload and cached for a year, with a storage config script for Supabase.
+
+### v1.6 (2026-11-02)
+
+- Smoother mobile menu: the header glass fades instead of switching off, the page grain hides while the menu is open and mobile toolbar resizes no longer refresh scroll animations.
+- The header logo now uses the animated logo mark. It plays once after the intro, then stays still.
+- The hero title glow is no longer cut off at the edges of each line once the intro finishes.
+- Added a small loading ring on videos, html media and images, so a stalled or returning video shows why it stopped.
+
+### v1.7 (2026-11-02)
+
+- Projects page shows 10 cards first, with a Load more button and a "Showing 10 of 24" line. New cards come from memory, so there are no extra requests.
+- Every video now loads once and is shared. The same video is reused across pages, between the Cards and List views, between the featured carousel and the cards, and in Services, section headers and the call to action. A shared video shows in one place at a time and the other place shows its first frame image. A video that is no longer used is released after 30 seconds.
+- Videos on the Projects page share a play limit: 10 on desktop, 6 on phones and 4 on low memory devices. The videos closest to the screen play, the farthest pause first, and videos far from the screen are unloaded. Videos that may not play do not download ahead.
+- New video uploads also save a small first frame image next to the video, shown while a video loads or after it is unloaded. Older videos can have theirs created in one step. Deleting a project or replacing a video removes its image too.
+- The hero video restarts from the beginning with a short black fade each time you open a page, even though the video file is shared between pages.
+- Fixed project videos staying on the loading ring after leaving the page and coming back. Video placement is now rechecked every half second and a video that fails to start is retried.
+- Cards show a still frame on Data Saver or reduced motion. The featured carousel plays only its current slide.
+- Background warming of other pages skips videos on phones, low memory devices and Data Saver, and skips videos that are already loaded.
+- Images wider than 1600 px are resized and saved as WebP on upload.
+- Html media on cards loads only when it is near the screen.
+
+### v1.8 (2026-11-02)
+
+- Fixed videos turning black with an endless loading ring after going from Projects to Services and back. A shared video was being emptied when a page closed, so the next page received a video with no file. Pages no longer empty shared videos, and a shared video that lost its file is reloaded automatically.
