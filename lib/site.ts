@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 
 export const DEFAULT_SITE_URL = "https://arkeos.me";
 export const SITE_NAME = "Arkeos";
-export const SITE_DESCRIPTION =
-  "Arkeos is a small studio offering web and system development: websites, web apps, custom software and motion design built with privacy first.";
+export const SITE_SUMMARY =
+  "Web development, system development, software development and every kind of development in soft tech, built with privacy first";
+export const SITE_DESCRIPTION = `${SITE_SUMMARY}.`;
 export const SITE_KEYWORDS = [
   "Arkeos",
   "web development",
@@ -12,7 +13,8 @@ export const SITE_KEYWORDS = [
   "custom software development",
   "web app development",
   "website design and development",
-  "motion design",
+  "software development",
+  "soft tech development",
 ];
 export const OG_IMAGE = "/assets/img/og.webp";
 

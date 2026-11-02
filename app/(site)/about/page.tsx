@@ -6,7 +6,7 @@ export const metadata = page_meta({
   path: "/about",
   title: "About",
   share_title: "Arkeos | About",
-  description: "The story, values and people behind Arkeos, a small studio for web and system development.",
+  description: "The story, values and people behind Arkeos, a small studio for web, system and software development.",
 });
 
 export default function AboutPage() {

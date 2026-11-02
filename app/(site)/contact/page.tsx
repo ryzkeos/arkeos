@@ -5,7 +5,7 @@ export const metadata = page_meta({
   path: "/contact",
   title: "Contact",
   share_title: "Arkeos | Contact",
-  description: "Start a web or system development project with Arkeos. Send your scope, budget and timeline.",
+  description: "Start a web, system or software development project with Arkeos. Send your scope, budget and timeline.",
 });
 
 export default function Page() {

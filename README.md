@@ -170,4 +170,4 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 
 ### v1.13 (2026-11-02)
 
-- Page titles are now short again: Arkeos | Home, Arkeos | Services, Arkeos | About, Arkeos | Projects, Arkeos | Contact and Arkeos | Privacy Policy. The keyword descriptions and structured data stay.
+- Page titles are now short again: Arkeos | Home, Arkeos | Services, Arkeos | About, Arkeos | Projects, Arkeos | Contact and Arkeos | Privacy Policy. The home page title also carries the full description so it can be searched. Descriptions, keywords and structured data now list web, system and software development and no longer mention motion design.
