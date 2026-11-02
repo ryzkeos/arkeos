@@ -362,3 +362,9 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 ### v1.43 (2026-11-03) Share Image Format
 
 - The share image (og) is now a png instead of webp, so LinkedIn and chat apps show it. Added its size, type and alt text to the page tags so scrapers show it on the first share.
+
+### v1.44 (2026-11-03) Card Tooltips, Year and Hero Lines
+
+- Removed the browser hover tooltip that showed the full description on project and service cards and rows (Home, Projects and Services pages). The description text on the cards is unchanged.
+- Default founded year is now 2027, so the Home eyebrow reads "Est. 2027".
+- All page hero headers now have three lines: About (ABOUT / THE / STUDIO.), Contact (LET'S / START / TALKING.) and Services (OUR / CORE / SERVICES.). Home and Projects already had three. Admin labels now say max 3 lines.
