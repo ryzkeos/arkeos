@@ -1,16 +1,16 @@
-import type { Metadata } from "next";
 import HomeView from "@/components/HomeView";
+import JsonLd from "@/components/JsonLd";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE, page_meta } from "@/lib/site";
 
-const TITLE = "Arkeos | Home";
-const DESCRIPTION = "Arkeos is a small studio that builds websites, apps and motion work. See our projects and services.";
+const TITLE = `${SITE_NAME} | ${SITE_TAGLINE}`;
 
-export const metadata: Metadata = {
-  title: { absolute: TITLE },
-  description: DESCRIPTION,
-  openGraph: { type: "website", title: TITLE, description: DESCRIPTION, images: ["/assets/img/og.webp"] },
-  twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION },
-};
+export const metadata = page_meta({ path: "/", title: { absolute: TITLE }, share_title: TITLE, description: SITE_DESCRIPTION });
 
 export default function Page() {
-  return <HomeView />;
+  return (
+    <>
+      <JsonLd />
+      <HomeView />
+    </>
+  );
 }
