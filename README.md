@@ -153,3 +153,4 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 ### v1.10 (2026-11-02)
 
 - Every media upload now shows a short note in the confirmation message: whether the file was compressed or resized, the size before and after, or the reason it was not, plus the final uploaded size. This covers videos, images and other files.
+- Video compression now loads its worker from the site's own files instead of the bundled copy, to stop the "module not found" error. The build also stops with a clear error if the compressor files are missing.
