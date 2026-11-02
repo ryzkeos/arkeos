@@ -1,5 +1,6 @@
 import { compress_video, is_video_file } from "@/lib/video_compress";
 import { resize_image } from "@/lib/image_compress";
+import { size_label } from "@/lib/size_label";
 import { capture_poster } from "@/lib/video_poster";
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
 import * as db from "@/lib/db";
@@ -120,8 +121,12 @@ export async function upload_media(
   previous: string,
   prepare?: (file: File) => File,
   on_status?: (text: string) => void,
+  on_report?: (note: string) => void,
 ) {
-  const ready = await resize_image(await compress_video(prepare ? prepare(file) : file, on_status));
+  const packed = await compress_video(prepare ? prepare(file) : file, on_status);
+  const sized = await resize_image(packed.file);
+  const ready = sized.file;
+  const note = packed.note || sized.note || "No compression for this file type.";
   const ext = (ready.name.split(".").pop() ?? "bin").toLowerCase().replace(/[^a-z0-9]/g, "") || "bin";
   const path = `${folder}/${slot}.${ext}`;
   on_status?.("Uploading…");
@@ -135,6 +140,7 @@ export async function upload_media(
   }
   const next = `${db.dbPublicUrl(MEDIA_BUCKET, path)}?v=${Date.now()}`;
   media_uploaded(scope, next, previous);
+  on_report?.(`${note} Uploaded ${size_label(ready.size)}.`);
   return next;
 }
 
@@ -212,13 +218,14 @@ export function MediaField({
     setBusy(true);
     setFailed(false);
     setStatus("");
+    let report = "";
     try {
-      const next = await upload_media(scope, folder, slot_base, file, value, prepare, setStatus);
+      const next = await upload_media(scope, folder, slot_base, file, value, prepare, setStatus, (note) => { report = note; });
       onChange(next);
       setPicked(null);
       reset_input();
       setBackupTick((n) => n + 1);
-      toast("File uploaded.");
+      toast(report ? `File uploaded. ${report}` : "File uploaded.");
     } catch (e) {
       setFailed(true);
       toast(msg(e, "Upload failed."), true);

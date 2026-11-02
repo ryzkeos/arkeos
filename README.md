@@ -149,3 +149,7 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 - Sign in now checks the account type and shows the normal invalid login message for accounts without access.
 - Access rules for the contact form and page view tracking now check every field at the database, so direct requests with oversized, malformed or unexpected values are rejected.
 - Fixed a high severity PostCSS issue in the build tools by pinning PostCSS to the patched version. No change to how the site looks or works.
+
+### v1.10 (2026-11-02)
+
+- Every media upload now shows a short note in the confirmation message: whether the file was compressed or resized, the size before and after, or the reason it was not, plus the final uploaded size. This covers videos, images and other files.

@@ -393,15 +393,16 @@ function Projects({ toast, ask }: PanelProps) {
     let media = f.media.trim();
     let saved = false;
     setSaving(true);
+    let report = "";
     try {
       id = await db.dbSaveProject(id, payload);
       saved = true;
       if (staged) {
-        media = await upload_media("project", "projects", media_slot(`project-${slug(f.title) || "untitled"}`), staged, f.media, undefined, (t) => { if (!t.includes("%")) toast(t); });
+        media = await upload_media("project", "projects", media_slot(`project-${slug(f.title) || "untitled"}`), staged, f.media, undefined, (t) => { if (!t.includes("%")) toast(t); }, (note) => { report = note; });
         await db.dbSaveProject(id, { media });
       }
       media_commit("project", [media]);
-      setStaged(null); setEditing(null); load(); toast("Project saved.");
+      setStaged(null); setEditing(null); load(); toast(report ? `Project saved. ${report}` : "Project saved.");
     } catch (e) {
       if (id && id !== editing?.id) { setEditing({ id, hadUrl: !!url }); load(); }
       if (media !== f.media.trim()) { setF((x) => ({ ...x, media })); setStaged(null); }
@@ -540,17 +541,18 @@ function Services({ toast, ask }: PanelProps) {
     let id = editing?.id ?? null;
     let saved = false;
     const uploaded: Partial<Record<"icon_url" | "cinema_url", string>> = {};
+    const reports: string[] = [];
     setSaving(true);
     try {
       id = await db.dbSaveService(id, payload);
       saved = true;
       for (const [key, part] of [["icon_url", "icon"], ["cinema_url", "cinema"]] as const) {
         const file = staged[key];
-        if (file) uploaded[key] = await upload_media("service", "services", media_slot(`service-${slug(f.title) || "untitled"}-${part}`), file, f[key], undefined, (t) => { if (!t.includes("%")) toast(t); });
+        if (file) uploaded[key] = await upload_media("service", "services", media_slot(`service-${slug(f.title) || "untitled"}-${part}`), file, f[key], undefined, (t) => { if (!t.includes("%")) toast(t); }, (note) => { reports.push(`${part}: ${note}`); });
       }
       if (Object.keys(uploaded).length) await db.dbSaveService(id, uploaded);
       media_commit("service", [uploaded.icon_url ?? f.icon_url, uploaded.cinema_url ?? f.cinema_url]);
-      setStaged({}); setEditing(null); load(); toast("Service saved.");
+      setStaged({}); setEditing(null); load(); toast(reports.length ? `Service saved. ${reports.join(" ")}` : "Service saved.");
     } catch (e) {
       if (id && id !== editing?.id) { setEditing({ id, hadPrice: !!price }); load(); }
       if (Object.keys(uploaded).length) {
