@@ -1,5 +1,9 @@
 import SiteShell from "@/components/SiteShell";
+import { load_seed } from "@/lib/server_content";
 
-export default function SiteLayout({ children }: { children: React.ReactNode }) {
-  return <SiteShell>{children}</SiteShell>;
+export const revalidate = 60;
+
+export default async function SiteLayout({ children }: { children: React.ReactNode }) {
+  const seed = await load_seed();
+  return <SiteShell seed={seed}>{children}</SiteShell>;
 }
