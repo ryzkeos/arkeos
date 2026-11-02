@@ -30,7 +30,7 @@ export default function ServiceRow({ service, index }: Props) {
       <span className="svc-num" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
       <div className="svc-body">
         <h3 className="svc-title">{service.title}</h3>
-        {service.description ? <p className="svc-desc" data-lenis-prevent title={service.description}>{service.description}</p> : null}
+        {service.description ? <p className="svc-desc" data-lenis-prevent>{service.description}</p> : null}
         {tags.length > 0 && (
           <div className="svc-tags">
             {tags.map((t) => <span key={t} className="tag">{t}</span>)}
