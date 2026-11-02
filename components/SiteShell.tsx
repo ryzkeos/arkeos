@@ -7,19 +7,24 @@ import WarmPages from "./WarmPages";
 import SmoothScroll from "./SmoothScroll";
 import Header from "./Header";
 import Footer from "./Footer";
+import { ContentSeedProvider, type ContentSeed } from "@/lib/content_seed";
 import { SiteSettingsProvider } from "./SiteSettings";
 
-export default function SiteShell({ children }: { children: React.ReactNode }) {
+const NO_SEED: ContentSeed = {};
+
+export default function SiteShell({ children, seed }: { children: React.ReactNode; seed?: ContentSeed }) {
   return (
-    <SiteSettingsProvider>
-      <Preloader />
-      <WarmPages />
-      <Cursor />
-      <PageTransition />
-      <SmoothScroll />
-      <Header />
-      {children}
-      <Footer />
-    </SiteSettingsProvider>
+    <ContentSeedProvider value={seed ?? NO_SEED}>
+      <SiteSettingsProvider>
+        <Preloader />
+        <WarmPages />
+        <Cursor />
+        <PageTransition />
+        <SmoothScroll />
+        <Header />
+        {children}
+        <Footer />
+      </SiteSettingsProvider>
+    </ContentSeedProvider>
   );
 }

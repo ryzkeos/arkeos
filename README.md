@@ -172,3 +172,9 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 
 - Home title is "Arkeos | Web & System Development Studio". Every other page uses "Arkeos | {Page} — Web & System Works", for example "Arkeos | Services — Web & System Works". Share titles match. Page descriptions now stress quality output, rich visuals and animations, lightweight builds and flexibility on any device. The hero tagline, structured data and About text no longer center on motion work.
 - New share image (og.webp) with the site fonts and the Web & System Development Studio line.
+
+### v1.14 (2026-11-02)
+
+- Projects, services, site settings and page text are now loaded on the server and sent inside the page html. Search engines and link previews see the real content instead of an empty page, and visitors no longer see the empty flash on first load. The server copy is refreshed every minute, and the browser still checks for newer content after the page opens.
+- Fixed the search warnings about missing business info. The structured data no longer uses the local business type, which needs a street address. Arkeos is now described as an online studio that serves clients worldwide, with a contact point and the social links saved in the admin panel.
+- The new share image follows the home hero. The default accent color is now white everywhere, including the admin panel and the color presets.
