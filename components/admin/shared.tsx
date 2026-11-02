@@ -1,4 +1,5 @@
-import { compress_video } from "@/lib/video_compress";
+import { compress_video, is_video_file } from "@/lib/video_compress";
+import { capture_poster } from "@/lib/video_poster";
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
 import * as db from "@/lib/db";
 import { media_ext, media_kind } from "@/lib/media_type";
@@ -125,6 +126,12 @@ export async function upload_media(
   on_status?.("Uploading…");
   await media_backup(scope, previous);
   await db.dbUpload(MEDIA_BUCKET, path, ready);
+  if (is_video_file(ready)) {
+    const poster = await capture_poster(ready);
+    if (poster) {
+      try { await db.dbUpload(MEDIA_BUCKET, `${folder}/${slot}.poster.jpg`, poster); } catch {}
+    }
+  }
   const next = `${db.dbPublicUrl(MEDIA_BUCKET, path)}?v=${Date.now()}`;
   media_uploaded(scope, next, previous);
   return next;

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { safeUrl } from "@/lib/gsap";
 import { media_kind } from "@/lib/media_type";
 import { use_motion_allowed } from "@/hooks/use_motion_allowed";
+import { poster_url } from "@/lib/video_poster";
 import { register_video, type VideoSlot } from "@/lib/video_budget";
 import { use_video_keepalive } from "@/hooks/use_video_keepalive";
 import { use_video_loading } from "@/hooks/use_video_loading";
@@ -17,6 +18,7 @@ export default function ProjectMedia({ src, active = true, budget = false }: Pro
   const video = useRef<HTMLVideoElement>(null);
 
   const kind = url ? media_kind(url) : null;
+  const poster = budget && kind === "video" ? poster_url(url) : null;
   const motion = use_motion_allowed();
   const live = active && (!budget || motion);
   const [slot, set_slot] = useState<VideoSlot | null>(null);
@@ -37,7 +39,7 @@ export default function ProjectMedia({ src, active = true, budget = false }: Pro
   if (!url) return null;
   if (kind === "video") return (
     <>
-      <video ref={video} src={url.includes("#") ? url : `${url}#t=0.001`} muted loop playsInline preload="metadata" aria-hidden="true" />
+      <video ref={video} src={url.includes("#") ? url : `${url}#t=0.001`} poster={poster ?? undefined} muted loop playsInline preload={poster ? "none" : "metadata"} aria-hidden="true" />
       {loading && <MediaLoader />}
     </>
   );
