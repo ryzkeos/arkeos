@@ -1,9 +1,15 @@
-import { DEFAULTS } from "@/defaults";
+import { getIdentity } from "@/lib/content";
+import { load_settings } from "@/lib/server_content";
 import { SITE_DESCRIPTION, SITE_NAME, abs_url } from "@/lib/site";
+import { getSocials } from "@/lib/socials";
 
-export default function JsonLd() {
+const SERVICE_TYPES = ["Web development", "System development", "Software development"];
+
+export default async function JsonLd() {
+  const settings = await load_settings();
+  const identity = getIdentity(settings);
+  const same_as = getSocials(settings).map((s) => s.href);
   const url = abs_url("/");
-  const brand = DEFAULTS.shared.brand;
   const graph = [
     {
       "@type": "Organization",
@@ -11,9 +17,19 @@ export default function JsonLd() {
       name: SITE_NAME,
       url,
       logo: abs_url("/apple-icon.png"),
-      email: brand.email,
-      foundingDate: String(brand.founded_year),
+      email: identity.email,
+      foundingDate: String(identity.foundedYear),
       description: SITE_DESCRIPTION,
+      areaServed: "Worldwide",
+      knowsAbout: SERVICE_TYPES,
+      contactPoint: {
+        "@type": "ContactPoint",
+        contactType: "customer service",
+        email: identity.email,
+        availableLanguage: "English",
+        url: abs_url("/contact"),
+      },
+      ...(same_as.length > 0 ? { sameAs: same_as } : {}),
     },
     {
       "@type": "WebSite",
@@ -25,12 +41,13 @@ export default function JsonLd() {
       publisher: { "@id": `${url}#organization` },
     },
     {
-      "@type": "ProfessionalService",
+      "@type": "Service",
       "@id": `${url}#service`,
-      name: SITE_NAME,
+      name: "Web & System Development",
       url,
       description: SITE_DESCRIPTION,
-      serviceType: ["Web development", "System development", "Motion design"],
+      serviceType: SERVICE_TYPES,
+      areaServed: "Worldwide",
       provider: { "@id": `${url}#organization` },
     },
   ];

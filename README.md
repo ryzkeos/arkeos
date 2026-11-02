@@ -4,7 +4,7 @@ Company website and project portfolio of Arkeos.
 
 ## About
 
-This is the website for Arkeos, my small studio that builds websites, apps and motion work. It is our company site and my portfolio in one place. Visitors can look through our projects and services, read about the studio, and get in touch to start a project.
+This is the website for Arkeos, my small studio that builds websites, apps and systems. It is our company site and my portfolio in one place. Visitors can look through our projects and services, read about the studio, and get in touch to start a project.
 
 It also shows what I can do as a web developer. Every page is custom built, with its own layouts, animations and media, from the Home page to the Contact form.
 
@@ -22,148 +22,331 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 
 ## Version History
 
-### v0.1 (2026-10-30)
+### v0.1 (2026-10-30) Next.js Port
 
-- Ported the project to Next.js and React.
-- Made the Home, Projects, About, Services and Contact pages data driven, with safe project links.
-- Connected the header, footer and call to action to the site settings.
-- Added the Privacy page.
-- Shortened the preloader, set neutral page metadata and sized the grids to their content.
+- Moved the site to Next.js and React with the app router, one route per page.
+- Home, Projects, About, Services and Contact render from data (HomeView, ProjectsView, AboutView, ServicesView). Project links pass a safe url check.
+- Header, footer and call to action read the site settings. Added the Privacy page.
+- Neutral page metadata, a shorter preloader and grids sized to their content.
 
-### v0.2 (2026-10-31)
+### v0.2 (2026-10-31) Database Content
 
-- Content now loads from the database. The sample projects and team were removed and an empty fallback was added.
-- Added custom fonts from validated urls, then bundled local fonts.
-- Moved data access into its own layer and added a database schema with access rules, constraints and storage policies. It can also create the tables from scratch.
-- Added security headers and a content security policy.
-- Added a protected contact form with a honeypot, rate limiting and input cleanup.
-- Made the hero headline and decoration data driven, added hero and About images, a hero video and full height page heroes.
-- Added a preloader based on real resource loading, shown once per session.
-- Added a sharper cursor, a full screen mobile menu and social icons.
-- Shortened the page transition so it never blocks link clicks, and made accent colors follow the theme color.
-- Added weekly dependency updates.
+- Removed the sample projects and team. Added an empty fallback in defaults.
+- Added content loaders and hooks (lib/content.ts, useContent) and a settings loaded flag in SiteSettings.
+- Moved data access to lib/db/adapter.ts with its own env names, plus upsert, count and inquiry post.
+- Hero headline, ghost word and About images now come from data.
 
-### v0.3 (2026-10-31)
+### v0.3 (2026-10-31) Custom Fonts
 
-- Moved all site text into a defaults folder with merge logic, so every page reads its text from one place.
-- Added a shared hero and section header for every page.
-- Connected Services, About, Privacy, the 404 page, Contact, Home and Projects to the shared text.
-- Added bento style project cards with image, video and html media, grouped layouts for one to five cards, and details that reveal every five seconds.
-- Added a featured carousel with auto swipe and a card or list switch on the Projects page.
-- Added service rows with image, video or html media, plus an animated process flow on the Services page.
-- Made the section header media span the full width.
-- Added a contact call to action with media shapes behind the headline.
-- Removed the unused pillars feature.
+- SiteSettings injects woff2 font faces from urls checked against the storage origin.
+- Bundled local fonts in globals.css and added a noscript fallback.
 
-### v0.4 (2026-11-01)
+### v0.4 (2026-10-31) Database Schema
 
-- Reworked the call to action into a four wall corridor with a blended headline, entry drift, scroll parallax and an idle float.
-- Gave the Projects page a full height hero and a wider featured description.
-- Redesigned the process section on the Services page as a connected timeline.
-- Made About use the same numbers as Home and gave it a longer story.
-- Polished the Contact page with line style inputs, a custom select modal and a centered success state.
-- Cached database content in the browser so pages render right away, then refresh in the background.
-- Extended the section header media over the section padding with an edge fade.
-- Redesigned the service cards and the core value cards, and added a shared left to right hover sweep for buttons.
-- Moved Projects above Services on Home, removed the price tag from the Home service cards and removed buttons from sections that do not need them.
-- Fixed the Services page animations so section labels stay visible.
+- db/schema.sql is repeatable and sets up tables, row level security, constraints and storage policies. It can create the tables from scratch.
 
-### v0.5 (2026-11-01)
+### v0.5 (2026-10-31) Security Headers
 
-- Image, video and html media are now detected from the file extension everywhere.
-- Media files that are replaced or removed are cleaned up from storage.
-- Html media renders in a sandboxed frame, and video is forced muted with a first frame.
-- Removed the gray block before cards animate in and put black behind media while it loads.
-- Reduced the Projects page to a single section with the featured carousel on top.
-- Added a full data reset script and removed unused tables and fields from the schema.
+- next.config.mjs sets security headers and a content security policy built from env values.
+- Private routes are noindex, env files are ignored and an empty or invalid site url is tolerated (layout.tsx).
 
-### v1.0 (2026-11-01)
+### v0.6 (2026-10-31) Contact Form Protection
 
-- First stable release.
-- Rewrote the README and added the Pinterest credit.
+- app/api/inquiry/route.ts validates every field, adds a honeypot and a rate limit, and strips control characters.
+
+### v0.7 (2026-10-31) Real Loading Preloader
+
+- usePreloadProgress measures real resource loading instead of a timer.
+- Preloader shows once per session on any entry page (lib/preloader.ts).
+
+### v0.8 (2026-10-31) Hero Rework
+
+- PageHero is full height with the same top padding as Home. Added the hero video setting.
+- Home headline and ghost word are data driven. Added the scroll chevron, flicker animation, scattered glow and hover reveal word (HomeView, home.css).
+
+### v0.9 (2026-10-31) Cursor, Menu And Transition
+
+- Cursor.tsx is a sharper, smaller reticle.
+- Header has a zip style menu button and a full screen mobile overlay with icon socials (SocialIcons).
+- PageTransition is shorter and never blocks link clicks.
+
+### v0.10 (2026-10-31) Accent Follows Theme
+
+- Accent tints in globals.css and about.css follow the theme color setting.
+
+### v0.11 (2026-10-31) Project Cards
+
+- ProjectCard, ProjectGrid and ProjectMedia render bento cards with image, video and html media.
+- Grouped layouts for one to five cards and a 2:1 solo card.
+- Details reveal every five seconds (use_card_peek). Tags scroll with an inline call to action.
+
+### v0.12 (2026-10-31) Service Media
+
+- ServiceCard and ServiceRow show image, video or html media (CinemaMedia, use_cinema_active). Media is always visible and plays on hover.
+- Removed the unused pillars feature (types, loaders, db functions).
+
+### v0.13 (2026-10-31) Shared Text System
+
+- Moved all site text into defaults/ with merge logic (lib/copy.ts) and a use_copy hook.
+- Wired Home, Projects, Services, About, Contact, Privacy, 404 and the shell components to it.
+
+### v0.14 (2026-10-31) Shared Hero And Section Header
+
+- HeroLayout and use_hero_intro give every page the same hero.
+- SectionHeader gives every section the same header with a default intro and buttons.
+
+### v0.15 (2026-10-31) Projects Featured Carousel
+
+- ProjectFeatured swipes every five seconds. ProjectRow and ProjectsMore add the cards and list switch.
+- The Projects page is one section with the carousel on top at 2:1, a full height hero and a wider featured description.
+
+### v0.16 (2026-11-01) Section Header Media
+
+- Header media spans the full width, extends over the section padding and fades at the edges (section_header.css).
+
+### v0.17 (2026-11-01) Call To Action Corridor
+
+- CtaSection frames image, video or html media as a four wall corridor behind the headline, with a difference blend on the letters.
+- Added entry drift, scroll parallax and an idle float.
+
+### v0.18 (2026-11-01) Services Process Timeline
+
+- ProcessFlow is a connected timeline with its own animation (services.css).
+
+### v0.19 (2026-11-01) About Numbers And Values
+
+- About uses the same counters as Home and a longer story.
+- Core value cards have a new hover animation (about.css).
+
+### v0.20 (2026-11-01) Contact Page Polish
+
+- ContactView has line style inputs, equal field heights and a readable send button.
+- SelectModal replaces the native select. The success state is centered with a square check icon.
+
+### v0.21 (2026-11-01) Browser Content Cache
+
+- lib/cache.ts keeps database content in local storage. content_store and use_store render cached data first, then refresh in the background.
+
+### v0.22 (2026-11-01) Service Cards And Button Sweep
+
+- Redesigned the service cards on Home and Services (ServiceCard, ServiceRow).
+- Added a shared left to right hover sweep in globals.css for buttons, service cards and value cards.
+
+### v0.23 (2026-11-01) Home Section Order
+
+- Projects now come before Services on Home (HomeView). The price tag is removed from the Home service cards.
+
+### v0.24 (2026-11-01) Section Labels And Buttons
+
+- Section header buttons reveal on every page (useArkeosAnimations).
+- Services animations run once so section labels stay visible.
+- Removed buttons from sections that do not need them.
+
+### v0.25 (2026-11-01) Media Type From File Extension
+
+- lib/media_type.ts detects image, video or html from the file extension. CinemaMedia, ProjectMedia, SectionHeader and CtaSection use it, and the manual media type fields are gone.
+
+### v0.26 (2026-11-01) Media Storage Cleanup
+
+- Replaced or removed media files are deleted from storage only after the save succeeds, and cancelled uploads are cleaned up (media_tx.ts).
+- Files upload after their row is saved. One backup is kept per upload slot.
+
+### v0.27 (2026-11-01) Html Media Sandbox
+
+- HtmlFrame renders html media in a sandboxed srcdoc frame.
+- Video is forced muted and shows a first frame.
+
+### v0.28 (2026-11-01) No Gray Block
+
+- Removed the gray block before cards animate and put black behind media while it loads (globals, home, about, projects and service_card css).
+
+### v0.29 (2026-11-01) Data Reset Script
+
+- db/reset.sql wipes the content and keeps user accounts.
+- Removed the unused pillars table and cinema_type from the schema.
+
+### v1.0 (2026-11-01) First Stable Release
+
+- Rewrote the README around the project purpose and added the Pinterest credit.
 - Removed the dependency update config.
 
-### v1.1 (2026-11-01)
+### v1.1 (2026-11-01) Shared Rate Limit
 
-- Moved the contact form rate limit to Upstash Redis so it works across serverless instances on Vercel.
-- Added a fallback limiter for local development when Upstash is not set up.
+- lib/rate_limit.ts uses Upstash Redis so the contact form limit works across serverless instances. A local limiter is the fallback when Upstash is not set up.
 
-### v1.2 (2026-11-01)
+### v1.2 (2026-11-01) Page Title Format
 
-- Page titles now follow the Arkeos | Page format.
-- Added the Arkeos logo as the browser tab icon and the phone home screen icon.
-- Added the animated logo SVG.
-- Added the logo mark beside the name in the header.
+- Page titles in layout.tsx and each page follow the Arkeos | Page format.
 
-### v1.3 (2026-11-02)
+### v1.3 (2026-11-01) Logo Branding
 
-- Added robots.txt and a sitemap that list the public pages and keep private routes out of search.
-- Added Vercel Web Analytics, which is cookieless and works with the existing content security policy.
+- Added the animated logo svg, the browser tab icon (icon.svg, favicon.ico) and the phone home screen icon (apple-icon.png).
+- LogoMark sits beside the name in Header.
 
-### v1.4 (2026-11-02)
+### v1.4 (2026-11-02) Robots And Sitemap
 
-- Mobile layout pass: fixed height card descriptions that scroll, one row footer social icons that shrink to fit, project list buttons beside the tags, and service price and icon at the top right of each card.
-- Moved the mobile menu availability to the top, made the social icons span the full width and kept the header visible while the menu is open.
-- Services and Contact heroes now fill the screen, all projects show in the Projects page cards and list, and the section buttons are hidden on mobile in Services and About.
-- Home shows featured projects first, then fills the rest with other projects.
-- The preloader can no longer go past 100 percent, and videos now retry when they stall or pause.
-- Fixed zoom on the Contact inputs on mobile.
-- Hid the featured block unless a project is featured.
-- The hero video is skipped on Data Saver or reduced motion.
-- After the intro finishes, the site prefetches the other pages and warms up their images and videos in the background. It skips media on slow connections and Data Saver.
+- app/robots.ts and app/sitemap.ts list the public pages and keep private routes out of search.
 
-### v1.5 (2026-11-02)
+### v1.5 (2026-11-02) Web Analytics
 
-- Lighter menu, header and page grain, smoother cursor, and shorter reveal delays on every page, including the About team photos.
-- Videos keep playing while scrolled out of view, pause in hidden tabs and are released when leaving a page. Html media runs only while visible.
-- Videos load lazily and the preloader waits only for media near the first screen.
-- Videos are compressed before upload and cached for a year, with a storage config script for Supabase.
+- Added Vercel Web Analytics in layout.tsx. It is cookieless and works with the content security policy.
 
-### v1.6 (2026-11-02)
+### v1.6 (2026-11-02) Mobile Layout Pass
 
-- Smoother mobile menu: the header glass fades instead of switching off, the page grain hides while the menu is open and mobile toolbar resizes no longer refresh scroll animations.
-- The header logo now uses the animated logo mark. It plays once after the intro, then stays still.
-- The hero title glow is no longer cut off at the edges of each line once the intro finishes.
-- Added a small loading ring on videos, html media and images, so a stalled or returning video shows why it stopped.
+- Cards have fixed height descriptions that scroll. Footer socials fit one row. List buttons sit beside the tags. Service price and icon sit at the top right.
+- The mobile menu shows availability first and full width socials, and the header stays visible while it is open.
+- Services and Contact heroes fill the screen. The Projects page shows every project in cards and list. Section buttons are hidden on Services and About.
+- Fixed input zoom on Contact (contact.css).
 
-### v1.7 (2026-11-02)
+### v1.7 (2026-11-02) Featured Projects
 
-- Projects page shows 10 cards first, with a Load more button and a "Showing 10 of 24" line. New cards come from memory, so there are no extra requests.
-- Every video now loads once and is shared. The same video is reused across pages, between the Cards and List views, between the featured carousel and the cards, and in Services, section headers and the call to action. A shared video shows in one place at a time and the other place shows its first frame image. A video that is no longer used is released after 30 seconds.
-- Videos on the Projects page share a play limit: 10 on desktop, 6 on phones and 4 on low memory devices. The videos closest to the screen play, the farthest pause first, and videos far from the screen are unloaded. Videos that may not play do not download ahead.
-- New video uploads also save a small first frame image next to the video, shown while a video loads or after it is unloaded. Older videos can have theirs created in one step. Deleting a project or replacing a video removes its image too.
-- The hero video restarts from the beginning with a short black fade each time you open a page, even though the video file is shared between pages.
-- Fixed project videos staying on the loading ring after leaving the page and coming back. Video placement is now rechecked every half second and a video that fails to start is retried.
-- Cards show a still frame on Data Saver or reduced motion. The featured carousel plays only its current slide.
-- Background warming of other pages skips videos on phones, low memory devices and Data Saver, and skips videos that are already loaded.
-- Images wider than 1600 px are resized and saved as WebP on upload.
-- Html media on cards loads only when it is near the screen.
+- Home shows featured projects first, then fills the rest (HomeView).
+- The Projects page hides the featured block unless a project is featured. Removed the unused featured title and intro fields.
 
-### v1.8 (2026-11-02)
+### v1.8 (2026-11-02) Preloader And Video Keepalive
 
-- Fixed videos turning black with an endless loading ring after going from Projects to Services and back. A shared video was being emptied when a page closed, so the next page received a video with no file. Pages no longer empty shared videos, and a shared video that lost its file is reloaded automatically.
+- usePreloadProgress can no longer pass 100 percent.
+- use_video_keepalive retries videos that stall or pause, and videos preload eagerly.
 
-### v1.9 (2026-11-02)
+### v1.9 (2026-11-02) Data Saver Hero Video
 
-- New access rules: only the site owner account can change content, read inquiries and analytics, or upload media. Any other signed in account has the same access as a visitor.
-- Sign in now checks the account type and shows the normal invalid login message for accounts without access.
-- Access rules for the contact form and page view tracking now check every field at the database, so direct requests with oversized, malformed or unexpected values are rejected.
-- Fixed a high severity PostCSS issue in the build tools by pinning PostCSS to the patched version. No change to how the site looks or works.
+- use_motion_allowed lets HeroLayout skip the hero video on Data Saver or reduced motion.
 
-### v1.10 (2026-11-02)
+### v1.10 (2026-11-02) Page Warmup
 
-- Every media upload now shows a short note in the confirmation message: whether the file was compressed or resized, the size before and after, or the reason it was not, plus the final uploaded size. This covers videos, images and other files.
-- Video compression now loads its worker from the site's own files instead of the bundled copy, to stop the "module not found" error. The build also stops with a clear error if the compressor files are missing.
-- Compression and upload labels, result notes, placeholders and default text now use capital first letters on every word.
-- Default site text now uses Title Case. Phrases keep short words such as to, of and the in lowercase, and one sentence lines, including the footer rights line, capitalize every word. Text with two sentences or more keeps standard sentence format. Saved text edited in the admin panel is not changed.
+- WarmPages prefetches the other pages after the intro and warms their images and videos in the background. It skips media on slow connections and Data Saver.
 
-### v1.11 (2026-11-02)
+### v1.11 (2026-11-02) Lighter Interface
 
-- Video compression now keeps more quality. The long side is limited to 1920 px instead of a 1280 px width, so 1080p and portrait videos keep their size and only larger videos are scaled down. Quality is raised from CRF 27 to 22 with a higher bitrate cap. Videos are never scaled up. Results can be larger, so a video is still kept as the original when it is not at least 8% smaller.
+- Lighter menu, header and page grain, a glass header, a smoother cursor and shorter reveal delays on every page (globals.css, Cursor, AboutView).
 
-### v1.12 (2026-11-02)
+### v1.12 (2026-11-02) Lazy Media
 
-- Better search visibility for web and system development. Every page now has a keyword title, a clear description, a canonical link and a share image. The home page adds structured data (organization, website and service) so search engines can match the site name Arkeos and the web and system development services.
-- The sitemap now lists priority and update frequency, and the sitemap, robots file and page links all use one site address from NEXT_PUBLIC_SITE_URL. If it is not set, https://arkeos.me is used.
-- Added the optional NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION setting for the Google Search Console verification code.
-- The default contact email is now ryzkeos@arkeos.me. An email saved in the admin panel still takes priority.
+- Video and html media load lazily. The preloader waits only for media near the first screen.
+- Videos keep playing while scrolled out of view, pause in hidden tabs and are released when leaving a page (use_video_keepalive). Html media runs only while visible.
+
+### v1.13 (2026-11-02) Video Compression On Upload
+
+- video_compress.ts compresses videos in the browser before upload.
+- Uploads are cached for a year. Added db/storage_config.sql for the storage bucket.
+
+### v1.14 (2026-11-02) Mobile Menu Smoothness
+
+- The header glass fades instead of switching off, the page grain hides while the menu is open and mobile toolbar resizes no longer refresh scroll animations (globals.css, Header).
+- Restored the original menu reveal.
+
+### v1.15 (2026-11-02) Media Loading Ring
+
+- MediaLoader shows a small ring on videos, html media and images (CinemaMedia, HtmlFrame, MediaImage, ProjectMedia), so a stalled video shows why it stopped.
+
+### v1.16 (2026-11-02) Animated Header Logo
+
+- LogoMark uses the animated logo mark. It plays once after the intro, then stays still.
+
+### v1.17 (2026-11-02) Hero Glow Clip
+
+- The hero title glow is no longer cut off at the edges of each line once the intro ends (use_hero_intro).
+
+### v1.18 (2026-11-02) Projects Load More
+
+- ProjectsMore shows 10 cards first, with a Load more button and a "Showing 10 of 24" line. New cards come from memory, so there are no extra requests.
+
+### v1.19 (2026-11-02) Shared Video Pool
+
+- lib/video_pool.ts loads each video once and shares it across pages and views, including Services, section headers and the call to action (use_pooled_video).
+- A shared video shows in one place at a time and the other place shows its first frame. An unused video is released after 30 seconds.
+- Html media on cards loads only near the screen (use_near_screen). Background warming skips videos on phones, low memory devices and Data Saver.
+
+### v1.20 (2026-11-02) Video Play Budget
+
+- video_budget.ts limits playing videos on the Projects page to 10 on desktop, 6 on phones and 4 on low memory devices. The closest videos play, the farthest pause first and far videos are unloaded.
+- Videos that may not play do not download ahead. Cards show a still frame on Data Saver or reduced motion, and the featured carousel plays only its current slide.
+
+### v1.21 (2026-11-02) Video Posters
+
+- video_poster.ts saves a small first frame image next to each uploaded video. It shows while a video loads or after it is unloaded.
+- poster_backfill.ts creates missing ones for older videos on projects, services, hero and section headers. Deleting or replacing a video removes its image.
+
+### v1.22 (2026-11-02) Image Resize On Upload
+
+- image_compress.ts resizes images wider than 1600 px and saves them as WebP.
+
+### v1.23 (2026-11-02) Hero Video Restart
+
+- The shared hero video restarts from the beginning with a short black fade each time a page opens (HeroLayout, hero.css).
+
+### v1.24 (2026-11-02) Stuck Video Retry
+
+- video_pool rechecks video placement every half second and retries a video that fails to start, so project videos no longer stay on the loading ring after leaving the page and coming back.
+
+### v1.25 (2026-11-02) Shared Video Return Fix
+
+- Videos turned black with an endless ring after Projects to Services and back, because leaving a page emptied the shared video. use_video_keepalive no longer empties it, and video_pool reloads a pooled video that lost its file.
+
+### v1.26 (2026-11-02) Owner Only Write Access
+
+- Only the site owner account can change content, read inquiries and analytics, or upload media. Any other signed in account has visitor access (schema.sql).
+- Sign in checks the account type and shows the normal invalid login message for accounts without access.
+
+### v1.27 (2026-11-02) Strict Form And Tracking Rules
+
+- The insert rules for the contact form and page view tracking check every field at the database, so direct requests with oversized, malformed or unexpected values are rejected (schema.sql).
+
+### v1.28 (2026-11-02) PostCSS Patch
+
+- Pinned PostCSS to the patched version in package.json to fix a high severity issue in the build tools. No change to how the site works.
+
+### v1.29 (2026-11-02) Upload Result Notes
+
+- Every upload shows a short note: whether the file was compressed or resized, the size before and after or the reason it was not, and the final size (size_label.ts).
+- A compressor failure shows its real error (error_text.ts).
+
+### v1.30 (2026-11-02) Compressor Worker Files
+
+- video_compress.ts loads its worker from the site's own files to stop the "module not found" error.
+- scripts/copy_ffmpeg_core.mjs copies only the js files and stops the build with a clear error if they are missing. tsconfig.json excludes public.
+
+### v1.31 (2026-11-02) Capital Letters On Upload Labels
+
+- Compression and upload labels, result notes, placeholders and status text start every word with a capital letter.
+
+### v1.32 (2026-11-02) Title Case Defaults
+
+- Default site text uses Title Case. Short words such as to, of and the stay lowercase, and one sentence lines such as the footer rights line capitalize every word. Text with two sentences or more keeps sentence format. Saved text is not changed.
+
+### v1.33 (2026-11-02) Higher Video Quality
+
+- video_compress.ts limits the long side to 1920 px instead of a 1280 px width, raises quality from CRF 27 to 22 with a higher bitrate cap and never scales up. A video is still kept as the original when it is not at least 8% smaller.
+
+### v1.34 (2026-11-02) Search Metadata
+
+- Every page has a keyword title, a description, a canonical link and a share image (lib/site.ts). The home page adds structured data (JsonLd.tsx).
+- The sitemap lists priority and update frequency. Sitemap, robots and links use NEXT_PUBLIC_SITE_URL, with https://arkeos.me as the fallback.
+- Added the optional NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION setting for Google Search Console.
+
+### v1.35 (2026-11-02) Default Contact Email
+
+- The default contact email is ryzkeos@arkeos.me (defaults/shared.ts). A saved email still takes priority.
+
+### v1.36 (2026-11-02) Page Titles And Descriptions
+
+- Home is "Arkeos | Web & System Development Studio". Other pages are "Arkeos | {Page} — Web & System Works". Share titles match.
+- Descriptions stress quality output, rich visuals and animations, lightweight builds and any device. The hero tagline, structured data and About text no longer center on motion work.
+
+### v1.37 (2026-11-02) Share Image
+
+- New og.webp that follows the Home hero: glowing headline, ghost name, logo and EST. 2026 line in the site fonts, in black and white with arkeos.me.
+
+### v1.38 (2026-11-02) White Default Accent
+
+- The default accent color is white in globals.css, the hero glow and the color presets.
+
+### v1.39 (2026-11-02) Server Rendered Content
+
+- lib/server_content.ts loads projects, services and settings on the server and refreshes them every minute. The site layout passes them to SiteShell through lib/content_seed.tsx.
+- content_store and use_store start from that data, so the page html holds the real content and the first load has no empty flash. The browser still checks for newer content after the page opens.
+
+### v1.40 (2026-11-02) Structured Data Without Address
+
+- JsonLd.tsx no longer uses the local business type, which needs a street address. Arkeos is an online studio serving clients worldwide, with a contact point and the saved social links.
+- Moved the social link list to lib/socials.ts so the server can use it.
