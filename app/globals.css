@@ -327,6 +327,7 @@ html[data-intro-seen] #preloader { display: none !important; }
   height: 1.5em;
   width: auto;
   flex: none;
+  background-color: transparent;
 }
 
 .hdr-nav {
