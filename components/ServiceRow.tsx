@@ -41,7 +41,7 @@ export default function ServiceRow({ service, index }: Props) {
         <div className="svc-ico" aria-hidden="true">
           {icon ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={icon} alt="" />
+            <img decoding="async" loading="lazy" src={icon} alt="" />
           ) : (
             <svg viewBox="0 0 24 24">
               <rect x="3" y="7" width="18" height="13" rx="2" />
