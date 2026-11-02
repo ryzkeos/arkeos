@@ -54,34 +54,42 @@ alter table services enable row level security;
 alter table inquiries enable row level security;
 alter table analytics enable row level security;
 
+create or replace function public.is_admin()
+returns boolean
+language sql
+stable
+as $$
+  select coalesce(auth.jwt() -> 'app_metadata' ->> 'role', '') = 'admin'
+$$;
+
 drop policy if exists site_settings_anon_select on site_settings;
-create policy site_settings_anon_select on site_settings for select to anon using (true);
+create policy site_settings_anon_select on site_settings for select to anon, authenticated using (true);
 drop policy if exists site_settings_auth_all on site_settings;
-create policy site_settings_auth_all on site_settings for all to authenticated using (true) with check (true);
+create policy site_settings_auth_all on site_settings for all to authenticated using (public.is_admin()) with check (public.is_admin());
 
 drop policy if exists projects_anon_select on projects;
-create policy projects_anon_select on projects for select to anon using (visible = true);
+create policy projects_anon_select on projects for select to anon, authenticated using (visible = true);
 drop policy if exists projects_auth_all on projects;
-create policy projects_auth_all on projects for all to authenticated using (true) with check (true);
+create policy projects_auth_all on projects for all to authenticated using (public.is_admin()) with check (public.is_admin());
 
 drop policy if exists services_anon_select on services;
-create policy services_anon_select on services for select to anon using (visible = true);
+create policy services_anon_select on services for select to anon, authenticated using (visible = true);
 drop policy if exists services_auth_all on services;
-create policy services_auth_all on services for all to authenticated using (true) with check (true);
+create policy services_auth_all on services for all to authenticated using (public.is_admin()) with check (public.is_admin());
 
 drop policy if exists inquiries_anon_insert on inquiries;
 create policy inquiries_anon_insert on inquiries for insert to anon with check (true);
 drop policy if exists inquiries_auth_select on inquiries;
-create policy inquiries_auth_select on inquiries for select to authenticated using (true);
+create policy inquiries_auth_select on inquiries for select to authenticated using (public.is_admin());
 drop policy if exists inquiries_auth_update on inquiries;
-create policy inquiries_auth_update on inquiries for update to authenticated using (true) with check (true);
+create policy inquiries_auth_update on inquiries for update to authenticated using (public.is_admin()) with check (public.is_admin());
 drop policy if exists inquiries_auth_delete on inquiries;
-create policy inquiries_auth_delete on inquiries for delete to authenticated using (true);
+create policy inquiries_auth_delete on inquiries for delete to authenticated using (public.is_admin());
 
 drop policy if exists analytics_anon_insert on analytics;
 create policy analytics_anon_insert on analytics for insert to anon with check (true);
 drop policy if exists analytics_auth_select on analytics;
-create policy analytics_auth_select on analytics for select to authenticated using (true);
+create policy analytics_auth_select on analytics for select to authenticated using (public.is_admin());
 
 alter table inquiries alter column status set default 'unread';
 alter table inquiries drop constraint if exists inquiries_name_len;
@@ -98,11 +106,11 @@ insert into storage.buckets (id, name, public) values ('media', 'media', true) o
 drop policy if exists media_public_read on storage.objects;
 create policy media_public_read on storage.objects for select to anon, authenticated using (bucket_id = 'media');
 drop policy if exists media_auth_insert on storage.objects;
-create policy media_auth_insert on storage.objects for insert to authenticated with check (bucket_id = 'media');
+create policy media_auth_insert on storage.objects for insert to authenticated with check (bucket_id = 'media' and public.is_admin());
 drop policy if exists media_auth_update on storage.objects;
-create policy media_auth_update on storage.objects for update to authenticated using (bucket_id = 'media') with check (bucket_id = 'media');
+create policy media_auth_update on storage.objects for update to authenticated using (bucket_id = 'media' and public.is_admin()) with check (bucket_id = 'media' and public.is_admin());
 drop policy if exists media_auth_delete on storage.objects;
-create policy media_auth_delete on storage.objects for delete to authenticated using (bucket_id = 'media');
+create policy media_auth_delete on storage.objects for delete to authenticated using (bucket_id = 'media' and public.is_admin());
 
 alter table services add column if not exists icon_url text;
 alter table services add column if not exists cinema_url text;
