@@ -20,6 +20,7 @@ async function engine() {
       const { FFmpeg } = await import("@ffmpeg/ffmpeg");
       const ff = new FFmpeg();
       await ff.load({
+        classWorkerURL: `${location.origin}${CORE_BASE}/worker/worker.js`,
         coreURL: `${location.origin}${CORE_BASE}/ffmpeg-core.js`,
         wasmURL: `${location.origin}${CORE_BASE}/ffmpeg-core.wasm`,
       });
