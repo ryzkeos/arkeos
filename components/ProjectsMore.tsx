@@ -7,6 +7,8 @@ import ProjectRow from "./ProjectRow";
 
 type Mode = "cards" | "list";
 
+const PAGE_SIZE = 10;
+
 type Props = { projects: Project[]; start_index: number };
 
 const ICONS: Record<Mode, React.ReactNode> = {
@@ -17,7 +19,13 @@ const ICONS: Record<Mode, React.ReactNode> = {
 export default function ProjectsMore({ projects, start_index }: Props) {
   const { controls } = useCopy("projects");
   const [mode, set_mode] = useState<Mode>("cards");
+  const [count, set_count] = useState(PAGE_SIZE);
   const labels: Record<Mode, string> = { cards: controls.cards, list: controls.list };
+  const shown = Math.min(count, projects.length);
+  const visible = projects.slice(0, shown);
+  const progress = (controls.showing || "Showing {shown} of {total}")
+    .replace("{shown}", String(shown))
+    .replace("{total}", String(projects.length));
 
   return (
     <>
@@ -40,15 +48,27 @@ export default function ProjectsMore({ projects, start_index }: Props) {
 
       <div key={mode} className="pj-switch" id="projects-grid">
         {mode === "cards" ? (
-          <ProjectGrid projects={projects} variant="grid" start_index={start_index} reveal={false} />
+          <ProjectGrid projects={visible} variant="grid" start_index={start_index} reveal={false} />
         ) : (
           <div className="p-rows" role="list">
-            {projects.map((p, i) => (
+            {visible.map((p, i) => (
               <ProjectRow key={p.id ?? p.title} project={p} index={start_index + i} />
             ))}
           </div>
         )}
       </div>
+
+      {projects.length > PAGE_SIZE && (
+        <div className="pj-more">
+          <p className="pj-more__count" role="status" aria-live="polite">{progress}</p>
+          {shown < projects.length && (
+            <button type="button" className="btn btn--visible pj-more__btn" onClick={() => set_count((c) => c + PAGE_SIZE)}>
+              <span className="btn-label">{controls.load_more || "Load more"}</span>
+              <span className="btn-arrow" aria-hidden="true" />
+            </button>
+          )}
+        </div>
+      )}
     </>
   );
 }

@@ -17,5 +17,7 @@ export const projects_schema: CopyField[] = [
   { path: "controls.previous", label: "Previous project button label", type: "text", max: 40 },
   { path: "controls.next", label: "Next project button label", type: "text", max: 40 },
   { path: "controls.go_to", label: "Slide dot label (number is added)", type: "text", max: 40 },
+  { path: "controls.load_more", label: "Load more button", type: "text", max: 30 },
+  { path: "controls.showing", label: "Progress line (use {shown} and {total})", type: "text", max: 60 },
   { path: "empty_text", label: "Text when there are no projects", type: "text", max: 120 },
 ];
