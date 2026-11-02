@@ -3,7 +3,7 @@ import type { SharedCopy } from "./types";
 export const shared: SharedCopy = {
   brand: {
     name: "ARKEOS",
-    tagline: "Crafting Web Experiences and Motion Work That Demand Attention and Refuse to Be Forgotten.",
+    tagline: "Crafting Web Experiences And Motion Work That Demand Attention And Refuse To Be Forgotten.",
     email: "hello@arkeos.studio",
     response_time: "Within 48 Hours",
     founded_year: 2026,
@@ -17,7 +17,7 @@ export const shared: SharedCopy = {
   ],
   availability: { available_text: "Now Taking Projects", booked_text: "Currently Booked" },
   menu: { open_label: "Menu", close_label: "Close" },
-  footer: { rights_text: "© {year} {name}. All rights reserved.", privacy_label: "Privacy Policy" },
+  footer: { rights_text: "© {year} {name}. All Rights Reserved.", privacy_label: "Privacy Policy" },
   cta: { label: "Ready to Begin", headline: "LET'S BUILD SOMETHING EPIC TOGETHER.", button: "Contact Us", deco_a_url: "", deco_b_url: "", deco_c_url: "", deco_d_url: "" },
   buttons: {
     view_all_projects: "View All Projects",
