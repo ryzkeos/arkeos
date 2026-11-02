@@ -156,3 +156,7 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 - Video compression now loads its worker from the site's own files instead of the bundled copy, to stop the "module not found" error. The build also stops with a clear error if the compressor files are missing.
 - Compression and upload labels, result notes, placeholders and default text now use capital first letters on every word.
 - Default site text now uses Title Case. Phrases keep short words such as to, of and the in lowercase, and one sentence lines, including the footer rights line, capitalize every word. Text with two sentences or more keeps standard sentence format. Saved text edited in the admin panel is not changed.
+
+### v1.11 (2026-11-02)
+
+- Video compression now keeps more quality. The long side is limited to 1920 px instead of a 1280 px width, so 1080p and portrait videos keep their size and only larger videos are scaled down. Quality is raised from CRF 27 to 22 with a higher bitrate cap. Videos are never scaled up. Results can be larger, so a video is still kept as the original when it is not at least 8% smaller.
