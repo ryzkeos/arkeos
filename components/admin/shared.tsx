@@ -228,7 +228,7 @@ export function MediaField({
       toast(report ? `File uploaded. ${report}` : "File uploaded.");
     } catch (e) {
       setFailed(true);
-      toast(msg(e, "Upload failed."), true);
+      toast(msg(e, "Upload Failed."), true);
     } finally {
       setBusy(false);
       reset_input();
