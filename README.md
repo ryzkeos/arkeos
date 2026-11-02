@@ -125,3 +125,9 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 - The header logo now uses the animated logo mark. It plays once after the intro, then stays still.
 - The hero title glow is no longer cut off at the edges of each line once the intro finishes.
 - Added a small loading ring on videos, html media and images, so a stalled or returning video shows why it stopped.
+
+### v1.7 (2026-11-02)
+
+- Projects page shows 10 cards first, with a Load more button and a "Showing 10 of 24" line. New cards come from memory, so there are no extra requests.
+- Project card and list videos now share a play limit: 10 on desktop, 6 on phones and 4 on low memory devices. The videos closest to the screen play, the farthest pause first, and videos far from the screen are unloaded.
+- Cards show a still frame on Data Saver or reduced motion. The featured carousel still plays only its current slide.
