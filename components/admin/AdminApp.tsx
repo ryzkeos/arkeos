@@ -8,7 +8,7 @@ import { applyAccent } from "@/components/SiteSettings";
 import { SOCIAL_LINKS } from "@/components/SocialIcons";
 import LogoMark from "@/components/LogoMark";
 import { use_touch_reorder } from "./use_touch_reorder";
-import { media_commit, media_discard } from "./media_tx";
+import { delete_media, media_commit, media_discard } from "./media_tx";
 import WebsiteInfoPanel from "./WebsiteInfoPanel";
 import CopyEditor from "./copy/CopyEditor";
 import { SETTINGS_COPY_ITEMS } from "./copy/schema/settings";
@@ -404,7 +404,7 @@ function Projects({ toast, ask }: PanelProps) {
 
   const del = (id: string) =>
     ask("Delete this project? This cannot be undone.", () =>
-      db.dbDeleteProject(id).then(() => { const gone = list?.find((p) => p.id === id)?.media; if (gone) db.dbDeleteFile(gone); load(); toast("Project deleted."); }).catch(() => toast("Failed to delete.", true)));
+      db.dbDeleteProject(id).then(() => { const gone = list?.find((p) => p.id === id)?.media; if (gone) delete_media(gone); load(); toast("Project deleted."); }).catch(() => toast("Failed to delete.", true)));
 
   const toggle = (p: Project) =>
     db.dbSaveProject(p.id!, { visible: !(p.visible !== false) }).then(load).catch(() => toast("Failed to update.", true));
@@ -544,7 +544,7 @@ function Services({ toast, ask }: PanelProps) {
 
   const del = (id: string) =>
     ask("Delete this service? This cannot be undone.", () =>
-      db.dbDeleteService(id).then(() => { const gone = list?.find((x) => x.id === id); [gone?.icon_url, gone?.cinema_url].forEach((u) => u && db.dbDeleteFile(u)); load(); toast("Service deleted."); }).catch(() => toast("Failed to delete.", true)));
+      db.dbDeleteService(id).then(() => { const gone = list?.find((x) => x.id === id); [gone?.icon_url, gone?.cinema_url].forEach((u) => u && delete_media(u)); load(); toast("Service deleted."); }).catch(() => toast("Failed to delete.", true)));
 
   const toggle = (s: Service) =>
     db.dbSaveService(s.id, { visible: !(s.visible !== false) }).then(load).catch(() => toast("Failed to update.", true));

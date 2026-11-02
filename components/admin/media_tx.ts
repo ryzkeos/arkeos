@@ -1,4 +1,5 @@
 import * as db from "@/lib/db";
+import { poster_url } from "@/lib/video_poster";
 
 type Tx = { uploaded: Set<string>; released: Set<string> };
 
@@ -14,6 +15,12 @@ const tx_for = (scope: string): Tx => {
   }
   return tx;
 };
+
+export function delete_media(url: string, keep: Set<string> = new Set()) {
+  db.dbDeleteFile(url);
+  const poster = poster_url(url);
+  if (poster && !keep.has(path_of(poster))) db.dbDeleteFile(poster);
+}
 
 export async function media_backup(scope: string, url: string) {
   if (url && !tx_for(scope).uploaded.has(url)) await db.dbBackupFile(url);
@@ -35,7 +42,7 @@ export function media_released(scope: string, url: string) {
   }
   tx.uploaded.delete(url);
   if ([...tx.released].some((r) => path_of(r) === path_of(url))) tx.released.add(url);
-  else db.dbDeleteFile(url);
+  else delete_media(url);
 }
 
 export function media_commit(scope: string, keep: string[] = []) {
@@ -44,7 +51,7 @@ export function media_commit(scope: string, keep: string[] = []) {
   scopes.delete(scope);
   const kept = new Set([...keep, ...tx.uploaded].map(path_of));
   tx.released.forEach((url) => {
-    if (!kept.has(path_of(url))) db.dbDeleteFile(url);
+    if (!kept.has(path_of(url))) delete_media(url, new Set([...kept].map((k) => path_of(poster_url(k) ?? ""))));
   });
 }
 
@@ -54,6 +61,6 @@ export function media_discard(scope: string) {
   scopes.delete(scope);
   const old = new Set([...tx.released].map(path_of));
   tx.uploaded.forEach((url) => {
-    if (!old.has(path_of(url))) db.dbDeleteFile(url);
+    if (!old.has(path_of(url))) delete_media(url, new Set([...old].map((k) => path_of(poster_url(k) ?? ""))));
   });
 }
