@@ -170,4 +170,4 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 
 ### v1.13 (2026-11-02)
 
-- Every page title is now "Arkeos | Web & System Development Studio", including share titles. Page descriptions now stress quality output, rich visuals and animations, lightweight builds and flexibility on any device. The hero tagline and structured data no longer center on motion work.
+- Home title is "Arkeos | Web & System Development Studio". Every other page uses "Arkeos | {Page} — Web & System Works", for example "Arkeos | Services — Web & System Works". Share titles match. Page descriptions now stress quality output, rich visuals and animations, lightweight builds and flexibility on any device. The hero tagline and structured data no longer center on motion work.
