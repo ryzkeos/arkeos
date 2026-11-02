@@ -12,13 +12,6 @@ Projects, services and page text are stored in a database, so updates don't need
 
 Pages: Home, Projects, Services, About, Contact and Privacy.
 
-## Media and performance
-
-- Videos are compressed in the browser when uploaded from the admin: capped at 1280 px wide, audio removed, h264 with fast start, saved as mp4. If the result is not clearly smaller, or compression fails, the original is uploaded. The compressor files are copied to `public/ffmpeg` on install and loaded only when a video is chosen.
-- Uploads are stored with a one year cache header. Links carry a `?v=` stamp, so a reupload always shows the new file.
-- Videos play while the tab is active, even when scrolled out of view, and are released when you leave the page. They start with only their metadata loaded. Html media is the exception: it runs only while visible.
-- Run `db/storage_config.sql` once in the Supabase SQL editor to set the bucket size limit and allowed file types. On other hosts, serve videos with range requests, long cache headers and a CDN in front.
-
 ## Credits
 
 - Author: Arkeos (arkeos-kzenon)
@@ -78,7 +71,7 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 ### v0.5 (2026-11-01)
 
 - Image, video and html media are now detected from the file extension everywhere.
-- Files upload only after saving, and replaced, removed or cancelled files are cleaned up.
+- Media files that are replaced or removed are cleaned up from storage.
 - Html media renders in a sandboxed frame, and video is forced muted with a first frame.
 - Removed the gray block before cards animate in and put black behind media while it loads.
 - Reduced the Projects page to a single section with the featured carousel on top.
@@ -104,7 +97,7 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 
 ### v1.3 (2026-11-02)
 
-- Added robots.txt and a sitemap that list the public pages and keep admin and api out of search.
+- Added robots.txt and a sitemap that list the public pages and keep private routes out of search.
 - Added Vercel Web Analytics, which is cookieless and works with the existing content security policy.
 
 ### v1.4 (2026-11-02)
@@ -114,9 +107,8 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 - Services and Contact heroes now fill the screen, all projects show in the Projects page cards and list, and the section buttons are hidden on mobile in Services and About.
 - Home shows featured projects first, then fills the rest with other projects.
 - The preloader can no longer go past 100 percent, and videos now retry when they stall or pause.
-- Fixed zoom on the Contact inputs and the admin height on mobile browser toolbars.
-- Reworked the admin on mobile: media field, lists, tabs, fonts, analytics, topbar and save buttons.
-- Hid the featured block unless a project is marked featured, and removed the unused featured title and intro fields.
+- Fixed zoom on the Contact inputs on mobile.
+- Hid the featured block unless a project is featured.
 - The hero video is skipped on Data Saver or reduced motion.
 - After the intro finishes, the site prefetches the other pages and warms up their images and videos in the background. It skips media on slow connections and Data Saver.
 
@@ -125,4 +117,9 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 - Lighter menu, header and page grain, smoother cursor, and shorter reveal delays on every page, including the About team photos.
 - Videos keep playing while scrolled out of view, pause in hidden tabs and are released when leaving a page. Html media runs only while visible.
 - Videos load lazily and the preloader waits only for media near the first screen.
-- Video uploads are compressed in the browser and cached for a year, with a storage config script for Supabase.
+- Videos are compressed before upload and cached for a year, with a storage config script for Supabase.
+
+### v1.6 (2026-11-02)
+
+- Smoother mobile menu: the panel now slides with the GPU, the header glass fades instead of switching off, the page grain hides while the menu is open and mobile toolbar resizes no longer refresh scroll animations.
+- Added a small loading ring on videos, html media and images, so a stalled or returning video shows why it stopped.
