@@ -1262,3 +1262,5 @@ html.nav-open body::after { opacity: 0; }
 @media (prefers-reduced-motion: reduce) {
   .media-loader { animation: media-loader-in 0.01ms ease 0.35s both; border-color: var(--color-accent); }
 }
+
+.pooled-media { position: absolute; inset: 0; }

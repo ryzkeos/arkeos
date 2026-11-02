@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, type RefObject } from "react";
-import type { VideoSlot } from "@/lib/video_budget";
+import type { VideoSlot } from "@/lib/video_pool";
 
 const STALL_MS = 3000;
 const RETRY_MS = 1000;
@@ -63,7 +63,7 @@ export function use_video_keepalive(ref: RefObject<HTMLVideoElement | null>, act
     };
     const on_visible = () => { if (document.hidden) el.pause(); else play(); };
 
-    el.preload = "auto";
+    if (!slot) el.preload = "auto";
 
     el.addEventListener("canplay", on_ready);
     el.addEventListener("loadeddata", on_ready);
