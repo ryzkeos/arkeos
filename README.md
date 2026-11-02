@@ -151,3 +151,7 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 ### v1.10 (2026-11-02)
 
 - Access rules for the contact form and page view tracking now check every field at the database, so direct requests with oversized, malformed or unexpected values are rejected.
+
+### v1.11 (2026-11-02)
+
+- Fixed a high severity PostCSS issue in the build tools by pinning PostCSS to the patched version. No change to how the site looks or works.
