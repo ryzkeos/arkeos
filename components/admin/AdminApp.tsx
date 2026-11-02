@@ -5,7 +5,7 @@ import { NAV } from "@/lib/data";
 import { DEFAULTS } from "@/defaults";
 import type { Inquiry, Project, Service, SiteSettings } from "@/lib/types";
 import { applyAccent } from "@/components/SiteSettings";
-import { SOCIAL_LINKS } from "@/components/SocialIcons";
+import { SOCIAL_LINKS } from "@/lib/socials";
 import LogoMark from "@/components/LogoMark";
 import { use_touch_reorder } from "./use_touch_reorder";
 import { backfill_posters, collect_video_urls } from "./poster_backfill";
@@ -358,7 +358,7 @@ function Projects({ toast, ask }: PanelProps) {
   const [list, setList] = useState<Project[] | null>(null);
   const [error, setError] = useState("");
   const [editing, setEditing] = useState<{ id: string | null; hadUrl: boolean } | null>(null);
-  const [f, setF] = useState({ title: "", description: "", tags: "", url: "", color: "#C8FF00", visible: true, featured: false, media: "" });
+  const [f, setF] = useState({ title: "", description: "", tags: "", url: "", color: "#FFFFFF", visible: true, featured: false, media: "" });
   const [staged, setStaged] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [posters_busy, setPostersBusy] = useState(false);
@@ -376,7 +376,7 @@ function Projects({ toast, ask }: PanelProps) {
     setStaged(null);
     const p = idx === null ? null : list![idx];
     setEditing({ id: p?.id ?? null, hadUrl: !!p?.url });
-    setF({ title: p?.title ?? "", description: p?.description ?? "", tags: (p?.tags ?? []).join(", "), url: p?.url ?? "", color: p?.color || "#C8FF00", visible: p ? p.visible !== false : true, featured: p?.featured === true, media: p?.media ?? "" });
+    setF({ title: p?.title ?? "", description: p?.description ?? "", tags: (p?.tags ?? []).join(", "), url: p?.url ?? "", color: p?.color || "#FFFFFF", visible: p ? p.visible !== false : true, featured: p?.featured === true, media: p?.media ?? "" });
   };
 
   const save = async () => {
@@ -713,7 +713,7 @@ const SOCIAL_FIELD_IDS: Record<string, string> = {
 const blank_socials = () => Object.fromEntries(SOCIAL_LINKS.map(({ key }) => [key, ""])) as Record<(typeof SOCIAL_LINKS)[number]["key"], string>;
 
 function Settings({ toast }: Pick<PanelProps, "toast">) {
-  const [accent, setAccent] = useState("#C8FF00");
+  const [accent, setAccent] = useState("#FFFFFF");
   const [socials, setSocials] = useState(blank_socials);
   const [video, setVideo] = useState("");
   const [error, setError] = useState("");
@@ -722,7 +722,7 @@ function Settings({ toast }: Pick<PanelProps, "toast">) {
   useEffect(() => {
     db.dbLoadSiteSettings()
       .then((r: SiteSettings) => {
-        setAccent(r.accent_color || "#C8FF00");
+        setAccent(r.accent_color || "#FFFFFF");
         setSocials(Object.fromEntries(SOCIAL_LINKS.map(({ key }) => [key, r[key] ?? ""])) as typeof socials);
         setVideo(r.hero_video ?? "");
       })
