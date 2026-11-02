@@ -3,8 +3,8 @@ import ContactView from "@/components/ContactView";
 
 export const metadata = page_meta({
   path: "/contact",
-  title: "Start a Project",
-  share_title: "Arkeos | Start a Project",
+  title: "Contact",
+  share_title: "Arkeos | Contact",
   description: "Start a web or system development project with Arkeos. Send your scope, budget and timeline.",
 });
 
