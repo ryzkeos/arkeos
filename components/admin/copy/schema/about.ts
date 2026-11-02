@@ -2,7 +2,7 @@ import type { CopyField } from "../copy_schema";
 
 export const about_schema: CopyField[] = [
   { path: "hero.eyebrow", label: "Hero label", type: "text", max: 60 },
-  { path: "hero.lines", label: "Hero title lines (separate lines with |)", type: "lines", max: 200 },
+  { path: "hero.lines", label: "Hero title lines (separate lines with |, max 3)", type: "lines", max: 200 },
   { path: "hero.sub", label: "Hero intro text", type: "textarea", max: 300 },
   { path: "hero.ghost", label: "Hero background word", type: "text", max: 30 },
   { path: "hero.cta.label", label: "Hero button label (empty hides the button)", type: "text", max: 40 },
