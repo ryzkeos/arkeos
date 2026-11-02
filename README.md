@@ -354,3 +354,7 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 ### v1.41 (2026-11-02) Transparent Header Logo
 
 - LogoMark uses a transparent png of the mark (arkeos_logo_mark.png) so the header logo has no black box on any browser. The animated svg is no longer used in the header.
+
+### v1.42 (2026-11-03) Header Logo Black Box Fix
+
+- The header logo still showed a black box because a global rule gave every image a black background. The header and admin logo marks now have a transparent background, so the header color shows behind the white mark.
