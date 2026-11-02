@@ -15,7 +15,8 @@ const join = (...parts) => parts.filter(Boolean).join(" ");
 
 const csp = [
   "default-src 'self'",
-  join("script-src 'self' 'unsafe-inline'", !isProd && "'unsafe-eval'"),
+  join("script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'", !isProd && "'unsafe-eval'"),
+  "worker-src 'self' blob:",
   "style-src 'self' 'unsafe-inline'",
   join("img-src 'self' data: blob:", storageOrigin),
   join("media-src 'self' blob:", storageOrigin),
@@ -51,6 +52,8 @@ const nextConfig = {
     const noindex = [{ key: "X-Robots-Tag", value: "noindex, nofollow" }];
     return [
       { source: "/:path*", headers: securityHeaders },
+      { source: "/ffmpeg/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }] },
+      { source: "/assets/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=2592000, stale-while-revalidate=86400" }] },
       { source: "/admin", headers: noindex },
       { source: "/admin/:path*", headers: noindex },
     ];

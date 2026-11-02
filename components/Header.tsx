@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { gsap, prefersReducedMotion } from "@/lib/gsap";
+import { lenisRef } from "@/lib/lenis";
+import { useIntroDone } from "@/lib/preloader";
 import { useCopy } from "@/lib/use_copy";
 import { useSiteSettings } from "./SiteSettings";
 import { SocialIcon, getSocials } from "./SocialIcons";
@@ -13,6 +15,7 @@ export default function Header() {
   const settings = useSiteSettings();
   const { brand, nav, availability, menu } = useCopy("shared");
   const name = brand.name;
+  const intro_done = useIntroDone();
   const [stuck, setStuck] = useState(false);
   const [open, setOpen] = useState(false);
   const drawer = useRef<HTMLDivElement>(null);
@@ -38,10 +41,13 @@ export default function Header() {
     const links = drawer.current?.querySelectorAll(".nav-ov__link");
     if (!links) return;
     document.body.style.overflow = open ? "hidden" : "";
+    document.documentElement.classList.toggle("nav-open", open);
+    if (open) lenisRef.current?.stop();
+    else lenisRef.current?.start();
     if (prefersReducedMotion()) gsap.set(links, { y: open ? "0%" : "110%" });
-    else if (open) gsap.to(links, { y: "0%", duration: 0.6, ease: "power3.out", stagger: 0.07, delay: 0.18 });
-    else gsap.to(links, { y: "110%", duration: 0.35, ease: "power2.in", stagger: 0.03 });
-    return () => { document.body.style.overflow = ""; };
+    else if (open) gsap.to(links, { y: "0%", duration: 0.6, ease: "power3.out", stagger: 0.07, delay: 0.18, overwrite: true, force3D: true });
+    else gsap.to(links, { y: "110%", duration: 0.35, ease: "power2.in", stagger: 0.03, overwrite: true, force3D: true });
+    return () => { document.body.style.overflow = ""; document.documentElement.classList.remove("nav-open"); lenisRef.current?.start(); };
   }, [open]);
 
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
@@ -83,7 +89,7 @@ export default function Header() {
       </div>
 
       <header id="header" className={[stuck ? "stuck" : "", open ? "menu-open" : ""].filter(Boolean).join(" ")} role="banner">
-        <Link href="/" className="hdr-logo" aria-label={name}><LogoMark className="hdr-logo__mark" /><span>{name}</span></Link>
+        <Link href="/" className="hdr-logo" aria-label={name}><LogoMark className="hdr-logo__mark" wait={!intro_done} /><span>{name}</span></Link>
 
         <nav className="hdr-nav" role="navigation" aria-label={menu.open_label}>
           {nav.map((n) => (

@@ -1,25 +1,25 @@
 "use client";
 import { useEffect, type RefObject } from "react";
+import type { VideoSlot } from "@/lib/video_pool";
 
 const STALL_MS = 3000;
 const RETRY_MS = 1000;
 
-export function use_video_keepalive(ref: RefObject<HTMLVideoElement | null>, active: boolean, src?: string | null) {
+export function use_video_keepalive(ref: RefObject<HTMLVideoElement | null>, active: boolean, src?: string | null, slot?: VideoSlot | null) {
   useEffect(() => {
     const el = ref.current;
     if (!el || !active) return;
     el.muted = true;
     el.defaultMuted = true;
     el.playsInline = true;
-    el.preload = "auto";
 
-    let in_view = true;
     let reloaded = false;
     let stall_timer = 0;
     let retry_timer = 0;
 
     const play = () => {
-      if (!in_view || document.hidden || !el.paused || el.ended) return;
+      if (document.hidden || !el.paused || el.ended) return;
+      if (slot && !slot.is_allowed()) return;
       el.play().catch(() => {});
     };
     const clear_stall = () => window.clearTimeout(stall_timer);
@@ -44,37 +44,32 @@ export function use_video_keepalive(ref: RefObject<HTMLVideoElement | null>, act
       window.clearTimeout(retry_timer);
       retry_timer = window.setTimeout(() => { el.load(); play(); }, RETRY_MS);
     };
-    const on_visible = () => { if (!document.hidden) play(); };
+    const on_visible = () => { if (document.hidden) el.pause(); else play(); };
 
-    const io = new IntersectionObserver(([e]) => {
-      in_view = e.isIntersecting;
-      if (in_view) play();
-      else el.pause();
-    }, { threshold: 0.01 });
-    io.observe(el);
+    if (!slot) el.preload = "auto";
 
     el.addEventListener("canplay", on_ready);
     el.addEventListener("loadeddata", on_ready);
-    el.addEventListener("progress", on_ready);
     el.addEventListener("stalled", on_stall);
     el.addEventListener("waiting", on_stall);
     el.addEventListener("pause", on_pause);
     el.addEventListener("error", on_error);
     document.addEventListener("visibilitychange", on_visible);
+    window.addEventListener("pagehide", on_visible);
     play();
 
     return () => {
-      io.disconnect();
       clear_stall();
       window.clearTimeout(retry_timer);
+      el.pause();
       el.removeEventListener("canplay", on_ready);
       el.removeEventListener("loadeddata", on_ready);
-      el.removeEventListener("progress", on_ready);
       el.removeEventListener("stalled", on_stall);
       el.removeEventListener("waiting", on_stall);
       el.removeEventListener("pause", on_pause);
       el.removeEventListener("error", on_error);
       document.removeEventListener("visibilitychange", on_visible);
+      window.removeEventListener("pagehide", on_visible);
     };
-  }, [ref, active, src]);
+  }, [ref, active, src, slot]);
 }

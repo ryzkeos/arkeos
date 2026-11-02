@@ -134,6 +134,8 @@
 .pg-projects .pj-toggle__btn:hover { color: var(--color-text); }
 .pg-projects .pj-toggle__btn.is-active { background: var(--color-accent); color: #000; }
 .pg-projects .pj-toggle__btn:focus-visible { outline: 1px solid var(--color-accent); outline-offset: 2px; }
+.pg-projects .pj-more { display: flex; flex-direction: column; align-items: center; gap: 1.2rem; margin-top: 3rem; }
+.pg-projects .pj-more__count { margin: 0; font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; color: var(--color-muted, var(--color-text)); }
 .pg-projects .pj-switch { animation: pj-in .6s var(--ease-out) both; }
 @keyframes pj-in { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
 

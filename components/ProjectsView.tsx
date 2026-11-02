@@ -14,15 +14,12 @@ const FEATURED_MAX = 5;
 export default function ProjectsView() {
   const projects = useProjects();
   const copy = useCopy("projects");
-  const { work_count } = useCopy("home");
   const aria_hero = copy.hero.eyebrow || copy.hero.lines.join(" ");
 
   useArkeosAnimations({ pageHero: true, ready: projects !== null });
 
   const list = projects ?? [];
-  const featured_n = Math.min(FEATURED_MAX, Math.max(0, Math.floor(work_count)));
-  const flagged = list.filter((p) => p.featured);
-  const featured = flagged.length > 0 ? flagged.slice(0, FEATURED_MAX) : list.slice(0, featured_n);
+  const featured = list.filter((p) => p.featured).slice(0, FEATURED_MAX);
 
   return (
     <main className="pg-projects">

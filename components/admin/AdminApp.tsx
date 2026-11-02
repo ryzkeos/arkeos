@@ -8,7 +8,8 @@ import { applyAccent } from "@/components/SiteSettings";
 import { SOCIAL_LINKS } from "@/components/SocialIcons";
 import LogoMark from "@/components/LogoMark";
 import { use_touch_reorder } from "./use_touch_reorder";
-import { media_commit, media_discard } from "./media_tx";
+import { backfill_posters, collect_video_urls } from "./poster_backfill";
+import { delete_media, media_commit, media_discard } from "./media_tx";
 import WebsiteInfoPanel from "./WebsiteInfoPanel";
 import CopyEditor from "./copy/CopyEditor";
 import { SETTINGS_COPY_ITEMS } from "./copy/schema/settings";
@@ -355,6 +356,7 @@ function Projects({ toast, ask }: PanelProps) {
   const [f, setF] = useState({ title: "", description: "", tags: "", url: "", color: "#C8FF00", visible: true, featured: false, media: "" });
   const [staged, setStaged] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
+  const [posters_busy, setPostersBusy] = useState(false);
   const dragSrc = useRef<number | null>(null);
   const touch = use_touch_reorder((from, to) => { dragSrc.current = from; drop(to); });
   useEffect(() => () => media_discard("project"), []);
@@ -390,7 +392,7 @@ function Projects({ toast, ask }: PanelProps) {
       id = await db.dbSaveProject(id, payload);
       saved = true;
       if (staged) {
-        media = await upload_media("project", "projects", media_slot(`project-${slug(f.title) || "untitled"}`), staged, f.media);
+        media = await upload_media("project", "projects", media_slot(`project-${slug(f.title) || "untitled"}`), staged, f.media, undefined, (t) => { if (!t.includes("%")) toast(t); });
         await db.dbSaveProject(id, { media });
       }
       media_commit("project", [media]);
@@ -404,7 +406,7 @@ function Projects({ toast, ask }: PanelProps) {
 
   const del = (id: string) =>
     ask("Delete this project? This cannot be undone.", () =>
-      db.dbDeleteProject(id).then(() => { const gone = list?.find((p) => p.id === id)?.media; if (gone) db.dbDeleteFile(gone); load(); toast("Project deleted."); }).catch(() => toast("Failed to delete.", true)));
+      db.dbDeleteProject(id).then(() => { const gone = list?.find((p) => p.id === id)?.media; if (gone) delete_media(gone); load(); toast("Project deleted."); }).catch(() => toast("Failed to delete.", true)));
 
   const toggle = (p: Project) =>
     db.dbSaveProject(p.id!, { visible: !(p.visible !== false) }).then(load).catch(() => toast("Failed to update.", true));
@@ -432,6 +434,18 @@ function Projects({ toast, ask }: PanelProps) {
       <PanelHead title="PROJECTS" sub="Manage portfolio projects. Drag to reorder. Changes reflect live." error={error} />
       <div className="admin-actions" style={{ marginBottom: "1.2rem" }}>
         <button className="admin-btn admin-btn--accent" onClick={() => open(null)} aria-label="Add a new project">+ Add Project</button>
+        <button
+          className="admin-btn"
+          disabled={posters_busy}
+          aria-busy={posters_busy}
+          onClick={() => {
+            setPostersBusy(true);
+            collect_video_urls().then((urls) => backfill_posters(urls, () => {}))
+              .then((r) => toast(r.total === 0 ? "No videos found." : `Posters ready: ${r.made} created, ${r.missed} failed, ${r.total - r.made - r.missed} already had one.`, r.missed > 0))
+              .catch(() => toast("Could not create posters.", true))
+              .finally(() => setPostersBusy(false));
+          }}
+        >{posters_busy ? "Creating posters…" : "Create Missing Posters"}</button>
       </div>
 
       <div className="admin-form" id="project-form" aria-label="Project editor" style={{ display: editing ? "block" : "none" }}>
@@ -527,7 +541,7 @@ function Services({ toast, ask }: PanelProps) {
       saved = true;
       for (const [key, part] of [["icon_url", "icon"], ["cinema_url", "cinema"]] as const) {
         const file = staged[key];
-        if (file) uploaded[key] = await upload_media("service", "services", media_slot(`service-${slug(f.title) || "untitled"}-${part}`), file, f[key]);
+        if (file) uploaded[key] = await upload_media("service", "services", media_slot(`service-${slug(f.title) || "untitled"}-${part}`), file, f[key], undefined, (t) => { if (!t.includes("%")) toast(t); });
       }
       if (Object.keys(uploaded).length) await db.dbSaveService(id, uploaded);
       media_commit("service", [uploaded.icon_url ?? f.icon_url, uploaded.cinema_url ?? f.cinema_url]);
@@ -544,7 +558,7 @@ function Services({ toast, ask }: PanelProps) {
 
   const del = (id: string) =>
     ask("Delete this service? This cannot be undone.", () =>
-      db.dbDeleteService(id).then(() => { const gone = list?.find((x) => x.id === id); [gone?.icon_url, gone?.cinema_url].forEach((u) => u && db.dbDeleteFile(u)); load(); toast("Service deleted."); }).catch(() => toast("Failed to delete.", true)));
+      db.dbDeleteService(id).then(() => { const gone = list?.find((x) => x.id === id); [gone?.icon_url, gone?.cinema_url].forEach((u) => u && delete_media(u)); load(); toast("Service deleted."); }).catch(() => toast("Failed to delete.", true)));
 
   const toggle = (s: Service) =>
     db.dbSaveService(s.id, { visible: !(s.visible !== false) }).then(load).catch(() => toast("Failed to update.", true));
