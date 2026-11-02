@@ -10,6 +10,12 @@
   position:absolute; inset:0; z-index:0;
   background:var(--color-bg);
 }
+.hero-video__fade {
+  position:absolute; inset:0; z-index:1; background:#000; pointer-events:none;
+  animation:hero-video-fade 1.1s ease-out both;
+}
+@keyframes hero-video-fade { from { opacity:1; } to { opacity:0; } }
+@media (prefers-reduced-motion: reduce) { .hero-video__fade { display:none; } }
 .hero-video video {
   position:absolute; inset:0;
   width:100%; height:100%;
