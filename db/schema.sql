@@ -78,7 +78,16 @@ drop policy if exists services_auth_all on services;
 create policy services_auth_all on services for all to authenticated using (public.is_admin()) with check (public.is_admin());
 
 drop policy if exists inquiries_anon_insert on inquiries;
-create policy inquiries_anon_insert on inquiries for insert to anon with check (true);
+create policy inquiries_anon_insert on inquiries for insert to anon with check (
+  status = 'unread'
+  and char_length(name) between 1 and 100
+  and char_length(email) between 1 and 254
+  and email ~ '^[^\s@]+@[^\s@]+\.[^\s@]+$'
+  and char_length(project_type) between 1 and 100
+  and char_length(budget) between 1 and 100
+  and char_length(timeline) between 1 and 100
+  and char_length(message) between 1 and 5000
+);
 drop policy if exists inquiries_auth_select on inquiries;
 create policy inquiries_auth_select on inquiries for select to authenticated using (public.is_admin());
 drop policy if exists inquiries_auth_update on inquiries;
@@ -87,7 +96,10 @@ drop policy if exists inquiries_auth_delete on inquiries;
 create policy inquiries_auth_delete on inquiries for delete to authenticated using (public.is_admin());
 
 drop policy if exists analytics_anon_insert on analytics;
-create policy analytics_anon_insert on analytics for insert to anon with check (true);
+create policy analytics_anon_insert on analytics for insert to anon with check (
+  page in ('index.html', 'projects.html', 'services.html', 'about.html', 'contact.html', 'privacy.html')
+  and created_at between now() - interval '1 day' and now() + interval '1 day'
+);
 drop policy if exists analytics_auth_select on analytics;
 create policy analytics_auth_select on analytics for select to authenticated using (public.is_admin());
 
@@ -100,6 +112,18 @@ alter table inquiries drop constraint if exists inquiries_message_len;
 alter table inquiries add constraint inquiries_message_len check (char_length(message) <= 5000) not valid;
 alter table inquiries drop constraint if exists inquiries_status_valid;
 alter table inquiries add constraint inquiries_status_valid check (status in ('unread','read')) not valid;
+alter table inquiries drop constraint if exists inquiries_project_type_len;
+alter table inquiries add constraint inquiries_project_type_len check (char_length(project_type) <= 100) not valid;
+alter table inquiries drop constraint if exists inquiries_budget_len;
+alter table inquiries add constraint inquiries_budget_len check (char_length(budget) <= 100) not valid;
+alter table inquiries drop constraint if exists inquiries_timeline_len;
+alter table inquiries add constraint inquiries_timeline_len check (char_length(timeline) <= 100) not valid;
+alter table inquiries drop constraint if exists inquiries_email_format;
+alter table inquiries add constraint inquiries_email_format check (email ~ '^[^\s@]+@[^\s@]+\.[^\s@]+$') not valid;
+alter table analytics drop constraint if exists analytics_page_len;
+alter table analytics add constraint analytics_page_len check (char_length(page) <= 100) not valid;
+alter table analytics drop constraint if exists analytics_page_valid;
+alter table analytics add constraint analytics_page_valid check (page in ('index.html', 'projects.html', 'services.html', 'about.html', 'contact.html', 'privacy.html')) not valid;
 
 insert into storage.buckets (id, name, public) values ('media', 'media', true) on conflict (id) do update set public = true;
 
