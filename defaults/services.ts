@@ -8,7 +8,7 @@ export const services: ServicesCopy = {
     ghost: "SERVICES",
     cta: null,
   },
-  capabilities: { label: "Our Capabilities", lines: ["WHAT", "WE DO."], intro: "Design, build and motion work under one roof. Each service is planned around your goals, so every piece fits the whole and nothing is wasted.", cta: { label: "Start a Project", href: "/contact" } },
+  capabilities: { label: "Our Capabilities", lines: ["WHAT", "WE DO."], intro: "Design, build and animation under one roof. Each service is planned around your goals, so every piece fits the whole and nothing is wasted.", cta: { label: "Start a Project", href: "/contact" } },
   process: { label: "How We Work", lines: ["THE", "PROCESS."], intro: "A clear process keeps projects calm and on time. You know what happens next at every step, and you can see progress without chasing us for updates.", cta: null },
   process_steps: [
     { title: "Discovery", desc: "We Learn Your Goals, Your Users And Your Limits Before We Write Any Code." },
