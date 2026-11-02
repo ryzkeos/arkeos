@@ -14,32 +14,32 @@ export const is_resizable_image = (file: File) => RESIZABLE.test(file.name) || /
 export async function resize_image(file: File): Promise<ResizeResult> {
   if (typeof document === "undefined") return { file, note: "" };
   if (!is_resizable_image(file)) {
-    return { file, note: file.type.startsWith("image/") ? "Image not resized: only JPG, PNG and WebP are resized." : "" };
+    return { file, note: file.type.startsWith("image/") ? "Image Not Resized: Only JPG, PNG And WebP Are Resized." : "" };
   }
   let bitmap: ImageBitmap | null = null;
   try {
     bitmap = await createImageBitmap(file);
-    if (bitmap.width <= MAX_WIDTH) return { file, note: `Image not resized: ${bitmap.width} px wide is within the ${MAX_WIDTH} px limit.` };
+    if (bitmap.width <= MAX_WIDTH) return { file, note: `Image Not Resized: ${bitmap.width} px Wide Is Within The ${MAX_WIDTH} px Limit.` };
     const scale = MAX_WIDTH / bitmap.width;
     const canvas = document.createElement("canvas");
     canvas.width = MAX_WIDTH;
     canvas.height = Math.round(bitmap.height * scale);
     const ctx = canvas.getContext("2d");
-    if (!ctx) return { file, note: "Image not resized: canvas is not available. Original kept." };
+    if (!ctx) return { file, note: "Image Not Resized: Canvas Is Not Available. Original Kept." };
     ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
     const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/webp", QUALITY));
-    if (!blob || blob.type !== "image/webp") return { file, note: "Image not resized: WebP is not supported here. Original kept." };
+    if (!blob || blob.type !== "image/webp") return { file, note: "Image Not Resized: WebP Is Not Supported Here. Original Kept." };
     if (blob.size >= file.size * KEEP_RATIO) {
-      return { file, note: `Image not resized: result ${size_label(blob.size)} was not 8% smaller than ${size_label(file.size)}. Original kept.` };
+      return { file, note: `Image Not Resized: Result ${size_label(blob.size)} Was Not 8% Smaller Than ${size_label(file.size)}. Original Kept.` };
     }
     const base = file.name.replace(/\.[^.]+$/, "") || "image";
     return {
       file: new File([blob], `${base}.webp`, { type: "image/webp", lastModified: Date.now() }),
-      note: `Image resized to ${MAX_WIDTH} px, ${saved_label(file.size, blob.size)}.`,
+      note: `Image Resized To ${MAX_WIDTH} px, ${saved_label(file.size, blob.size)}.`,
     };
   } catch (e) {
-    const why = error_text(e, "image could not be read");
-    return { file, note: `Image not resized: ${why}. Original kept.` };
+    const why = error_text(e, "Image Could Not Be Read");
+    return { file, note: `Image Not Resized: ${why}. Original Kept.` };
   } finally {
     bitmap?.close();
   }
