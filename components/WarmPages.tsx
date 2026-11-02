@@ -6,6 +6,7 @@ import { projects_store, services_store } from "@/lib/content_store";
 import { safeUrl } from "@/lib/gsap";
 import { media_kind } from "@/lib/media_type";
 import { useIntroDone } from "@/lib/preloader";
+import { is_light_device, pool_has, warm_video_pooled } from "@/lib/video_pool";
 import { useCopy } from "@/lib/use_copy";
 import { use_store } from "@/lib/use_store";
 import { useSiteSettings } from "./SiteSettings";
@@ -40,21 +41,7 @@ function warm_image(url: string) {
 }
 
 function warm_video(url: string) {
-  return new Promise<void>((resolve) => {
-    const el = document.createElement("video");
-    el.muted = true;
-    el.preload = "metadata";
-    const release = () => {
-      window.clearTimeout(timer);
-      el.removeAttribute("src");
-      el.load();
-      resolve();
-    };
-    const timer = window.setTimeout(release, VIDEO_WAIT_MS);
-    el.addEventListener("loadeddata", release, { once: true });
-    el.addEventListener("error", release, { once: true });
-    el.src = url.includes("#") ? url : `${url}#t=0.001`;
-  });
+  return warm_video_pooled(url, VIDEO_WAIT_MS);
 }
 
 async function warm_media(urls: string[], done: Set<string>, stopped: () => boolean) {
@@ -102,8 +89,9 @@ export default function WarmPages() {
       pick_image(about.about_image_wide),
       safeUrl(settings.hero_video),
     ];
+    const skip_video = is_light_device();
     const urls = candidates
-      .filter((u): u is string => !!u && !warmed.current.has(u))
+      .filter((u): u is string => !!u && !warmed.current.has(u) && !pool_has(u) && !(skip_video && media_kind(u) === "video"))
       .slice(0, MEDIA_MAX);
     if (urls.length === 0) return;
 

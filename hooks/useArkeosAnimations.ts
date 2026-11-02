@@ -40,11 +40,15 @@ export function useArkeosAnimations({ pageHero = false, ready: readyProp = true 
           scrollTrigger: { trigger: em.closest(".section-h2"), start: "top 82%", once: true },
         });
       });
-      q(".reveal").forEach((el, i) => {
+      const group_count = new Map<Element, number>();
+      q(".reveal").forEach((el) => {
         if (reduced) return void gsap.set(el, { opacity: 1, y: 0 });
-        const inGroup = el.closest(".svc-cards, .proj-grid, .why-grid, .svc-grid, .val-grid, .team-grid");
+        if (el.closest(".proj-grid, .svc-grid") && el.matches(".p-card, .svc-row")) return;
+        const group = el.closest(".svc-cards, .why-grid, .val-grid, .team-grid");
+        const n = group ? group_count.get(group) ?? 0 : 0;
+        if (group) group_count.set(group, n + 1);
         gsap.to(el, {
-          opacity: 1, y: 0, duration: 0.9, ease: "power2.out", delay: inGroup ? i * 0.07 : 0,
+          opacity: 1, y: 0, duration: 0.9, ease: "power2.out", delay: Math.min(n * 0.07, 0.28),
           scrollTrigger: { trigger: el, start: "top 84%", once: true },
         });
       });

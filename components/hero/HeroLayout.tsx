@@ -1,13 +1,16 @@
 "use client";
 import "@/styles/hero.css";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { use_motion_allowed } from "@/hooks/use_motion_allowed";
+import { use_pooled_video } from "@/hooks/use_pooled_video";
 import { use_video_keepalive } from "@/hooks/use_video_keepalive";
+import { use_video_loading } from "@/hooks/use_video_loading";
 import type { HeroCopy } from "@/defaults";
 import { safeUrl } from "@/lib/gsap";
 import { useIntroDone } from "@/lib/preloader";
 import { useCopy } from "@/lib/use_copy";
 import Btn from "../Btn";
+import MediaLoader from "../MediaLoader";
 import { useSiteSettings, useSiteSettingsLoaded } from "../SiteSettings";
 import { use_hero_intro } from "./use_hero_intro";
 
@@ -29,17 +32,25 @@ export default function HeroLayout({ copy, ariaLabel, variant = "full" }: Props)
   use_hero_intro(root, loaded && introDone);
 
   const video_src = safeUrl(settings.hero_video);
-  const hero_video = useRef<HTMLVideoElement>(null);
+  const hero_host = useRef<HTMLDivElement>(null);
   const motion_allowed = use_motion_allowed();
   const show_video = !!video_src && motion_allowed;
-  use_video_keepalive(hero_video, show_video, video_src);
+  const hero = use_pooled_video(hero_host, show_video ? video_src : null, show_video, true);
+  use_video_keepalive(hero.el_ref, show_video && hero.holding, video_src, hero.slot);
+  useEffect(() => {
+    const el = hero.el_ref.current;
+    if (!show_video || !hero.holding || !el) return;
+    try { el.currentTime = 0; } catch {}
+  }, [show_video, hero.holding, hero.el_ref]);
+  const hero_loading = use_video_loading(hero.el_ref, show_video && hero.holding, video_src);
   const lines = loaded ? copy.lines : [];
   const deco = deco_copy.deco.slice(0, HERO_DECO_MAX);
 
   return (
     <section id="hero" ref={root} className={`hero hero--${variant}`} aria-label={ariaLabel}>
-      <div className="hero-video" aria-hidden="true">
-        {show_video && <video ref={hero_video} src={video_src} autoPlay muted loop playsInline preload="auto" aria-hidden="true" />}
+      <div ref={hero_host} className="hero-video" aria-hidden="true">
+        {show_video && hero.holding && <span className="hero-video__fade" />}
+        {show_video && hero.holding && hero_loading && <MediaLoader />}
       </div>
       <div className="hero-veil" aria-hidden="true" />
       {copy.ghost && <div className="hero-ghost" aria-hidden="true">{copy.ghost}</div>}

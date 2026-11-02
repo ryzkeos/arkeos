@@ -55,7 +55,7 @@ export default function AboutView() {
             )}
             {storyImage && (
               <div className="about-img-wrap">
-                <img src={storyImage} alt={copy.story.label} loading="lazy" />
+                <img decoding="async" src={storyImage} alt={copy.story.label} loading="lazy" />
               </div>
             )}
           </div>
@@ -100,7 +100,7 @@ export default function AboutView() {
               <article key={m.name} className="team-card reveal" role="listitem" aria-label={m.name}>
                 {m.photo && (
                   <div className="team-card__photo">
-                    <img src={m.photo} alt={m.name} loading="lazy" />
+                    <img decoding="async" src={m.photo} alt={m.name} loading="lazy" />
                   </div>
                 )}
                 <h3 className="team-card__name">{m.name.toUpperCase()}</h3>
@@ -115,7 +115,7 @@ export default function AboutView() {
       {loaded && wideImage && (
         <div id="about-image">
           <div className="about-img-full about-img-wrap">
-            <img src={wideImage} alt={name} loading="lazy" />
+            <img decoding="async" src={wideImage} alt={name} loading="lazy" />
           </div>
         </div>
       )}
