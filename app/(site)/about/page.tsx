@@ -1,15 +1,13 @@
-import type { Metadata } from "next";
+import { page_meta } from "@/lib/site";
 import "@/styles/about.css";
 import AboutView from "@/components/AboutView";
 
-export const metadata: Metadata = {
-  title: "About",
-  description: "The story, values and people behind the studio.",
-  openGraph: {
-    title: "Arkeos | About",
-    description: "The story, values and people behind the studio.",
-  },
-};
+export const metadata = page_meta({
+  path: "/about",
+  title: "About the Studio",
+  share_title: "Arkeos | About",
+  description: "The story, values and people behind Arkeos, a small studio for web and system development.",
+});
 
 export default function AboutPage() {
   return <AboutView />;
