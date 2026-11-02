@@ -350,3 +350,7 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 
 - JsonLd.tsx no longer uses the local business type, which needs a street address. Arkeos is an online studio serving clients worldwide, with a contact point and the saved social links.
 - Moved the social link list to lib/socials.ts so the server can use it.
+
+### v1.41 (2026-11-02) Transparent Header Logo
+
+- LogoMark uses a transparent png of the mark (arkeos_logo_mark.png) so the header logo has no black box on any browser. The animated svg is no longer used in the header.
