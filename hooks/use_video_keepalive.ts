@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, type RefObject } from "react";
+import type { VideoSlot } from "@/lib/video_budget";
 
 const STALL_MS = 3000;
 const RETRY_MS = 1000;
@@ -12,7 +13,7 @@ function release(el: HTMLVideoElement) {
   } catch {}
 }
 
-export function use_video_keepalive(ref: RefObject<HTMLVideoElement | null>, active: boolean, src?: string | null) {
+export function use_video_keepalive(ref: RefObject<HTMLVideoElement | null>, active: boolean, src?: string | null, slot?: VideoSlot | null) {
   useEffect(() => {
     const el = ref.current;
     return () => {
@@ -35,6 +36,7 @@ export function use_video_keepalive(ref: RefObject<HTMLVideoElement | null>, act
 
     const play = () => {
       if (document.hidden || !el.paused || el.ended) return;
+      if (slot && !slot.is_allowed()) return;
       el.play().catch(() => {});
     };
     const clear_stall = () => window.clearTimeout(stall_timer);
@@ -86,5 +88,5 @@ export function use_video_keepalive(ref: RefObject<HTMLVideoElement | null>, act
       document.removeEventListener("visibilitychange", on_visible);
       window.removeEventListener("pagehide", on_visible);
     };
-  }, [ref, active, src]);
+  }, [ref, active, src, slot]);
 }

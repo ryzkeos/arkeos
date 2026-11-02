@@ -25,7 +25,7 @@ export default function ProjectRow({ project, index }: Props) {
       onBlur={() => set_hot(false)}
     >
       <div className="p-row__thumb" aria-hidden="true">
-        <ProjectMedia src={project.media} active={hot} />
+        <ProjectMedia src={project.media} active={hot} budget />
       </div>
       <div className="p-row__main">
         <h3 className="p-row__name">{project.title.toUpperCase()}</h3>
