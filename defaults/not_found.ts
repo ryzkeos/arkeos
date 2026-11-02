@@ -3,7 +3,7 @@ import type { NotFoundCopy } from "./types";
 export const not_found: NotFoundCopy = {
   label: "Error 404",
   num: "404",
-  tagline: "Lost in the Dark.",
+  tagline: "Lost In The Dark.",
   button_label: "Back to Home",
   aria_section: "404, Page Not Found",
   aria_num: "404",
