@@ -133,6 +133,7 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 - Videos on the Projects page share a play limit: 10 on desktop, 6 on phones and 4 on low memory devices. The videos closest to the screen play, the farthest pause first, and videos far from the screen are unloaded. Videos that may not play do not download ahead.
 - New video uploads also save a small first frame image next to the video, shown while a video loads or after it is unloaded. Older videos can have theirs created in one step. Deleting a project or replacing a video removes its image too.
 - The hero video restarts from the beginning with a short black fade each time you open a page, even though the video file is shared between pages.
+- Fixed project videos staying on the loading ring after leaving the page and coming back. Video placement is now rechecked every half second and a video that fails to start is retried.
 - Cards show a still frame on Data Saver or reduced motion. The featured carousel plays only its current slide.
 - Background warming of other pages skips videos on phones, low memory devices and Data Saver, and skips videos that are already loaded.
 - Images wider than 1600 px are resized and saved as WebP on upload.
