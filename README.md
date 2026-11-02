@@ -129,6 +129,10 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 ### v1.7 (2026-11-02)
 
 - Projects page shows 10 cards first, with a Load more button and a "Showing 10 of 24" line. New cards come from memory, so there are no extra requests.
-- Project card and list videos now share a play limit: 10 on desktop, 6 on phones and 4 on low memory devices. The videos closest to the screen play, the farthest pause first, and videos far from the screen are unloaded.
-- New video uploads also save a small first frame image next to the video. Project videos show it while loading or after they are unloaded, and list videos skip loading until hovered. Older videos have no image and behave as before. Deleting a project or replacing a video removes its image too.
-- Cards show a still frame on Data Saver or reduced motion. The featured carousel still plays only its current slide.
+- Every video now loads once and is shared. The same video is reused across pages, between the Cards and List views and between the featured carousel and the cards. A shared video shows in one place at a time and the other place shows its first frame image. A video that is no longer used is released after 30 seconds.
+- Videos on the Projects page share a play limit: 10 on desktop, 6 on phones and 4 on low memory devices. The videos closest to the screen play, the farthest pause first, and videos far from the screen are unloaded. Videos that may not play do not download ahead.
+- New video uploads also save a small first frame image next to the video, shown while a video loads or after it is unloaded. The Projects admin has a Create Missing Posters button for older videos. Deleting a project or replacing a video removes its image too.
+- Cards show a still frame on Data Saver or reduced motion. The featured carousel plays only its current slide.
+- Background warming of other pages skips videos on phones, low memory devices and Data Saver, and skips videos that are already loaded.
+- Images wider than 1600 px are resized and saved as WebP on upload.
+- Html media on cards loads only when it is near the screen.
