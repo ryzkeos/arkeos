@@ -201,7 +201,12 @@ function Login({ onDone }: { onDone: () => void }) {
         setErr(data.error_description || data.message || "Invalid credentials.");
       } else {
         db.dbSetSession(data);
-        onDone();
+        if (db.dbSessionRole() !== "admin") {
+          await db.dbSignOut().catch(() => {});
+          setErr("Invalid credentials.");
+        } else {
+          onDone();
+        }
       }
     } catch {
       setErr("Network error. Check your connection.");
