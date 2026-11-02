@@ -5,7 +5,7 @@ export const metadata = page_meta({
   path: "/projects",
   title: "Projects",
   share_title: "Arkeos | Projects",
-  description: "Selected web, system and motion projects by Arkeos.",
+  description: "Selected web, system and software projects by Arkeos.",
 });
 
 export default function Page() {
