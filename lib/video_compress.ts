@@ -38,14 +38,14 @@ export async function compress_video(file: File, on_status?: Status): Promise<Co
   let ff: import("@ffmpeg/ffmpeg").FFmpeg | null = null;
   let on_progress: ((e: { progress: number }) => void) | null = null;
   try {
-    on_status?.("Preparing video compressor…");
+    on_status?.("Preparing Video Compressor…");
     ff = await engine();
     on_progress = ({ progress }) => {
       const pct = Math.max(0, Math.min(99, Math.round(progress * 100)));
-      on_status?.(`Compressing video ${pct}%`);
+      on_status?.(`Compressing Video ${pct}%`);
     };
     ff.on("progress", on_progress);
-    on_status?.("Compressing video 0%");
+    on_status?.("Compressing Video 0%");
 
     const ext = (file.name.split(".").pop() ?? "mp4").toLowerCase().replace(/[^a-z0-9]/g, "") || "mp4";
     const input = `in.${ext}`;

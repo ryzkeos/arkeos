@@ -126,7 +126,7 @@ export async function upload_media(
   const packed = await compress_video(prepare ? prepare(file) : file, on_status);
   const sized = await resize_image(packed.file);
   const ready = sized.file;
-  const note = packed.note || sized.note || "No compression for this file type.";
+  const note = packed.note || sized.note || "No Compression For This File Type.";
   const ext = (ready.name.split(".").pop() ?? "bin").toLowerCase().replace(/[^a-z0-9]/g, "") || "bin";
   const path = `${folder}/${slot}.${ext}`;
   on_status?.("Uploading…");
@@ -279,7 +279,7 @@ export function MediaField({
 
   const name = picked ? picked.name : value ? file_name(value) : "";
   const kind = name ? file_kind(name) : null;
-  const meta = busy ? status || "Uploading…" : failed ? "Upload failed" : picked ? `${file_size(picked.size)} · uploads when you save` : value ? "Uploaded" : hide_url ? "Choose a file to upload" : "Choose a file or paste a link below";
+  const meta = busy ? status || "Uploading…" : failed ? "Upload failed" : picked ? `${file_size(picked.size)} · Uploads When You Save` : value ? "Uploaded" : hide_url ? "Choose a file to upload" : "Choose a file or paste a link below";
   const state = failed ? "error" : busy ? "busy" : picked ? "ready" : value ? "done" : "empty";
 
   return (
@@ -296,7 +296,7 @@ export function MediaField({
           {!picked && value && kind === "image" ? <img src={value} alt="" /> : <Icon name={kind ? KIND_ICON[kind] : "image"} />}
         </div>
         <div className="admin-media__info">
-          <span className="admin-media__name" title={name || undefined}>{name || "No file selected"}</span>
+          <span className="admin-media__name" title={name || undefined}>{name || "No File Selected"}</span>
           <span className="admin-media__meta" role="status">
             {kind && <span className={`admin-media__kind admin-media__kind--${kind}`}>{kind}</span>}
             <span className="admin-media__text">{meta}</span>
