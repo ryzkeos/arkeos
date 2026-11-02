@@ -1,7 +1,7 @@
 import { page_meta } from "@/lib/site";
 import PrivacyView from "./PrivacyView";
 
-export const metadata = page_meta({ path: "/privacy", description:
+export const metadata = page_meta({ path: "/privacy", page: "Privacy Policy", description:
   "What this website collects, why, and how to contact the owner about your data." });
 
 const updated = new Date().toLocaleDateString("en-US", {
