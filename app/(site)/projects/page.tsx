@@ -1,14 +1,12 @@
-import type { Metadata } from "next";
+import { page_meta } from "@/lib/site";
 import ProjectsView from "@/components/ProjectsView";
 
-export const metadata: Metadata = {
+export const metadata = page_meta({
+  path: "/projects",
   title: "Projects",
-  description: "Selected projects by Arkeos.",
-  openGraph: {
-    title: "Arkeos | Projects",
-    description: "Selected projects by Arkeos.",
-  },
-};
+  share_title: "Arkeos | Projects",
+  description: "Selected web, system and motion projects by Arkeos.",
+});
 
 export default function Page() {
   return <ProjectsView />;
