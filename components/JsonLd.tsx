@@ -30,7 +30,7 @@ export default function JsonLd() {
       name: SITE_NAME,
       url,
       description: SITE_DESCRIPTION,
-      serviceType: ["Web development", "System development", "Motion design"],
+      serviceType: ["Web development", "System development", "Software development"],
       provider: { "@id": `${url}#organization` },
     },
   ];

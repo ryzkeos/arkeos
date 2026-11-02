@@ -10,7 +10,7 @@ export const about: AboutCopy = {
   },
   story: { label: "Our Story", lines: ["WHERE", "WE COME FROM."], intro: "Arkeos began with a simple idea: build digital work that lasts. We keep teams small, plans simple and standards high on every project we take on.", cta: null },
   story_paragraphs: [
-    "{name} is an independent studio that builds software with privacy as the starting point. We design, build and launch websites, apps and motion work for people who want something clear, fast and honest.",
+    "{name} is an independent studio that builds software with privacy as the starting point. We design, build and launch websites, apps and systems for people who want something clear, fast and honest.",
     "We began in {founded_year} with a simple rule: build only what a client needs, and keep their data in their hands. Too many products collect more than they use. We chose to do the opposite, and that choice shaped everything that came after.",
     "Early projects were small. A few pages, a simple tool, a brand that needed a clean start. Each one taught us the same lesson: when the plan is clear and the scope is honest, the work gets better and the stress goes down for everyone.",
     "Today we still keep the team small on purpose. You talk to the people who build your project, not to a layer of managers. Questions get direct answers, and bad news is shared early, while there is still time to act on it.",

@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
-import { OG_IMAGE, SITE_DESCRIPTION, SITE_KEYWORDS, SITE_NAME, SITE_TAGLINE, site_url } from "@/lib/site";
+import { OG_IMAGE, SITE_DESCRIPTION, SITE_KEYWORDS, SITE_NAME, SITE_TITLE, site_url } from "@/lib/site";
 
 const STORAGE_ORIGIN = (() => {
   try {
@@ -12,17 +12,16 @@ const STORAGE_ORIGIN = (() => {
 })();
 
 const GOOGLE_VERIFICATION = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION?.trim();
-const DEFAULT_TITLE = `${SITE_NAME} | ${SITE_TAGLINE}`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(site_url()),
   applicationName: SITE_NAME,
-  title: { default: DEFAULT_TITLE, template: `${SITE_NAME} | %s` },
+  title: { absolute: SITE_TITLE },
   description: SITE_DESCRIPTION,
   keywords: SITE_KEYWORDS,
   authors: [{ name: SITE_NAME }],
-  openGraph: { type: "website", siteName: SITE_NAME, locale: "en_US", title: DEFAULT_TITLE, description: SITE_DESCRIPTION, images: [OG_IMAGE] },
-  twitter: { card: "summary_large_image", title: DEFAULT_TITLE, description: SITE_DESCRIPTION, images: [OG_IMAGE] },
+  openGraph: { type: "website", siteName: SITE_NAME, locale: "en_US", title: SITE_TITLE, description: SITE_DESCRIPTION, images: [OG_IMAGE] },
+  twitter: { card: "summary_large_image", title: SITE_TITLE, description: SITE_DESCRIPTION, images: [OG_IMAGE] },
   verification: GOOGLE_VERIFICATION ? { google: GOOGLE_VERIFICATION } : undefined,
 };
 
