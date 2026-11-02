@@ -99,3 +99,7 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 
 - Added robots.txt and a sitemap that list the public pages and keep admin and api out of search.
 - Added Vercel Web Analytics, which is cookieless and works with the existing content security policy.
+
+### v1.4 (2026-11-02)
+
+- After the intro finishes, the site prefetches the other pages and warms up their images and videos in the background. It skips media on slow connections and Data Saver.
