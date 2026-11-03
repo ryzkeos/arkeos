@@ -15,7 +15,7 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 ## Credits
 
 - Author: John Ruenz (ryzkeos)
-- Published: October 5, 2027
+- Published: October 5, 2026
 - Design inspiration: Pinterest. Credits to the Original Creators of Some Pins.
 - Fonts: Zentry, Robert, General Sans
 - Built with: Next.js, React, GSAP, Lenis, Upstash Redis
