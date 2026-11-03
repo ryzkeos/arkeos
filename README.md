@@ -15,7 +15,7 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 ## Credits
 
 - Author: John Ruenz (ryzkeos)
-- Published: October 5, 2027
+- Published: October 5, 2026
 - Design inspiration: Pinterest. Credits to the Original Creators of Some Pins.
 - Fonts: Zentry, Robert, General Sans
 - Built with: Next.js, React, GSAP, Lenis, Upstash Redis
@@ -354,4 +354,4 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 ### v1.41 (2026-11-03) Card Tooltips, Year and Hero Lines
 
 - Removed the browser hover tooltip that showed the full description on project and service cards and rows (Home, Projects and Services pages). The description text on the cards is unchanged.
-- All page hero headers now have three lines: About (ABOUT / THE / STUDIO.), Contact (LET'S / START / TALKING.) and Services (OUR / CORE / SERVICES.) for bettter visuals.
+- All page hero headers now have three lines: About (ABOUT / THE / STUDIO.), Contact (LET'S / START / TALKING.) and Services (OUR / CORE / SERVICES.) for better visuals.
