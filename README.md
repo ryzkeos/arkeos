@@ -1,6 +1,6 @@
 # Arkeos Web
 
-Company Website and Project Portfolio of Arkeos.
+Company website and project portfolio of Arkeos.
 
 ## About
 
@@ -20,7 +20,7 @@ Pages: Home, Projects, Services, About, Contact and Privacy.
 - Fonts: Zentry, Robert, General Sans
 - Built with: Next.js, React, GSAP, Lenis, Upstash Redis
 
-## Version History
+## Version history
 
 ### v0.1 (2026-10-30) Next.js Port
 
